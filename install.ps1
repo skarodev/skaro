@@ -98,9 +98,15 @@ function Main {
     }
 
     Write-Info "Installing $Package (this may take a moment)..."
-    & $pip install --upgrade pip 2>$null | Out-Null
-    & $pip install --upgrade $Package
-    if ($LASTEXITCODE -ne 0) { Write-Fail "pip install failed." }
+
+    # pip writes progress and warnings to stderr — temporarily allow that
+    $ErrorActionPreference = 'Continue'
+    & $pip install --upgrade pip 2>&1 | Out-Null
+    & $pip install --upgrade $Package 2>&1
+    $pipExit = $LASTEXITCODE
+    $ErrorActionPreference = 'Stop'
+
+    if ($pipExit -ne 0) { Write-Fail "pip install failed." }
 
     $installedVersion = (& $pip show $Package 2>$null | Select-String '^Version:') -replace 'Version:\s*',''
     Write-Ok "Installed $Package $installedVersion"
