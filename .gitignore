@@ -12,8 +12,6 @@ venv/
 # ── Frontend (SvelteKit) ───────────────────────────────
 frontend/node_modules/
 frontend/.svelte-kit/
-src/skaro_web/static/_app/
-src/skaro_web/static/index.html
 
 # ── IDE / OS ───────────────────────────────────────────
 .idea/
