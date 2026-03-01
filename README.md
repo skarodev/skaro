@@ -28,7 +28,7 @@ skaro ui
 ## From source (development)
 
 ```
-git clone https://github.com/skaro-tool/skaro.git
+git clone https://github.com/skarodev/skaro.git
 cd skaro
 pip install -e ".[dev]"
 ```
