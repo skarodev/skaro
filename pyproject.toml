@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "skaro"
-version = "0.1.1"
+version = "0.1.2"
 description = "AI-powered SDLC orchestration platform"
 readme = "README.md"
 license = "AGPL-3.0-or-later"
@@ -60,6 +60,7 @@ packages = ["src/skaro_core", "src/skaro_cli", "src/skaro_web"]
 # after pip install.
 [tool.hatch.build.targets.wheel.force-include]
 "templates" = "skaro_core/templates"
+"src/skaro_web/static" = "skaro_web/static"
 
 [tool.hatch.build.targets.sdist]
 include = [
