@@ -1,6 +1,7 @@
 <script>
 	import { t } from '$lib/i18n/index.js';
 	import { Cpu } from 'lucide-svelte';
+	import { PROVIDER_LABELS } from '$lib/ui/icons/providers.js';
 
 	let { config = {}, roles = [] } = $props();
 </script>
@@ -13,12 +14,18 @@
 	<div class="llm-grid">
 		<div class="llm-item default">
 			<span class="llm-label">{$t('dash.default_model')}</span>
-			<span class="llm-val">{config?.llm_provider || '—'} / {config?.llm_model || '—'}</span>
+			<span class="llm-val">
+				{#if config?.llm_provider}<img class="provider-icon" src="/icons/providers/{config.llm_provider}.svg" alt="" />{/if}
+				{PROVIDER_LABELS[config?.llm_provider] || config?.llm_provider || '—'} / {config?.llm_model || '—'}
+			</span>
 		</div>
 		{#each roles as role}
 			<div class="llm-item">
 				<span class="llm-label">{$t('settings.role_' + role.name)}</span>
-				<span class="llm-val">{role.provider} / {role.model}</span>
+				<span class="llm-val">
+					<img class="provider-icon" src="/icons/providers/{role.provider}.svg" alt="" />
+					{PROVIDER_LABELS[role.provider] || role.provider} / {role.model}
+				</span>
 			</div>
 		{/each}
 		{#if roles.length === 0}
@@ -59,6 +66,16 @@
 		font-size: 0.8125rem;
 		color: var(--tx-bright);
 		font-family: var(--font-ui);
+		display: flex;
+		align-items: center;
+		gap: 0.375rem;
+	}
+
+	.provider-icon {
+		width: 1rem;
+		height: 1rem;
+		border-radius: 50%;
+		flex-shrink: 0;
 	}
 
 	.llm-item.hint .llm-label { color: var(--dm2); font-style: italic; text-transform: none; }
