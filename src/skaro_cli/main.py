@@ -88,6 +88,21 @@ def _get_version() -> str:
 # ── Helpers ─────────────────────────────────────
 
 
+def _find_free_port(start: int = 4700, max_attempts: int = 50) -> int:
+    """Find a free port starting from *start*, incrementing on conflict."""
+    import socket
+
+    for offset in range(max_attempts):
+        port = start + offset
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            try:
+                s.bind(("127.0.0.1", port))
+                return port
+            except OSError:
+                continue
+    raise RuntimeError(f"No free port found in range {start}–{start + max_attempts - 1}")
+
+
 def _ensure_initialized() -> ArtifactManager:
     """Return ArtifactManager or exit if .skaro/ is missing."""
     am = ArtifactManager()
@@ -219,7 +234,6 @@ def _show_config(cfg: SkaroConfig) -> None:
     table.add_row("API Key Env", cfg.llm.api_key_env or "(not set)")
     table.add_row("API Key Resolved", "✓" if cfg.llm.api_key else "✗")
     table.add_row("Language", cfg.lang)
-    table.add_row("UI Port", str(cfg.ui.port))
     console.print(table)
 
 
@@ -227,17 +241,26 @@ def _show_config(cfg: SkaroConfig) -> None:
 
 
 @cli.command()
-@click.option("--port", type=int, default=None, help="Port (default: 4700)")
+@click.option("--port", type=int, default=None, help="Port (default: auto from 4700)")
 @click.option("--no-browser", is_flag=True, help="Don't open browser")
 def ui(port: int | None, no_browser: bool) -> None:
     """Start the Skaro web dashboard."""
     am = _ensure_initialized()
     cfg = load_config()
 
-    actual_port = port or cfg.ui.port
-    url = f"http://localhost:{actual_port}"
+    if port is not None:
+        actual_port = port
+    else:
+        try:
+            actual_port = _find_free_port()
+        except RuntimeError as e:
+            console.print(f"[red]✗[/red] {e}")
+            raise SystemExit(1)
 
-    console.print(f"\n🌐 {t('cli.ui.starting', port=actual_port)}\n")
+    url = f"http://127.0.0.1:{actual_port}"
+
+    console.print(f"\n🌐 {t('cli.ui.starting', port=actual_port)}")
+    console.print(f"   {url}\n")
 
     if not no_browser and cfg.ui.auto_open_browser:
         webbrowser.open(url)
@@ -247,7 +270,7 @@ def ui(port: int | None, no_browser: bool) -> None:
         from skaro_web.app import create_app
 
         app = create_app(project_root=am.root)
-        uvicorn.run(app, host="0.0.0.0", port=actual_port, log_level="info")
+        uvicorn.run(app, host="127.0.0.1", port=actual_port, log_level="info")
     except KeyboardInterrupt:
         console.print(f"\n{t('cli.ui.stopped')}")
     except ImportError as e:

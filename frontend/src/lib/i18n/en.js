@@ -358,8 +358,6 @@ export default {
 	'settings.role_security_desc': 'Security audits, DevOps',
 	'settings.use_default': 'Use default',
 	'settings.ui_title': 'Interface',
-	'settings.ui_port': 'Port',
-	'settings.ui_port_hint': 'Requires restart to take effect',
 	'settings.auto_open_browser': 'Open browser automatically on start',
 	'settings.language': 'Language',
 	'settings.theme': 'Theme',

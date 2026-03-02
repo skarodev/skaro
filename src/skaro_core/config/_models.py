@@ -15,8 +15,6 @@ TOKENS_FILENAME = "token_usage.yaml"
 USAGE_LOG_FILENAME = "usage_log.jsonl"
 GLOBAL_CONFIG_DIR = Path.home() / ".skaro"
 
-DEFAULT_PORT = 4700
-
 # Roles and which phases they cover
 ROLE_PHASES: dict[str, list[str]] = {
     "architect": ["architecture", "devplan", "plan"],
@@ -87,7 +85,6 @@ class RoleConfig:
 
 @dataclass
 class UIConfig:
-    port: int = DEFAULT_PORT
     auto_open_browser: bool = True
 
 
@@ -161,7 +158,6 @@ class SkaroConfig:
                 "temperature": self.llm.temperature,
             },
             "ui": {
-                "port": self.ui.port,
                 "auto_open_browser": self.ui.auto_open_browser,
             },
             "lang": self.lang,
@@ -236,7 +232,6 @@ class SkaroConfig:
                 temperature=llm_data.get("temperature", 0.3),
             ),
             ui=UIConfig(
-                port=ui_data.get("port", DEFAULT_PORT),
                 auto_open_browser=ui_data.get("auto_open_browser", True),
             ),
             lang=data.get("lang", "en"),

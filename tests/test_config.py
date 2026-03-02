@@ -27,7 +27,6 @@ class TestConfigDefaults:
 
     def test_default_ui_config(self):
         cfg = SkaroConfig()
-        assert cfg.ui.port == 4700
         assert cfg.ui.auto_open_browser is True
 
     def test_default_roles(self):
@@ -55,7 +54,7 @@ class TestConfigRoundTrip:
     def test_to_dict_from_dict(self):
         original = SkaroConfig(
             llm=LLMConfig(provider="openai", model="gpt-4o", temperature=0.7),
-            ui=UIConfig(port=5000),
+            ui=UIConfig(),
             lang="ru",
             theme="light",
             project_name="MyProject",
@@ -67,7 +66,6 @@ class TestConfigRoundTrip:
         assert restored.llm.provider == "openai"
         assert restored.llm.model == "gpt-4o"
         assert restored.llm.temperature == 0.7
-        assert restored.ui.port == 5000
         assert restored.lang == "ru"
         assert restored.theme == "light"
         assert restored.project_name == "MyProject"

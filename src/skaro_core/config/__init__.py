@@ -7,7 +7,6 @@ Public API (backward-compatible):
 from skaro_core.config._io import find_project_root, load_config, save_config, skaro_path
 from skaro_core.config._models import (
     CONFIG_FILENAME,
-    DEFAULT_PORT,
     GLOBAL_CONFIG_DIR,
     ROLE_PHASES,
     SECRETS_FILENAME,
@@ -25,7 +24,6 @@ from skaro_core.config._token_tracking import add_token_usage, load_token_usage,
 __all__ = [
     # Constants
     "CONFIG_FILENAME",
-    "DEFAULT_PORT",
     "GLOBAL_CONFIG_DIR",
     "ROLE_PHASES",
     "SECRETS_FILENAME",

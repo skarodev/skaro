@@ -147,7 +147,6 @@ class TestConfigUpdateBody:
     def test_defaults(self):
         body = ConfigUpdateBody()
         assert body.llm.provider == "anthropic"
-        assert body.ui.port == 4700
         assert body.lang == "en"
 
     def test_to_dict(self):

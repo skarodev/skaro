@@ -175,7 +175,6 @@ class RoleConfigBody(BaseModel):
 
 
 class UIConfigBody(BaseModel):
-    port: int = Field(default=4700, ge=1, le=65535)
     auto_open_browser: bool = True
 
 

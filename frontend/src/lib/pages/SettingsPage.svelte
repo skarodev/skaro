@@ -48,7 +48,6 @@
 	});
 	let lang = $state('en');
 	let theme = $state('dark');
-	let uiPort = $state(4700);
 	let uiAutoOpen = $state(true);
 	const providerNames = Object.keys(PROVIDER_MODELS);
 
@@ -68,7 +67,6 @@
 			};
 			lang = config.lang || 'en';
 			theme = config.theme || 'dark';
-			uiPort = config.ui?.port || 4700;
 			uiAutoOpen = config.ui?.auto_open_browser ?? true;
 			for (const r of roles) {
 				const rd = config.roles?.[r.id];
@@ -102,7 +100,6 @@
 					temperature: Number(llm.temperature) ?? 0.3,
 				},
 				ui: {
-					port: Number(uiPort) || 4700,
 					auto_open_browser: uiAutoOpen,
 				},
 				lang,
@@ -181,18 +178,11 @@
 					<!-- UI settings -->
 					<div class="card">
 						<h3>{$t('settings.ui_title')}</h3>
-						<div class="form-grid-2">
-							<div class="form-field">
-								<label for="ui-port">{$t('settings.ui_port')}</label>
-								<input id="ui-port" type="number" bind:value={uiPort} min="1024" max="65535" />
-								<span class="field-hint">{$t('settings.ui_port_hint')}</span>
-							</div>
-							<div class="form-field checkbox-field">
-								<label class="checkbox-label">
-									<input type="checkbox" bind:checked={uiAutoOpen} />
-									<span>{$t('settings.auto_open_browser')}</span>
-								</label>
-							</div>
+						<div class="form-field checkbox-field">
+							<label class="checkbox-label">
+								<input type="checkbox" bind:checked={uiAutoOpen} />
+								<span>{$t('settings.auto_open_browser')}</span>
+							</label>
 						</div>
 					</div>
 
@@ -337,14 +327,6 @@
 	.form-field input:focus {
 		outline: none;
 		border-color: var(--ac);
-	}
-
-	.field-hint {
-		display: block;
-		font-size: 0.625rem;
-		color: var(--dm);
-		margin-top: 0.1875rem;
-		opacity: .7;
 	}
 
 	.checkbox-field {
