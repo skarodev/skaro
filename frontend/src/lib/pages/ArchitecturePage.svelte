@@ -136,7 +136,7 @@
 	// ── Tabs ──
 	let archTabs = $derived.by(() => {
 		const tabs = [];
-		if (data?.content && data?.has_architecture) {
+		if (data?.content) {
 			tabs.push({ id: 'document', label: $t('arch.document') });
 		}
 		if (reviewResult && !reviewing) {

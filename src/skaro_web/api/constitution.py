@@ -21,12 +21,14 @@ _PRESET_REGISTRY: list[dict[str, str]] = [
     {"id": "vue",          "name": "Vue.js",       "category": "frontend", "file": "vue.md"},
     {"id": "sveltekit",    "name": "SvelteKit",    "category": "frontend", "file": "sveltekit.md"},
     {"id": "nextjs",       "name": "Next.js",      "category": "frontend", "file": "nextjs.md"},
+    {"id": "angular",      "name": "Angular",      "category": "frontend", "file": "angular.md"},
     {"id": "fastapi",      "name": "FastAPI",       "category": "backend",  "file": "fastapi.md"},
     {"id": "django",       "name": "Django",        "category": "backend",  "file": "django.md"},
     {"id": "express",      "name": "Express.js",    "category": "backend",  "file": "express.md"},
     {"id": "nestjs",       "name": "NestJS",        "category": "backend",  "file": "nestjs.md"},
     {"id": "react-native", "name": "React Native",  "category": "mobile",   "file": "react-native.md"},
     {"id": "flutter",      "name": "Flutter",       "category": "mobile",   "file": "flutter.md"},
+    {"id": "kotlin-mp",    "name": "Kotlin MP",     "category": "mobile",   "file": "kotlin-mp.md"},
 ]
 
 
