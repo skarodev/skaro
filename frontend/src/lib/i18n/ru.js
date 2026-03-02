@@ -252,6 +252,7 @@ export default {
 	'phase.plan': 'План',
 	'phase.implement': 'Реализация',
 	'phase.tests': 'Тесты',
+	'phase.done': 'Готово',
 	'phase.docs': 'Доки',
 	'phase.security': 'Безоп.',
 
@@ -407,4 +408,5 @@ export default {
 	'dash.edit': 'Изменить',
 	'dash.no_roles': 'Роли не настроены',
 	'dash.no_data': 'Нет данных.',
+	'dash.tasks_total': 'всего',
 };

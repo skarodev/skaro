@@ -1,6 +1,6 @@
 <script>
 	import { t } from '$lib/i18n/index.js';
-	import { Package, MessageCircle, ClipboardList, Code, FlaskConical, Check } from 'lucide-svelte';
+	import { Package, MessageCircle, ClipboardList, Code, FlaskConical, Check, CircleCheckBig } from 'lucide-svelte';
 
 	let { tasks = [] } = $props();
 
@@ -9,10 +9,19 @@
 		{ key: 'plan', icon: ClipboardList },
 		{ key: 'implement', icon: Code },
 		{ key: 'tests', icon: FlaskConical },
+		{ key: 'done', icon: CircleCheckBig },
 	];
 
-	function phaseStatus(phases, key) {
-		const s = phases?.[key] || 'not_started';
+	function isTaskDone(task) {
+		return ['clarify', 'plan', 'implement', 'tests'].every(k => task.phases?.[k] === 'complete');
+	}
+
+	let doneCount = $derived(tasks.filter(isTaskDone).length);
+	let openCount = $derived(tasks.length - doneCount);
+
+	function phaseStatus(task, key) {
+		if (key === 'done') return isTaskDone(task) ? 'ok' : '';
+		const s = task.phases?.[key] || 'not_started';
 		if (s === 'complete') return 'ok';
 		if (['in_progress', 'draft', 'awaiting_review'].includes(s)) return 'wip';
 		return '';
@@ -21,7 +30,12 @@
 
 <div class="widget lg card">
 	<div class="section-head">
-		<h3><Package size={16} /> {$t('dash.tasks_overview')}</h3>
+		<h3>
+			<Package size={16} /> {$t('dash.tasks_overview')}
+			{#if tasks?.length}
+				<span class="tasks-stats">{doneCount} ✓ / {openCount} ○ / {tasks.length} {$t('dash.tasks_total')}</span>
+			{/if}
+		</h3>
 		<a class="sec-btn" href="/tasks">{$t('dash.view_all')}</a>
 	</div>
 	{#if tasks?.length}
@@ -34,11 +48,11 @@
 					</div>
 					<div class="mini-phases">
 						{#each phaseKeys as phase, i}
-							{@const cls = phaseStatus(f.phases, phase.key)}
+							{@const cls = phaseStatus(f, phase.key)}
 							{@const Icon = phase.icon}
 							<div class="mp-cell">
 								{#if i < phaseKeys.length - 1}
-									{@const nextCls = phaseStatus(f.phases, phaseKeys[i + 1].key)}
+									{@const nextCls = phaseStatus(f, phaseKeys[i + 1].key)}
 									<div class="mp-line" class:mp-line-ok={cls === 'ok'} class:mp-line-half={cls === 'ok' && nextCls !== 'ok'}></div>
 								{/if}
 								<div class="mp-dot {cls}">
@@ -81,6 +95,13 @@
 	}
 
 	.feat-item:hover { background: rgba(75, 110, 175, .1); }
+
+	.tasks-stats {
+		font-size: 0.6875rem;
+		font-weight: 400;
+		color: var(--dm);
+		margin-left: 0.5rem;
+	}
 
 	.feat-top {
 		display: flex;

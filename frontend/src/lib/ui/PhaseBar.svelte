@@ -1,6 +1,6 @@
 <script>
     import { t } from '$lib/i18n/index.js';
-    import { MessageCircle, ClipboardList, Code, FlaskConical, Check } from 'lucide-svelte';
+    import { MessageCircle, ClipboardList, Code, FlaskConical, Check, CircleCheckBig } from 'lucide-svelte';
 
     /** @type {{ phases: Record<string, string> }} */
     let { phases } = $props();
@@ -10,7 +10,17 @@
         { key: 'plan', icon: ClipboardList },
         { key: 'implement', icon: Code },
         { key: 'tests', icon: FlaskConical },
+        { key: 'done', icon: CircleCheckBig },
     ];
+
+    let allComplete = $derived(
+        ['clarify', 'plan', 'implement', 'tests'].every(k => phases[k] === 'complete')
+    );
+
+    function getStatus(key) {
+        if (key === 'done') return allComplete ? 'complete' : 'not_started';
+        return phases[key] || 'not_started';
+    }
 
     function statusClass(status) {
         if (status === 'complete') return 'ok';
@@ -27,9 +37,9 @@
 
 <div class="phase-bar">
     {#each phaseKeys as phase, i}
-        {@const status = phases[phase.key] || 'not_started'}
+        {@const status = getStatus(phase.key)}
         {@const cls = statusClass(status)}
-        {@const nextStatus = i < phaseKeys.length - 1 ? (phases[phaseKeys[i + 1].key] || 'not_started') : 'not_started'}
+        {@const nextStatus = i < phaseKeys.length - 1 ? getStatus(phaseKeys[i + 1].key) : 'not_started'}
         {@const Icon = phase.icon}
         <div class="phase-cell">
             {#if i < phaseKeys.length - 1}

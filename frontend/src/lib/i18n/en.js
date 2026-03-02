@@ -252,6 +252,7 @@ export default {
 	'phase.plan': 'Plan',
 	'phase.implement': 'Implement',
 	'phase.tests': 'Tests',
+	'phase.done': 'Done',
 	'phase.docs': 'Docs',
 	'phase.security': 'Security',
 
@@ -407,4 +408,5 @@ export default {
 	'dash.edit': 'Edit',
 	'dash.no_roles': 'No role overrides configured',
 	'dash.no_data': 'No data yet.',
+	'dash.tasks_total': 'total',
 };
