@@ -85,3 +85,35 @@ class StateMixin:
         state["devplan_confirmed"] = True
         state["devplan_hash"] = self._devplan_hash()
         self._save_state(state)
+
+    # ── Import state ────────────────────────────
+
+    @property
+    def import_mode(self) -> str | None:
+        """Return 'auto', 'manual', or None if not an imported project."""
+        return self._load_state().get("import_mode")
+
+    @property
+    def import_source_commit(self) -> str:
+        return self._load_state().get("import_source_commit", "")
+
+    def mark_imported(self, *, mode: str, source_commit: str = "") -> None:
+        """Record that the project was initialized via import (auto or manual)."""
+        from datetime import datetime, timezone
+
+        state = self._load_state()
+        state["import_mode"] = mode
+        state["import_timestamp"] = datetime.now(timezone.utc).isoformat()
+        state["import_source_commit"] = source_commit
+        # Reset approval flags so user is prompted to review generated artifacts
+        state["constitution_validated"] = False
+        state["architecture_reviewed"] = False
+        state["devplan_confirmed"] = False
+        self._save_state(state)
+
+    def clear_import_flags(self) -> None:
+        """Remove import metadata (e.g. on re-initialization)."""
+        state = self._load_state()
+        for key in ("import_mode", "import_timestamp", "import_source_commit"):
+            state.pop(key, None)
+        self._save_state(state)

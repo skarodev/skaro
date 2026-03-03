@@ -161,6 +161,12 @@ class BasePhase(ABC):
         if adr_index:
             parts.append(adr_index)
 
+        completed_work_path = self.artifacts.skaro / "docs" / "completed-work.md"
+        if completed_work_path.exists():
+            content = completed_work_path.read_text(encoding="utf-8")
+            if content.strip():
+                parts.append(f"# COMPLETED WORK (pre-existing)\n\n{content}")
+
         return "\n\n---\n\n".join(parts)
 
     def _build_messages(

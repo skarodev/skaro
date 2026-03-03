@@ -45,6 +45,8 @@ async def get_constitution(am: ArtifactManager = Depends(get_am)):
 async def validate_constitution(am: ArtifactManager = Depends(get_am)):
     result = am.validate_constitution()
     is_valid = all(result.values()) if result else False
+    if is_valid:
+        am.mark_constitution_validated()
     return {"success": True, "valid": is_valid, "checks": result}
 
 

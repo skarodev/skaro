@@ -68,6 +68,7 @@ class _ArtifactManagerBase:
             self.create_architecture()
 
         self._ensure_gitignore()
+        self._ensure_skaroignore()
 
         return self.skaro
 
@@ -103,6 +104,52 @@ class _ArtifactManagerBase:
 
         with open(gitignore, "a", encoding="utf-8") as f:
             f.write(f"{separator}{prefix}{self._GITIGNORE_SECTION}")
+
+    # ── .skaroignore ─────────────────────────────
+
+    _SKAROIGNORE_HEADER = """\
+# .skaroignore — files excluded from LLM analysis during `skaro init`
+# Syntax is identical to .gitignore.
+# Add paths that contain sensitive, private, or irrelevant content.
+#
+# ── Secrets & credentials ──────────────────────────────
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+secrets.*
+credentials.*
+*_secret*
+*_credentials*
+# ── Private data & dumps ───────────────────────────────
+*.sql
+*.dump
+*.db
+*.sqlite
+*.sqlite3
+data/
+datasets/
+fixtures/private/
+# ── Generated & vendored ───────────────────────────────
+vendor/
+third_party/
+generated/
+auto_generated/
+# ── Large assets ───────────────────────────────────────
+assets/
+media/
+uploads/
+storage/
+"""
+
+    def _ensure_skaroignore(self) -> None:
+        """Create .skaroignore in the project root if it doesn't exist."""
+        skaroignore = self.root / ".skaroignore"
+        if not skaroignore.exists():
+            skaroignore.write_text(self._SKAROIGNORE_HEADER, encoding="utf-8")
 
     # ── Templates ───────────────────────────────
 

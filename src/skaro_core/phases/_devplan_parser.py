@@ -60,37 +60,105 @@ def parse_update_response(content: str) -> tuple[str, list[dict[str, Any]]]:
 
 
 def parse_milestones_markdown(content: str) -> list[dict[str, Any]]:
-    """Fallback: parse markdown sections into milestones with tasks."""
+    """Fallback: parse markdown sections into milestones with tasks.
+
+    Supports two task formats:
+      - ``### Task Name`` heading style
+      - ``| # | name | status | deps | description |`` table style
+        (produced by ``build_devplan_markdown``)
+    """
     milestones: list[dict[str, Any]] = []
     current_ms: dict[str, Any] | None = None
     current_task: dict[str, Any] | None = None
     spec_lines: list[str] = []
     in_spec = False
+    in_table = False
 
     for line in content.splitlines():
         # Milestone header (## level)
         ms_match = re.match(r"^##\s+(?:Milestone\s+\d+[.:]\s*)?(.+)", line)
         if ms_match and not in_spec:
+            # Skip known non-milestone ## headings
+            heading_text = ms_match.group(1).strip()
+            if heading_text.lower() in ("status legend", "change log"):
+                _flush_task(current_task, spec_lines, current_ms)
+                current_task = None
+                spec_lines = []
+                if current_ms is not None:
+                    milestones.append(current_ms)
+                    current_ms = None
+                in_table = False
+                continue
+
             _flush_task(current_task, spec_lines, current_ms)
             current_task = None
             spec_lines = []
+            in_table = False
 
             if current_ms is not None:
                 milestones.append(current_ms)
 
-            title = ms_match.group(1).strip()
+            title = heading_text
             slug = make_slug(title)
             idx = len(milestones) + 1
             current_ms = {
-                "milestone_slug": f"{idx:02d}-{slug}",
+                "milestone_slug": f"{idx:02d}-{slug}" if slug else f"{idx:02d}-milestone",
                 "milestone_title": title,
                 "tasks": [],
             }
             continue
 
-        # Task header (### level)
+        # _Directory: `milestones/<slug>/`_ — extract original slug
+        dir_match = re.match(
+            r"^_Directory:\s*`milestones/([^/`]+)/?`_", line
+        )
+        if dir_match and current_ms is not None:
+            current_ms["milestone_slug"] = dir_match.group(1)
+            continue
+
+        # Table header/separator — skip but mark we're in a table
+        if current_ms is not None and re.match(
+            r"^\|\s*#?\s*\|\s*Task\s*\|", line, re.IGNORECASE
+        ):
+            in_table = True
+            continue
+        if current_ms is not None and re.match(r"^\|[-|:\s]+\|$", line):
+            in_table = True
+            continue
+
+        # Table data row: | idx | name | status | deps | description |
+        table_row = re.match(
+            r"^\|\s*\d+\s*\|\s*([^|]+?)\s*\|\s*([^|]*?)\s*\|\s*([^|]*?)\s*\|\s*([^|]*?)\s*\|",
+            line,
+        )
+        if table_row and current_ms is not None:
+            in_table = True
+            _flush_task(current_task, spec_lines, current_ms)
+            spec_lines = []
+
+            name = table_row.group(1).strip()
+            status = table_row.group(2).strip() or "planned"
+            deps_raw = table_row.group(3).strip()
+            desc = table_row.group(4).strip()
+
+            deps: list[str] = []
+            if deps_raw and deps_raw not in ("—", "-", "none", ""):
+                deps = [d.strip() for d in deps_raw.split(",") if d.strip()]
+
+            current_task = {
+                "name": name,
+                "description": desc,
+                "status": status,
+                "dependencies": deps,
+            }
+            # Table tasks are self-contained — flush immediately
+            _flush_task(current_task, [], current_ms)
+            current_task = None
+            continue
+
+        # Task header (### level) — heading style
         task_match = re.match(r"^###\s*\d*\.?\s*(.+)", line)
-        if task_match and not in_spec:
+        if task_match and not in_spec and not in_table:
             _flush_task(current_task, spec_lines, current_ms)
             spec_lines = []
 

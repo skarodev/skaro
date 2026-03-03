@@ -14,6 +14,8 @@ import webbrowser
 from pathlib import Path
 
 import click
+import questionary
+from prompt_toolkit.styles import Style as PTStyle
 from rich.console import Console
 from rich.markup import escape
 from rich.panel import Panel
@@ -23,6 +25,7 @@ from rich.text import Text
 from skaro_core.artifacts import ArtifactManager, Phase, Status
 from skaro_core.config import SkaroConfig, load_config, save_config, save_secret
 from skaro_core.i18n import set_locale, t
+from skaro_core.providers import get_model_choices, get_provider, get_provider_keys
 
 console = Console()
 
@@ -85,6 +88,214 @@ def _get_version() -> str:
     return version("skaro")
 
 
+# ── Questionary style ───────────────────────────
+
+SKARO_STYLE = PTStyle(
+    [
+        ("qmark", "fg:cyan bold"),
+        ("question", "fg:white bold"),
+        ("answer", "fg:cyan bold"),
+        ("pointer", "fg:cyan bold"),
+        ("highlighted", "fg:cyan bold"),
+        ("selected", "fg:green"),
+        ("instruction", "fg:#888888"),
+    ]
+)
+
+_CUSTOM_MODEL_LABEL = "✎ Custom (enter manually)"
+
+
+# ── Init wizard helpers ─────────────────────────
+
+
+def _print_init_banner() -> None:
+    """Print the branded init banner with description and repo link."""
+    try:
+        version = _get_version()
+    except Exception:
+        version = "dev"
+
+    logo_text = Text(LOGO, style="bold cyan")
+    tagline = Text(
+        "  AI-powered SDLC orchestration platform", style="dim white"
+    )
+    ver = Text(f"  v{version}", style="dim")
+    repo = Text(
+        "  https://github.com/skarodev/skaro", style="dim cyan"
+    )
+
+    banner = Text()
+    banner.append_text(logo_text)
+    banner.append("\n")
+    banner.append_text(tagline)
+    banner.append("\n")
+    banner.append_text(ver)
+    banner.append("\n")
+    banner.append_text(repo)
+    banner.append("\n")
+
+    console.print(banner)
+
+
+def _select_language() -> str:
+    """Prompt for language via interactive select, apply immediately."""
+    lang = questionary.select(
+        "Language / Язык",
+        choices=[
+            questionary.Choice("English", value="en"),
+            questionary.Choice("Русский", value="ru"),
+        ],
+        default="en",
+        style=SKARO_STYLE,
+    ).ask()
+
+    if lang is None:  # Ctrl+C
+        raise SystemExit(0)
+
+    set_locale(lang)
+    return lang
+
+
+def _show_license_and_confirm() -> None:
+    """Display license info and ask for confirmation to continue."""
+    console.print()
+    console.print(
+        Panel(
+            f"  {t('cli.init.license_type')}: [bold]AGPL-3.0[/bold]\n"
+            f"  {t('cli.init.license_url')}: "
+            "[cyan]https://github.com/skarodev/skaro/blob/main/LICENSE[/cyan]",
+            title=t("cli.init.license_title"),
+            border_style="dim",
+            padding=(1, 2),
+        )
+    )
+
+    accepted = questionary.confirm(
+        t("cli.init.license_confirm"),
+        default=True,
+        style=SKARO_STYLE,
+    ).ask()
+
+    if not accepted:
+        raise SystemExit(0)
+
+
+def _setup_llm_interactive(cfg: SkaroConfig) -> SkaroConfig:
+    """Interactive LLM configuration wizard for option B. Returns updated config."""
+    console.print()
+    console.print(
+        Panel(
+            t("cli.init.llm_setup_intro"),
+            border_style="yellow",
+            padding=(1, 2),
+        )
+    )
+
+    # 1. Provider ─────────────────────────────────────────────────────────────
+    provider_keys = get_provider_keys()
+    provider_choices = []
+    for key in provider_keys:
+        info = get_provider(key)
+        label = info.name if info else key
+        provider_choices.append(questionary.Choice(label, value=key))
+
+    default_provider = cfg.llm.provider if cfg.llm.provider in provider_keys else "groq"
+
+    provider = questionary.select(
+        t("cli.init.llm_provider_prompt"),
+        choices=provider_choices,
+        default=default_provider,
+        style=SKARO_STYLE,
+    ).ask()
+
+    if provider is None:
+        raise SystemExit(0)
+
+    cfg.llm.provider = provider
+    provider_info = get_provider(provider)
+
+    # 2. Console URL ──────────────────────────────────────────────────────────
+    if provider_info and provider_info.console_url:
+        console.print(f"\n  {t('cli.init.llm_console_hint')}")
+        console.print(f"  [cyan]{provider_info.console_url}[/cyan]")
+
+    # 3. API Key ──────────────────────────────────────────────────────────────
+    needs_key = provider_info.needs_key if provider_info else True
+    if needs_key:
+        api_key = questionary.password(
+            t("cli.init.llm_api_key_prompt"),
+            style=SKARO_STYLE,
+        ).ask()
+
+        if api_key is None:
+            raise SystemExit(0)
+
+        env_name = (
+            provider_info.api_key_env
+            if provider_info and provider_info.api_key_env
+            else f"{provider.upper()}_API_KEY"
+        )
+        save_secret(env_name, api_key)
+        cfg.llm.api_key_env = env_name
+    else:
+        console.print(f"\n  [dim]{t('cli.init.llm_no_key_needed')}[/dim]")
+
+    # 4. Model ────────────────────────────────────────────────────────────────
+    model_choices_raw = get_model_choices(provider)
+    default_model = provider_info.default_model if provider_info else ""
+
+    model_choices = [
+        questionary.Choice(f"{display}  [dim]({mid})[/dim]" if display != mid else mid, value=mid)
+        for display, mid in model_choices_raw
+    ]
+    model_choices.append(questionary.Choice(_CUSTOM_MODEL_LABEL, value="__custom__"))
+
+    model = questionary.select(
+        t("cli.init.llm_model_prompt"),
+        choices=model_choices,
+        default=default_model,
+        style=SKARO_STYLE,
+    ).ask()
+
+    if model is None:
+        raise SystemExit(0)
+
+    if model == "__custom__":
+        model = questionary.text(
+            t("cli.init.llm_model_custom_prompt"),
+            default=default_model,
+            style=SKARO_STYLE,
+        ).ask()
+        if not model:
+            raise SystemExit(0)
+
+    cfg.llm.model = model
+
+    # 5. Max tokens for import ────────────────────────────────────────────────
+    token_limit_str = questionary.text(
+        t("cli.init.llm_token_limit_prompt"),
+        default=str(cfg.import_config.token_limit),
+        style=SKARO_STYLE,
+    ).ask()
+
+    if token_limit_str is None:
+        raise SystemExit(0)
+
+    try:
+        cfg.import_config.token_limit = int(token_limit_str)
+    except ValueError:
+        pass  # keep default
+
+    # Save ────────────────────────────────────────────────────────────────────
+    save_config(cfg)
+
+    console.print(
+        f"\n  [green]✓[/green] "
+        f"{t('cli.init.llm_configured', provider=provider, model=model)}"
+    )
+    return cfg
+
+
 # ── Helpers ─────────────────────────────────────
 
 
@@ -137,26 +348,259 @@ def cli(ctx: click.Context, lang: str | None) -> None:
 @click.option("--description", default="", help="Project description")
 def init(no_git: bool, name: str | None, description: str) -> None:
     """Initialize Skaro in the current project."""
+    import asyncio
+
     am = ArtifactManager()
+
+    # ── Re-initialization guard ──────────────────────────────────────────────
     if am.is_initialized:
         console.print(f"[yellow]⚠[/yellow]  {t('cli.init.already_exists')}")
-        return
+        if not click.confirm(t("cli.init.reinit_confirm"), default=False):
+            return
+        am.clear_import_flags()
+        console.print(f"[dim]{t('cli.init.reinit_notice')}[/dim]")
 
+    # ── Init wizard: banner → language → license → confirm ───────────────────
+    _print_init_banner()
+
+    lang = _select_language()
+
+    _show_license_and_confirm()
+
+    # ── Project name ─────────────────────────────────────────────────────────
+    cwd = Path.cwd()
     if name is None:
-        default_name = Path.cwd().name
-        name = click.prompt("Project name", default=default_name)
+        default_name = cwd.name
+        name = questionary.text(
+            t("cli.init.name_prompt"),
+            default=default_name,
+            style=SKARO_STYLE,
+        ).ask()
+        if name is None:
+            raise SystemExit(0)
 
+    # ── Detect existing project ──────────────────────────────────────────────
+    is_existing = _detect_existing_project(cwd, no_git=no_git)
+
+    # ── Bootstrap .skaro/ structure ─────────────────────────────────────────
     skaro_path = am.init_project()
 
-    config = SkaroConfig(project_name=name, project_description=description)
-    save_config(config)
+    # Save language + project name to config
+    cfg = load_config()
+    changed = False
+    if lang and cfg.lang != lang:
+        cfg.lang = lang
+        changed = True
+    if name and cfg.project_name != name:
+        cfg.project_name = name
+        changed = True
+    if description and cfg.project_description != description:
+        cfg.project_description = description
+        changed = True
+    if not cfg.project_name:
+        cfg.project_name = name or cwd.name
+        changed = True
+    if changed:
+        save_config(cfg)
 
+    if not is_existing:
+        # ── New project: standard flow ───────────────────────────────────────
+        _print_init_success_new(skaro_path, no_git, am)
+        return
+
+    # ── Existing project: A/B choice ─────────────────────────────────────────
+    console.print()
+    console.print(
+        Panel(
+            t("cli.init.existing_detected", name=name, path=str(cwd)),
+            border_style="cyan",
+            padding=(1, 2),
+        )
+    )
+
+    choice = questionary.select(
+        t("cli.init.existing_choice_prompt"),
+        choices=[
+            questionary.Choice(
+                t("cli.init.choice_a_label"),
+                value="A",
+            ),
+            questionary.Choice(
+                t("cli.init.choice_b_label"),
+                value="B",
+            ),
+        ],
+        default="A",
+        style=SKARO_STYLE,
+    ).ask()
+
+    if choice is None:
+        raise SystemExit(0)
+
+    if choice == "A":
+        _print_init_success_manual(skaro_path)
+        am.mark_imported(mode="manual", source_commit=_get_git_head(cwd))
+        return
+
+    # ── Option B: inline LLM setup + automatic analysis ──────────────────────
+    cfg = load_config()
+    cfg = _setup_llm_interactive(cfg)
+
+    asyncio.run(_run_import_analyze(am, cfg, name, cwd, no_git))
+
+
+def _detect_existing_project(cwd: Path, *, no_git: bool) -> bool:
+    """Return True if the directory looks like an existing project."""
+    if not no_git and (cwd / ".git").is_dir():
+        return True
+    code_extensions = {".py", ".ts", ".js", ".go", ".rs", ".java", ".rb", ".cs", ".php"}
+    count = sum(
+        1
+        for p in cwd.rglob("*")
+        if p.is_file()
+        and p.suffix.lower() in code_extensions
+        and ".skaro" not in str(p)
+        and "node_modules" not in str(p)
+        and ".venv" not in str(p)
+    )
+    return count >= 3
+
+
+def _get_git_head(cwd: Path) -> str:
+    """Return the current HEAD commit hash or empty string."""
+    try:
+        import subprocess
+
+        result = subprocess.run(
+            ["git", "rev-parse", "--short", "HEAD"],
+            cwd=cwd,
+            capture_output=True,
+            text=True,
+            timeout=5,
+        )
+        return result.stdout.strip() if result.returncode == 0 else ""
+    except Exception:
+        return ""
+
+
+async def _run_import_analyze(
+    am: ArtifactManager,
+    cfg: "SkaroConfig",
+    name: str,
+    cwd: Path,
+    no_git: bool,
+) -> None:
+    """Run the full automatic import flow (option B)."""
+    from skaro_core.phases.repo_scan import RepoScanner, estimate_tokens
+    from skaro_core.phases.import_analyze import ImportAnalyzePhase
+
+    # ── Scan & estimate ──────────────────────────────────────────────────────
+    console.print(f"\n  {t('cli.init.scanning')}  ", end="")
+    scanner = RepoScanner(
+        cwd,
+        token_limit=cfg.import_config.token_limit,
+        max_file_size=cfg.import_config.max_file_size,
+    )
+
+    import asyncio as _asyncio
+
+    scan = await _asyncio.to_thread(scanner.scan)
+
+    console.print(f"[green]✓[/green]")
+    console.print(
+        f"  {t('cli.init.scan_summary', files=len(scan.files), tokens=scan.estimated_tokens)}"
+    )
+
+    if scan.sampled:
+        console.print(f"  [yellow]⚡[/yellow] {t('cli.init.smart_sampling_applied', skipped=len(scan.skipped_paths))}")
+
+    # ── Show .skaroignore exclusions ─────────────────────────────────────────
+    skaroignored = scanner.skaroignored_files()
+    if skaroignored:
+        console.print(f"\n  [dim]{t('cli.init.skaroignored', count=len(skaroignored))}[/dim]")
+        for p in skaroignored[:5]:
+            console.print(f"    [dim]  · {p}[/dim]")
+        if len(skaroignored) > 5:
+            console.print(f"    [dim]  … and {len(skaroignored) - 5} more[/dim]")
+
+    # ── Privacy warning + confirmation ───────────────────────────────────────
+    console.print()
+    console.print(
+        Panel(
+            t("cli.init.privacy_warning", provider=cfg.llm.provider),
+            border_style="yellow",
+            padding=(1, 2),
+        )
+    )
+
+    if not click.confirm(t("cli.init.confirm_send"), default=False):
+        console.print(f"  [dim]{t('cli.init.cancelled')}[/dim]")
+        raise SystemExit(0)
+
+    # ── Run phase ────────────────────────────────────────────────────────────
+    console.print(f"\n  {t('cli.init.analyzing')}  ")
+
+    phase = ImportAnalyzePhase(project_root=cwd, config=cfg)
+    source_commit = _get_git_head(cwd)
+
+    def _on_chunk(text: str) -> None:
+        console.print(text, end="", highlight=False)
+
+    phase.on_stream_chunk = lambda text: _asyncio.get_event_loop().call_soon_threadsafe(
+        _on_chunk, text
+    )
+
+    try:
+        result = await phase.run(project_name=name, source_commit=source_commit)
+    except Exception as exc:
+        from skaro_core.llm.base import LLMError
+
+        console.print()
+        if isinstance(exc, LLMError):
+            if exc.retriable:
+                console.print(f"\n[yellow]⚠[/yellow]  {t('cli.init.llm_rate_limit')}")
+                console.print(f"  [dim]{t('cli.init.llm_rate_limit_hint')}[/dim]")
+            else:
+                console.print(f"\n[red]✗[/red]  {t('cli.init.llm_error', error=str(exc)[:300])}")
+        else:
+            console.print(f"\n[red]✗[/red]  {t('cli.init.import_failed', reason=str(exc)[:300])}")
+        raise SystemExit(1)
+
+    console.print()
+
+    if not result.success:
+        console.print(f"\n[red]✗[/red]  {t('cli.init.import_failed', reason=result.message[:200])}")
+        raise SystemExit(1)
+
+    # ── Success summary ──────────────────────────────────────────────────────
+    data = result.data
+    scan_info = data.get("scan", {})
+
+    console.print(f"\n[green]✓[/green]  {t('cli.init.import_success')}")
+    console.print()
+    console.print(f"  {t('cli.init.created_artifacts')}")
+    for path in result.artifacts_created[:8]:
+        short = Path(path).relative_to(cwd) if Path(path).is_absolute() else Path(path)
+        console.print(f"    📄 {short}")
+    if len(result.artifacts_created) > 8:
+        console.print(f"    … {len(result.artifacts_created) - 8} more")
+
+    console.print()
+    console.print(f"  [bold]{t('cli.init.import_next_steps')}[/bold]")
+    console.print(f"    1. {t('cli.init.review_constitution')}")
+    console.print(f"    2. {t('cli.init.review_architecture')}")
+    console.print(f"    3. {t('cli.init.review_devplan')}")
+    console.print(f"    4. [cyan]skaro ui[/cyan]")
+
+
+def _print_init_success_new(skaro_path: Path, no_git: bool, am: ArtifactManager) -> None:
     console.print(f"[green]✓[/green] {t('cli.init.success', path=str(skaro_path))}")
     console.print()
     console.print("  Created:")
     console.print("    📄 .skaro/constitution.md               — fill in your project principles")
     console.print("    📄 .skaro/architecture/architecture.md  — describe your architecture")
     console.print("    📄 .skaro/config.yaml                   — LLM and project settings")
+    console.print("    📄 .skaroignore                         — files excluded from LLM analysis")
 
     if not no_git:
         git_dir = am.root / ".git"
@@ -169,6 +613,19 @@ def init(no_git: bool, name: str | None, description: str) -> None:
     console.print("    2. Fill in architecture:  [cyan]nano .skaro/architecture/architecture.md[/cyan]")
     console.print("    3. Configure LLM:         [cyan]skaro config --provider groq[/cyan]")
     console.print("    4. Launch dashboard:       [cyan]skaro ui[/cyan]")
+
+
+def _print_init_success_manual(skaro_path: Path) -> None:
+    console.print(f"\n[green]✓[/green] {t('cli.init.success', path=str(skaro_path))}")
+    console.print()
+    console.print(f"  {t('cli.init.manual_mode_hint')}")
+    console.print()
+    console.print("  [bold]Next steps:[/bold]")
+    console.print("    1. Configure LLM:         [cyan]skaro config --provider groq[/cyan]")
+    console.print("    2. Fill in constitution:  [cyan]nano .skaro/constitution.md[/cyan]")
+    console.print("    3. Fill in architecture:  [cyan]nano .skaro/architecture/architecture.md[/cyan]")
+    console.print("    4. Launch dashboard:       [cyan]skaro ui[/cyan]")
+    console.print("    5. Generate dev plan:      [cyan]Dashboard → Dev Plan[/cyan]")
 
 
 # ── skaro config ────────────────────────────────

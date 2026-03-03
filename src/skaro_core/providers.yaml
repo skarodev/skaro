@@ -1,0 +1,175 @@
+# ─────────────────────────────────────────────────────────────
+# Skaro — LLM Providers & Models Registry
+# ─────────────────────────────────────────────────────────────
+# This file is the single source of truth for supported
+# providers, their models, console URLs, and env-var names.
+#
+# To add a new provider or model, simply edit this file.
+# No code changes required.
+#
+# Updated: 2026-03-03
+# ─────────────────────────────────────────────────────────────
+
+providers:
+
+  anthropic:
+    name: Anthropic
+    console_url: "https://console.anthropic.com/settings/keys"
+    api_key_env: ANTHROPIC_API_KEY
+    needs_key: true
+    default_model: claude-sonnet-4-6
+    models:
+      - id: claude-opus-4-6
+        name: "Claude Opus 4.6"
+        context_window: 200000
+        max_output: 128000
+      - id: claude-sonnet-4-6
+        name: "Claude Sonnet 4.6"
+        context_window: 200000
+        max_output: 64000
+      - id: claude-sonnet-4-5-20250929
+        name: "Claude Sonnet 4.5"
+        context_window: 200000
+        max_output: 64000
+      - id: claude-haiku-4-5-20251001
+        name: "Claude Haiku 4.5"
+        context_window: 200000
+        max_output: 64000
+
+  openai:
+    name: OpenAI
+    console_url: "https://platform.openai.com/api-keys"
+    api_key_env: OPENAI_API_KEY
+    needs_key: true
+    default_model: gpt-5.2
+    models:
+      - id: gpt-5.2
+        name: "GPT-5.2"
+        context_window: 256000
+        max_output: 128000
+      - id: gpt-5.1
+        name: "GPT-5.1"
+        context_window: 256000
+        max_output: 128000
+      - id: gpt-5
+        name: "GPT-5"
+        context_window: 256000
+        max_output: 65536
+      - id: gpt-5-mini
+        name: "GPT-5 Mini"
+        context_window: 256000
+        max_output: 65536
+      - id: gpt-5-nano
+        name: "GPT-5 Nano"
+        context_window: 256000
+        max_output: 65536
+      - id: gpt-5.2-codex
+        name: "GPT-5.2 Codex"
+        context_window: 256000
+        max_output: 128000
+      - id: gpt-5.1-codex
+        name: "GPT-5.1 Codex"
+        context_window: 256000
+        max_output: 128000
+      - id: gpt-4.1
+        name: "GPT-4.1"
+        context_window: 1048576
+        max_output: 32768
+      - id: gpt-4.1-mini
+        name: "GPT-4.1 Mini"
+        context_window: 1048576
+        max_output: 32768
+      - id: gpt-4.1-nano
+        name: "GPT-4.1 Nano"
+        context_window: 1048576
+        max_output: 32768
+
+  groq:
+    name: Groq
+    console_url: "https://console.groq.com/keys"
+    api_key_env: GROQ_API_KEY
+    needs_key: true
+    default_model: llama-3.3-70b-versatile
+    models:
+      # Production
+      - id: llama-3.3-70b-versatile
+        name: "Llama 3.3 70B"
+        context_window: 131072
+        max_output: 32768
+      - id: llama-3.1-8b-instant
+        name: "Llama 3.1 8B Instant"
+        context_window: 131072
+        max_output: 131072
+      - id: openai/gpt-oss-120b
+        name: "GPT-OSS 120B"
+        context_window: 131072
+        max_output: 65536
+      - id: openai/gpt-oss-20b
+        name: "GPT-OSS 20B"
+        context_window: 131072
+        max_output: 65536
+      # Preview
+      - id: meta-llama/llama-4-scout-17b-16e-instruct
+        name: "Llama 4 Scout 17B (preview)"
+        context_window: 131072
+        max_output: 8192
+      - id: moonshotai/kimi-k2-instruct-0905
+        name: "Kimi K2 (preview)"
+        context_window: 262144
+        max_output: 16384
+      - id: qwen/qwen3-32b
+        name: "Qwen3 32B (preview)"
+        context_window: 131072
+        max_output: 40960
+
+  ollama:
+    name: Ollama (local)
+    console_url: ""
+    api_key_env: ""
+    needs_key: false
+    default_model: qwen3:32b
+    models:
+      - id: qwen3:32b
+        name: "Qwen3 32B"
+        context_window: 131072
+        max_output: 40960
+      - id: qwen3:8b
+        name: "Qwen3 8B"
+        context_window: 131072
+        max_output: 40960
+      - id: qwen3.5:35b
+        name: "Qwen 3.5 35B"
+        context_window: 131072
+        max_output: 40960
+      - id: llama3.3:70b
+        name: "Llama 3.3 70B"
+        context_window: 131072
+        max_output: 32768
+      - id: llama3.1:8b
+        name: "Llama 3.1 8B"
+        context_window: 131072
+        max_output: 131072
+      - id: deepseek-r1:70b
+        name: "DeepSeek R1 70B"
+        context_window: 131072
+        max_output: 65536
+      - id: deepseek-r1:8b
+        name: "DeepSeek R1 8B"
+        context_window: 131072
+        max_output: 65536
+      - id: gemma3:27b
+        name: "Gemma 3 27B"
+        context_window: 131072
+        max_output: 8192
+      - id: mistral:7b
+        name: "Mistral 7B"
+        context_window: 32768
+        max_output: 32768
+      - id: codellama:34b
+        name: "CodeLlama 34B"
+        context_window: 16384
+        max_output: 16384
+      - id: phi4:14b
+        name: "Phi-4 14B"
+        context_window: 16384
+        max_output: 16384

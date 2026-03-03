@@ -55,7 +55,7 @@
 		if (id === 'constitution') return s.constitution_validated ? { text: '✓', cls: 'ok' } : null;
 		if (id === 'architecture') {
 			if (s.architecture_reviewed) return { text: '✓', cls: 'ok' };
-			if (s.has_invariants) return { text: '✓', cls: 'ok' };
+			if (s.has_invariants) return { text: '…', cls: 'warn' };
 			if (s.has_architecture) return { text: '…', cls: 'warn' };
 			return null;
 		}

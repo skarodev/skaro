@@ -11,6 +11,8 @@
 	import DevPlanProposal from '$lib/pages/devplan/DevPlanProposal.svelte';
 
 	let devplanContent = $state('');
+	let devplanConfirmed = $state(false);
+	let draftMilestones = $state(null); // milestones parsed from imported devplan
 	let loading = $state(false);
 	let generating = $state(false);
 	let updating = $state(false);
@@ -27,7 +29,17 @@
 
 	async function load() {
 		loading = true;
-		try { const data = await cachedFetch('devplan', () => api.getDevPlan()); devplanContent = data.content || ''; error = ''; }
+		try {
+			const data = await cachedFetch('devplan', () => api.getDevPlan());
+			devplanContent = data.content || '';
+			devplanConfirmed = data.devplan_confirmed ?? false;
+			error = '';
+			// If imported but not yet confirmed — load milestones for the Confirm UI
+			if (devplanContent.trim().length > 100 && !devplanConfirmed && !$devplanMilestones) {
+				const ms = await api.getDevPlanMilestones();
+				if (ms.milestones?.length > 0) draftMilestones = ms.milestones;
+			}
+		}
 		catch (e) { error = e.message; addError(e.message, 'devplan'); }
 		loading = false;
 	}
@@ -47,13 +59,16 @@
 	}
 
 	async function confirmPlan() {
-		if (!$devplanMilestones) return;
+		const milestones = $devplanMilestones || draftMilestones;
+		if (!milestones) return;
 		confirmingPlan = true;
 		try {
-			const result = await api.confirmDevPlan({ milestones: $devplanMilestones });
+			const result = await api.confirmDevPlan({ milestones });
 			if (result.success) {
 				addLog($t('log.tasks_created', { n: result.tasks_created.length }));
 				devplanMilestones.set(null);
+				draftMilestones = null;
+				devplanConfirmed = true;
 				invalidate('devplan', 'status');
 				status.set(await api.getStatus());
 				await load();
@@ -121,7 +136,16 @@
 		</button>
 	</div>
 {:else}
-	{#if !$devplanMilestones && !hasProposal}
+	{#if ($devplanMilestones || draftMilestones) && !devplanConfirmed}
+		<div class="alert alert-warn"><AlertTriangle size={14} /> {$t('devplan.draft')}</div>
+		<DevPlanProposal
+			mode="initial"
+			items={$devplanMilestones || draftMilestones}
+			confirming={confirmingPlan}
+			onConfirm={confirmPlan}
+			onDiscard={() => { devplanMilestones.set(null); draftMilestones = null; }}
+		/>
+	{:else if !$devplanMilestones && !hasProposal}
 		<div class="alert alert-success"><CheckCircle size={14} /> {$t('devplan.exists')}</div>
 		<div class="btn-group">
 			{#if !showGuidanceInput}
@@ -140,7 +164,7 @@
 		{/if}
 	{/if}
 
-	{#if $devplanMilestones}
+	{#if $devplanMilestones && devplanConfirmed}
 		<DevPlanProposal
 			mode="initial"
 			items={$devplanMilestones}
@@ -162,7 +186,7 @@
 		/>
 	{/if}
 
-	{#if hasDevplan && !$devplanMilestones && !hasProposal}
+	{#if hasDevplan && !($devplanMilestones || draftMilestones) && !hasProposal}
 		<MarkdownContent content={devplanContent} />
 	{/if}
 {/if}

@@ -17,7 +17,7 @@ GLOBAL_CONFIG_DIR = Path.home() / ".skaro"
 
 # Roles and which phases they cover
 ROLE_PHASES: dict[str, list[str]] = {
-    "architect": ["architecture", "devplan", "plan"],
+    "architect": ["architecture", "devplan", "plan", "import_analyze"],
     "coder": ["implement", "fix"],
     "reviewer": ["tests", "clarify"],
 }
@@ -97,9 +97,21 @@ class VerifyCommand:
 
 
 @dataclass
+class ImportConfig:
+    """Settings for the 'skaro init' existing-project analysis flow."""
+
+    token_limit: int = 200_000
+    """Maximum estimated tokens to send to LLM. Triggers smart sampling above this."""
+
+    max_file_size: int = 100_000
+    """Skip individual files larger than this many bytes."""
+
+
+@dataclass
 class SkaroConfig:
     llm: LLMConfig = field(default_factory=LLMConfig)
     ui: UIConfig = field(default_factory=UIConfig)
+    import_config: ImportConfig = field(default_factory=ImportConfig)
     lang: str = "en"
     theme: str = "dark"
     project_name: str = ""
@@ -160,6 +172,10 @@ class SkaroConfig:
             "ui": {
                 "auto_open_browser": self.ui.auto_open_browser,
             },
+            "import": {
+                "token_limit": self.import_config.token_limit,
+                "max_file_size": self.import_config.max_file_size,
+            },
             "lang": self.lang,
             "theme": self.theme,
             "project_name": self.project_name,
@@ -192,6 +208,7 @@ class SkaroConfig:
     def from_dict(cls, data: dict[str, Any]) -> SkaroConfig:
         llm_data = data.get("llm", {})
         ui_data = data.get("ui", {})
+        import_data = data.get("import", {})
         roles_data = data.get("roles", {})
 
         roles: dict[str, RoleConfig] = {}
@@ -233,6 +250,10 @@ class SkaroConfig:
             ),
             ui=UIConfig(
                 auto_open_browser=ui_data.get("auto_open_browser", True),
+            ),
+            import_config=ImportConfig(
+                token_limit=import_data.get("token_limit", 200_000),
+                max_file_size=import_data.get("max_file_size", 100_000),
             ),
             lang=data.get("lang", "en"),
             theme=data.get("theme", "dark"),

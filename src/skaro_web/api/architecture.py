@@ -22,6 +22,34 @@ from skaro_web.api.schemas import (
 
 router = APIRouter(prefix="/api/architecture", tags=["architecture"])
 
+# Regex to find ## Architectural Invariants section in proposed architecture.
+_INVARIANTS_HEADING_RE = _re.compile(
+    r"^##\s+Architectural\s+Invariants\s*$", _re.IGNORECASE | _re.MULTILINE
+)
+
+# Matches any ## heading (used to find the end of the invariants section).
+_NEXT_H2_RE = _re.compile(r"^##\s+", _re.MULTILINE)
+
+
+def _extract_invariants(text: str) -> str:
+    """Extract the Architectural Invariants section from architecture text.
+
+    Returns the section body (without the heading), or empty string if absent.
+    """
+    match = _INVARIANTS_HEADING_RE.search(text)
+    if not match:
+        return ""
+
+    body_start = match.end()
+    # Find the next ## heading after invariants (= end of section).
+    next_heading = _NEXT_H2_RE.search(text, body_start)
+    if next_heading:
+        body = text[body_start : next_heading.start()]
+    else:
+        body = text[body_start:]
+
+    return body.strip()
+
 
 @router.get("")
 async def get_architecture(am: ArtifactManager = Depends(get_am)):
@@ -132,9 +160,16 @@ async def accept_architecture(
     payload: ArchAcceptBody,
     am: ArtifactManager = Depends(get_am),
 ):
-    am.write_architecture(payload.proposed_architecture)
+    proposed = payload.proposed_architecture
+
+    # Extract ## Architectural Invariants section if present.
+    invariants_text = _extract_invariants(proposed)
+    if invariants_text:
+        am.write_invariants(invariants_text)
+
+    am.write_architecture(proposed)
     await broadcast(request, {"event": "artifact:updated", "artifact": "architecture"})
-    return {"success": True}
+    return {"success": True, "invariants_extracted": bool(invariants_text)}
 
 
 @router.post("/approve")

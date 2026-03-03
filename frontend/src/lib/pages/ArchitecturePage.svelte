@@ -133,6 +133,18 @@
 		} catch (e) { addError(e.message, 'archSave'); }
 	}
 
+	async function saveInvariants(content) {
+		try {
+			const result = await api.updateInvariants(content);
+			if (result.success) {
+				addLog($t('editor.doc_saved'));
+				invalidate('architecture', 'status');
+				status.set(await api.getStatus());
+				await load();
+			} else { addError(result.message, 'invSave'); }
+		} catch (e) { addError(e.message, 'invSave'); }
+	}
+
 	// ── Tabs ──
 	let archTabs = $derived.by(() => {
 		const tabs = [];
@@ -142,11 +154,15 @@
 		if (reviewResult && !reviewing) {
 			tabs.push({ id: 'review', label: $t('arch.review_result') });
 		}
+		if (data?.has_invariants) {
+			tabs.push({ id: 'invariants', label: $t('arch.invariants') });
+		}
 		return tabs;
 	});
 
 	let archTabContent = $derived.by(() => {
 		if (activeTab === 'review') return reviewResult || '';
+		if (activeTab === 'invariants') return data?.invariants || '';
 		return data?.content || '';
 	});
 
@@ -248,8 +264,11 @@
 
 {#if showEditor}
 	<MdEditor
-		content={data?.content || ''}
-		onSave={(c) => { saveContent(c); showEditor = false; }}
+		content={activeTab === 'invariants' ? (data?.invariants || '') : (data?.content || '')}
+		onSave={(c) => {
+			if (activeTab === 'invariants') { saveInvariants(c); } else { saveContent(c); }
+			showEditor = false;
+		}}
 		onClose={() => showEditor = false}
 	/>
 {/if}

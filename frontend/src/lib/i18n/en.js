@@ -132,6 +132,7 @@ export default {
 	'devplan.empty': 'No development plan yet.',
 	'devplan.empty_hint': 'Generate a plan from your architecture, or create one manually.',
 	'devplan.exists': 'Development plan is active.',
+	'devplan.draft': 'Development plan imported — review and confirm to activate tasks.',
 	'devplan.generate': 'Generate Development Plan',
 	'devplan.regenerate': 'Regenerate from scratch',
 	'devplan.generating': 'LLM generating development plan...',

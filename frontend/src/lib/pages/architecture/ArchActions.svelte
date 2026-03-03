@@ -47,12 +47,10 @@
 			{#if reviewing}<Loader2 size={14} class="spin" />{:else}<Search size={14} />{/if}
 			{$t('arch.review')}
 		</button>
-		{#if hasReviewResult}
-			<button class="btn btn-success" disabled={approving} onclick={onApprove}>
-				{#if approving}<Loader2 size={14} class="spin" />{:else}<Check size={14} />{/if}
-				{$t('arch.approve')}
-			</button>
-		{/if}
+		<button class="btn btn-success" disabled={approving} onclick={onApprove}>
+			{#if approving}<Loader2 size={14} class="spin" />{:else}<Check size={14} />{/if}
+			{$t('arch.approve')}
+		</button>
 	</div>
 {/if}
 

@@ -118,6 +118,7 @@ export const api = {
 	// Dev Plan
 	getDevPlan: (signal) => get('/api/devplan', signal),
 	generateDevPlan: (signal) => post('/api/devplan/generate', {}, signal),
+	getDevPlanMilestones: (signal) => get('/api/devplan/milestones', signal),
 	confirmDevPlan: (/** @type {any} */ payload, signal) => post('/api/devplan/confirm', payload, signal),
 	updateDevPlan: (/** @type {string} */ guidance, signal) => post('/api/devplan/update', { guidance }, signal),
 	confirmDevPlanUpdate: (/** @type {any} */ payload, signal) => post('/api/devplan/confirm-update', payload, signal),

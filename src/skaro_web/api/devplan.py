@@ -23,7 +23,25 @@ async def get_devplan(am: ArtifactManager = Depends(get_am)):
     return {
         "content": am.read_devplan(),
         "has_devplan": am.has_devplan,
+        "devplan_confirmed": am.is_devplan_confirmed,
     }
+
+
+@router.get("/milestones")
+async def get_devplan_milestones(am: ArtifactManager = Depends(get_am)):
+    """Parse and return milestones from the current devplan.md.
+
+    Used by the frontend when devplan exists but was not generated in this
+    session (e.g. imported from an existing project) and milestones are not
+    yet in the client store.
+    """
+    content = am.read_devplan()
+    if not content.strip():
+        return {"milestones": []}
+
+    from skaro_core.phases._devplan_parser import parse_milestones
+    milestones = parse_milestones(content)
+    return {"milestones": milestones}
 
 
 @router.post("/generate")

@@ -48,7 +48,6 @@ class BaseLLMAdapter(ABC):
 
     def _validate_api_key(self) -> None:
         if not self.config.api_key:
-            from skaro_core.llm.base import PROVIDER_PRESETS
             preset = PROVIDER_PRESETS.get(self.config.provider)
             env_hint = f" or set env variable: {preset[1]}" if preset and preset[1] else ""
             raise ValueError(
@@ -57,13 +56,22 @@ class BaseLLMAdapter(ABC):
             )
 
 
+def _build_presets() -> dict[str, tuple[str, str, bool]]:
+    """Build PROVIDER_PRESETS from providers.yaml registry.
+
+    Returns ``{provider_key: (default_model, api_key_env, needs_key)}``.
+    """
+    from skaro_core.providers import get_providers
+
+    presets: dict[str, tuple[str, str, bool]] = {}
+    for key, info in get_providers().items():
+        presets[key] = (info.default_model, info.api_key_env, info.needs_key)
+    return presets
+
+
 # (default_model, default_api_key_env, needs_key)
-PROVIDER_PRESETS: dict[str, tuple[str, str, bool]] = {
-    "anthropic": ("claude-sonnet-4-6", "ANTHROPIC_API_KEY", True),
-    "openai": ("gpt-5.2", "OPENAI_API_KEY", True),
-    "groq": ("llama-3.3-70b-versatile", "GROQ_API_KEY", True),
-    "ollama": ("llama3.1", "", False),
-}
+# Derived from providers.yaml — do not edit here.
+PROVIDER_PRESETS: dict[str, tuple[str, str, bool]] = _build_presets()
 
 
 def create_llm_adapter(config: LLMConfig) -> BaseLLMAdapter:

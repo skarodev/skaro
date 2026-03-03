@@ -10,6 +10,7 @@ from skaro_core.phases.base import (
 from skaro_core.phases.clarify import ClarifyPhase
 from skaro_core.phases.devplan import DevPlanPhase
 from skaro_core.phases.implement import ImplementPhase
+from skaro_core.phases.import_analyze import ImportAnalyzePhase
 from skaro_core.phases.plan import PlanPhase
 from skaro_core.phases.tests import TestsPhase
 
@@ -21,6 +22,7 @@ __all__ = [
     "ArchitecturePhase",
     "ClarifyPhase",
     "DevPlanPhase",
+    "ImportAnalyzePhase",
     "PlanPhase",
     "ImplementPhase",
     "TestsPhase",
@@ -34,6 +36,7 @@ def get_phase(name: str, **kwargs) -> BasePhase:
         "architecture": ArchitecturePhase,
         "clarify": ClarifyPhase,
         "devplan": DevPlanPhase,
+        "import_analyze": ImportAnalyzePhase,
         "plan": PlanPhase,
         "implement": ImplementPhase,
         "tests": TestsPhase,

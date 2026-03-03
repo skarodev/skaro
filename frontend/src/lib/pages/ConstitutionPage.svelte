@@ -30,6 +30,10 @@
 		try {
 			validation = await api.validateConstitution();
 			addLog(validation.valid ? $t('log.validation_passed') : $t('log.validation_issues'));
+			if (validation.valid) {
+				invalidate('status');
+				status.set(await api.getStatus());
+			}
 		} catch (e) { addError(e.message, 'validateConstitution'); error = e.message; }
 		validating = false;
 	}
@@ -37,6 +41,7 @@
 	async function saveContent(text) {
 		try {
 			await api.saveConstitution(text);
+			validation = null;
 			invalidate('constitution', 'status');
 			status.set(await api.getStatus());
 			await load();
@@ -75,11 +80,16 @@
 			</button>
 		</div>
 	{:else}
+		{#if $status?.constitution_validated}
+			<div class="alert alert-success"><CheckCircle size={14} /> {$t('const.valid')}</div>
+		{/if}
 		<div class="btn-group">
-			<button class="btn btn-primary" disabled={validating} onclick={validate}>
-				{#if validating}<Loader2 size={14} class="spin" />{:else}<CheckCircle size={14} />{/if}
-				{$t('const.validate')}
-			</button>
+			{#if !$status?.constitution_validated}
+				<button class="btn btn-primary" disabled={validating} onclick={validate}>
+					{#if validating}<Loader2 size={14} class="spin" />{:else}<CheckCircle size={14} />{/if}
+					{$t('const.validate')}
+				</button>
+			{/if}
 			<button class="btn" onclick={openEditor}>
 				<Pencil size={14} /> {$t('editor.edit')}
 			</button>
@@ -87,9 +97,9 @@
 	{/if}
 
 	{#if validation}
-		{#if validation.valid}
+		{#if validation.valid && !$status?.constitution_validated}
 			<div class="alert alert-success"><CheckCircle size={14} /> {$t('const.valid')}</div>
-		{:else}
+		{:else if !validation.valid}
 			<div class="alert alert-warn"><AlertTriangle size={14} /> {$t('const.invalid')}</div>
 		{/if}
 		<ul class="check-list">
