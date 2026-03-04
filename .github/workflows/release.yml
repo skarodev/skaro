@@ -4,7 +4,6 @@ on:
   push:
     branches: [main]
 
-# Prevent concurrent releases
 concurrency:
   group: release
   cancel-in-progress: false
@@ -14,63 +13,56 @@ permissions:
 
 jobs:
   release:
-    # Skip if the push was made by this workflow (prevent infinite loop)
-    if: "!contains(github.event.head_commit.message, '[skip ci]')"
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0   # full history needed for tags
 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.13"
 
-      - name: Install build tools
-        run: pip install build
-
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: "20"
 
-      # ── Bump patch version ────────────────────
-      - name: Bump version
+      - name: Install build tools
+        run: pip install build hatch-vcs
+
+      # ── Compute next version from latest tag ──
+      - name: Bump version tag
         id: bump
         run: |
-          # Extract current version
-          current=$(grep -oP '^version\s*=\s*"\K[^"]+' pyproject.toml)
-          echo "Current version: $current"
+          # Get latest version tag (or default to 0.1.0)
+          latest=$(git tag --list 'v*' --sort=-v:refname | head -n1)
+          if [ -z "$latest" ]; then
+            new_version="0.1.1"
+          else
+            current="${latest#v}"
+            IFS='.' read -r major minor patch <<< "$current"
+            new_version="${major}.${minor}.$((patch + 1))"
+          fi
 
-          # Split and increment patch
-          IFS='.' read -r major minor patch <<< "$current"
-          new_version="${major}.${minor}.$((patch + 1))"
+          echo "version=$new_version" >> "$GITHUB_OUTPUT"
           echo "New version: $new_version"
 
-          # Update pyproject.toml
-          sed -i "s/^version = \"${current}\"/version = \"${new_version}\"/" pyproject.toml
-
-          # Export for later steps
-          echo "version=$new_version" >> "$GITHUB_OUTPUT"
-
-      # ── Commit version bump ───────────────────
-      - name: Commit version bump
+      - name: Create and push tag
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add pyproject.toml
-          git commit -m "release: v${{ steps.bump.outputs.version }} [skip ci]"
           git tag "v${{ steps.bump.outputs.version }}"
-          git push origin main --tags
+          git push origin "v${{ steps.bump.outputs.version }}"
 
-      # ── Build ─────────────────────────────────
+      # ── Build (hatch-vcs reads version from tag) ──
       - name: Build package
         run: python -m build
 
-      # ── Publish to PyPI ───────────────────────
+      # ── Publish ───────────────────────────────
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:

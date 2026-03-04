@@ -1,14 +1,10 @@
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling", "hatch-vcs"]
 build-backend = "hatchling.build"
 
 [project]
 name = "skaro"
-<<<<<<< HEAD
-version = "0.1.17"
-=======
-version = "0.1.17"
->>>>>>> 5a127a8 (:green_heart: fix build)
+dynamic = ["version"]
 description = "AI-powered SDLC orchestration platform"
 readme = "README.md"
 license = "AGPL-3.0-or-later"
@@ -56,6 +52,9 @@ skaro = "skaro_cli.main:cli"
 [project.urls]
 Homepage = "https://github.com/skarodev/skaro"
 Repository = "https://github.com/skarodev/skaro"
+
+[tool.hatch.version]
+source = "vcs"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/skaro_core", "src/skaro_cli", "src/skaro_web"]
