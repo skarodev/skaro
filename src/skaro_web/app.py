@@ -119,6 +119,12 @@ def create_app(project_root: Path | None = None) -> FastAPI:
                 file_path = STATIC_DIR / path
                 if file_path.is_file():
                     return FileResponse(file_path)
+                # Static assets (JS/CSS/etc.) must exist — never fall back to index.html
+                if path.startswith("_app/"):
+                    return JSONResponse(
+                        status_code=404,
+                        content={"detail": f"Static asset not found: {path}"},
+                    )
             svelte_index = STATIC_DIR / "index.html"
             if svelte_index.is_file():
                 return FileResponse(svelte_index)
