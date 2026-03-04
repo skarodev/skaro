@@ -1,6 +1,9 @@
 <script>
 	import { t } from '$lib/i18n/index.js';
+	import { updateInfo } from '$lib/stores/statusStore.js';
 	import { ExternalLink } from 'lucide-svelte';
+
+	let currentVersion = $derived($updateInfo?.current_version ?? '…');
 </script>
 
 <div class="about-page">
@@ -21,7 +24,7 @@
 		<div class="about-meta">
 			<div class="meta-row">
 				<span class="meta-label">{$t('about.version')}</span>
-				<span class="meta-value"><span class="version-badge">v0.1.11</span></span>
+				<span class="meta-value"><span class="version-badge">v{currentVersion}</span></span>
 			</div>
 			<div class="meta-row">
 				<span class="meta-label">{$t('about.license')}</span>

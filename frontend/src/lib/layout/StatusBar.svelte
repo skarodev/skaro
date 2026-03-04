@@ -1,8 +1,8 @@
 <script>
 	import { t } from '$lib/i18n/index.js';
 	import { page } from '$app/stores';
-	import { status, wsConnected } from '$lib/stores/statusStore.js';
-	import { Cpu } from 'lucide-svelte';
+	import { status, wsConnected, updateInfo } from '$lib/stores/statusStore.js';
+	import { Cpu, ArrowUpCircle } from 'lucide-svelte';
 
 	const TAB_ROLES = {
 		constitution: null,
@@ -30,6 +30,10 @@
 		const label = $t('status.role_default');
 		return `${label}: ${cfg.llm_provider} / ${cfg.llm_model}`;
 	}
+
+	let hasUpdate = $derived($updateInfo?.has_update === true);
+	let latestVersion = $derived($updateInfo?.latest_version ?? '');
+	let docsUrl = $derived($updateInfo?.docs_url ?? 'https://docs.skaro.dev/cli/update');
 </script>
 
 <div class="status-bar">
@@ -38,6 +42,18 @@
 		<span>{getRoleInfo($status, currentTab)}</span>
 	</div>
 	<div class="status-right">
+		{#if hasUpdate}
+			<a
+				class="status-item update-badge"
+				href={docsUrl}
+				target="_blank"
+				rel="noopener noreferrer"
+				title={$t('status.update_tooltip', { version: latestVersion })}
+			>
+				<ArrowUpCircle size={11} />
+				<span>{$t('status.update_available', { version: latestVersion })}</span>
+			</a>
+		{/if}
 		<span class="status-item ws-status">
 			<span class="status-dot" class:off={!$wsConnected}></span>
 			<span>{$wsConnected ? $t('status.connected') : $t('status.disconnected')}</span>
@@ -82,6 +98,21 @@
 
 	.ws-status {
 		opacity: .85;
+	}
+
+	.update-badge {
+		background: rgba(187, 181, 41, .2);
+		padding: 0 0.5rem;
+		border-radius: 0.25rem;
+		color: #f0e040;
+		text-decoration: none;
+		transition: background .15s;
+		cursor: pointer;
+		line-height: 1.25rem;
+	}
+
+	.update-badge:hover {
+		background: rgba(187, 181, 41, .35);
 	}
 
 	.status-dot {

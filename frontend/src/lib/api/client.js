@@ -204,6 +204,10 @@ export const api = {
 	getStats: (signal) => get('/api/stats', signal),
 	getDashboard: (signal) => get('/api/dashboard', signal),
 
+	// Update check
+	getUpdateCheck: (/** @type {boolean} */ force, signal) =>
+		get(`/api/update-check${force ? '?force=true' : ''}`, signal),
+
 	// Git
 	getGitStatus: (signal) => get('/api/git/status', signal),
 	getGitDiff: (/** @type {string} */ file, signal) => get(`/api/git/diff?file=${encodeURIComponent(file)}`, signal),

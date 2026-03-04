@@ -22,6 +22,8 @@ export default {
 	'status.tasks': 'Задачи',
 	'status.tokens': 'токенов',
 	'status.role_default': 'По умолч.',
+	'status.update_available': 'Обновление v{version}',
+	'status.update_tooltip': 'Доступна новая версия {version} — нажмите для инструкций',
 
 	// Bottom panel
 	'panel.run': 'Выполнение',

@@ -108,6 +108,15 @@ cli:
     checking: "Validating DoD for {feature}, phase {phase}..."
     passed: "All checks passed"
     failed: "{count} checks failed"
+  update:
+    checking: "Checking for updates..."
+    current: "Installed"
+    latest: "Latest"
+    up_to_date: "You are running the latest version."
+    available: "New version {version} is available!"
+    method: "Install method"
+    run: "To update, run"
+    docs_hint: "Full instructions"
   # Backward-compatible aliases
   feature:
     created: "Task created: {name}"

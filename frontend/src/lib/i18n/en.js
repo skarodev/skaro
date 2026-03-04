@@ -22,6 +22,8 @@ export default {
 	'status.tasks': 'Tasks',
 	'status.tokens': 'tokens',
 	'status.role_default': 'Default',
+	'status.update_available': 'Update v{version}',
+	'status.update_tooltip': 'New version {version} is available — click for instructions',
 
 	// Bottom panel
 	'panel.run': 'Run',

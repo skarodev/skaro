@@ -875,6 +875,45 @@ def _get_dod_checks(
     return {"Phase check not implemented": False}
 
 
+# ── skaro update ─────────────────────────────────
+
+
+@cli.command()
+@click.option("--force", is_flag=True, help="Bypass 24 h cache and check PyPI now")
+def update(force: bool) -> None:
+    """Check for a newer version of Skaro and show upgrade instructions."""
+    from skaro_core.update_check import check_for_update
+
+    console.print(f"\n  {t('cli.update.checking')}")
+
+    result = check_for_update(force=force)
+
+    console.print(f"  {t('cli.update.current')}: [cyan]{result.current_version}[/cyan]")
+
+    if result.error:
+        console.print(f"  [yellow]⚠[/yellow] {result.error}")
+        console.print(f"  {t('cli.update.docs_hint')}: [cyan]{result.docs_url}[/cyan]\n")
+        return
+
+    console.print(f"  {t('cli.update.latest')}:  [cyan]{result.latest_version}[/cyan]")
+
+    if not result.has_update:
+        console.print(f"\n  [green]✓[/green] {t('cli.update.up_to_date')}\n")
+        return
+
+    console.print(
+        Panel(
+            f"  {t('cli.update.available', version=result.latest_version)}\n\n"
+            f"  {t('cli.update.method')}: [dim]{result.install_method}[/dim]\n"
+            f"  {t('cli.update.run')}:\n\n"
+            f"    [cyan]{result.update_instruction}[/cyan]\n\n"
+            f"  {t('cli.update.docs_hint')}: [cyan]{result.docs_url}[/cyan]",
+            border_style="yellow",
+            padding=(1, 2),
+        )
+    )
+
+
 # ── Entrypoint ──────────────────────────────────
 
 

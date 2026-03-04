@@ -187,6 +187,23 @@ async def get_stats(project_root: Path = Depends(get_project_root)):
     return await asyncio.to_thread(_build_stats, project_root)
 
 
+@router.get("/update-check")
+async def get_update_check(force: bool = False):
+    """Check PyPI for a newer Skaro version (cached for 24 h)."""
+    from skaro_core.update_check import check_for_update
+
+    result = await asyncio.to_thread(check_for_update, force=force)
+    return {
+        "current_version": result.current_version,
+        "latest_version": result.latest_version,
+        "has_update": result.has_update,
+        "install_method": result.install_method,
+        "update_instruction": result.update_instruction,
+        "docs_url": result.docs_url,
+        "error": result.error,
+    }
+
+
 @router.get("/dashboard")
 async def get_dashboard(
     am: ArtifactManager = Depends(get_am),

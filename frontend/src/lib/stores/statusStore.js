@@ -12,6 +12,9 @@ export const status = writable(null);
 /** WebSocket connection state. */
 export const wsConnected = writable(false);
 
+/** Update check result from /api/update-check. */
+export const updateInfo = writable(null);
+
 /** Currently loaded task detail object. */
 export const taskDetail = writable(null);
 

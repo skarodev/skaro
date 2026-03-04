@@ -4,12 +4,13 @@
 	import { page } from '$app/stores';
 	import { t } from '$lib/i18n/index.js';
 	import { api, connectWs, onWsEvent, onWsStatus } from '$lib/api/client.js';
-	import { status, wsConnected, taskDetail } from '$lib/stores/statusStore.js';
+	import { status, wsConnected, taskDetail, updateInfo } from '$lib/stores/statusStore.js';
 	import { addLog, startLlm, addLlmChunk, endLlm } from '$lib/stores/logStore.js';
 	import { cachedFetch, invalidate } from '$lib/api/cache.js';
 	import Sidebar from '$lib/layout/Sidebar.svelte';
 	import Toolbar from '$lib/layout/Toolbar.svelte';
 	import BottomPanel from '$lib/layout/BottomPanel.svelte';
+	import StatusBar from '$lib/layout/StatusBar.svelte';
 
 	let error = $state('');
 	let { children } = $props();
@@ -54,6 +55,7 @@
 
 	onMount(() => {
 		loadStatus();
+		loadUpdateCheck();
 		connectWs();
 		onWsStatus((c) => wsConnected.set(c));
 		onWsEvent((data) => {
@@ -91,6 +93,15 @@
 			error = e.message;
 		}
 	}
+
+	async function loadUpdateCheck() {
+		try {
+			const data = await api.getUpdateCheck(false);
+			updateInfo.set(data);
+		} catch {
+			// Non-critical — silently ignore
+		}
+	}
 </script>
 
 <div class="app">
@@ -112,6 +123,7 @@
 			{/if}
 		</main>
 		<BottomPanel />
+		<StatusBar />
 	</div>
 </div>
 
