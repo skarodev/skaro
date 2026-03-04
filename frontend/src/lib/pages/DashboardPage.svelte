@@ -93,4 +93,9 @@
 	.dash-grid > :global(.widget.lg) { grid-column: span 4; }
 	.dash-grid > :global(.widget.md) { grid-column: span 2; }
 	.dash-grid > :global(.widget.sm) { grid-column: span 1; }
+
+	@media (max-width: 1980px) {
+		.dash-grid > :global(.widget.lg.pipeline-card) { grid-column: span 8; }
+		.dash-grid > :global(.widget.sm) { grid-column: span 2; }
+	}
 </style>

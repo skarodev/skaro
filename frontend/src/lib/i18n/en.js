@@ -429,6 +429,7 @@ export default {
 	'dash.pipe_adr': 'ADR',
 	'dash.pipe_devplan': 'Dev Plan',
 	'dash.pipe_tasks': 'Tasks',
+	'dash.pipe_review': 'Review',
 	'dash.tasks_overview': 'Tasks Overview',
 	'dash.view_all': 'View all',
 	'dash.stage': 'Stage',

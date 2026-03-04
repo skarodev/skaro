@@ -4,6 +4,12 @@
 
 	let { status } = $props();
 
+	let allTasksDone = $derived.by(() => {
+		const tasks = status?.tasks;
+		if (!tasks || tasks.length === 0) return false;
+		return tasks.every(f => f.phases?.tests === 'complete');
+	});
+
 	let pipeline = $derived.by(() => {
 		if (!status?.initialized) return [];
 		return [
@@ -38,9 +44,16 @@
 			{
 				id: 'tasks',
 				label: $t('dash.pipe_tasks'),
-				done: (status.tasks?.length || 0) > 0 && status.tasks.every(f => f.current_phase === 'review'),
-				active: (status.tasks?.length || 0) > 0,
+				done: allTasksDone,
+				active: (status.tasks?.length || 0) > 0 && !allTasksDone,
 				href: '/tasks',
+			},
+			{
+				id: 'review',
+				label: $t('dash.pipe_review'),
+				done: status.review_passed === true,
+				active: allTasksDone && status.review_passed !== true,
+				href: '/review',
 			},
 		];
 	});
@@ -80,8 +93,9 @@
 		display: flex;
 		align-items: center;
 		gap: 0.25rem;
-		flex-wrap: wrap;
 		margin-top: 0.5rem;
+		flex-wrap: wrap;
+		row-gap: 0.5rem;
 	}
 
 	.pipe-step {
@@ -98,6 +112,9 @@
 		text-decoration: none;
 		transition: all .15s;
 		cursor: pointer;
+		white-space: nowrap;
+		min-width: 0;
+		flex-shrink: 0;
 	}
 
 	.pipe-step:hover { background: var(--sf2); border-color: var(--bd2); }
@@ -115,5 +132,21 @@
 	}
 
 	.pipe-icon { display: flex; align-items: center; flex-shrink: 0; }
-	.pipe-arrow { color: var(--dm2); display: flex; align-items: center; }
+	.pipe-arrow { color: var(--dm2); display: flex; align-items: center; flex-shrink: 0; }
+
+	@media (max-width: 768px) {
+		.pipeline {
+			flex-direction: column;
+			align-items: stretch;
+			gap: 0.375rem;
+		}
+
+		.pipe-step {
+			justify-content: flex-start;
+		}
+
+		.pipe-arrow {
+			display: none;
+		}
+	}
 </style>

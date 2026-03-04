@@ -14,8 +14,6 @@ class Phase(str, Enum):
     PLAN = "plan"
     IMPLEMENT = "implement"
     TESTS = "tests"
-    DOCS = "docs"
-    OPS = "ops"
 
 
 class Status(str, Enum):
@@ -45,7 +43,7 @@ class TaskState:
             status = self.phases.get(phase, Status.NOT_STARTED)
             if status not in (Status.COMPLETE,):
                 return phase
-        return Phase.OPS
+        return Phase.TESTS
 
     @property
     def progress_percent(self) -> int:

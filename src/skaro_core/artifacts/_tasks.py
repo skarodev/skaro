@@ -171,9 +171,6 @@ class TasksMixin:
         else:
             phases[Phase.TESTS] = Status.NOT_STARTED
 
-        phases[Phase.DOCS] = Status.NOT_STARTED
-        phases[Phase.OPS] = Status.NOT_STARTED
-
         return TaskState(
             name=task,
             milestone=milestone,
