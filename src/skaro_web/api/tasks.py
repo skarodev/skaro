@@ -219,7 +219,10 @@ async def run_tests(
 
     phase = TestsPhase(project_root=project_root)
     result = await phase.run(task=name)
-    await ws.broadcast({"event": "phase:completed", "task": name, "phase": "tests"})
+    await ws.broadcast({
+        "event": "phase:completed" if result.success else "phase:error",
+        "task": name, "phase": "tests",
+    })
     return {"success": result.success, "message": result.message, "data": result.data}
 
 
