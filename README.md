@@ -19,7 +19,7 @@
 
 <br />
 
-[Documentation](https://docs.skaro.dev) · [PyPI](https://pypi.org/project/skaro/) · [Telegram](https://t.me/skaro_dev) · [Discord](https://discord.gg/zUv6AHuJwD)
+[Documentation](https://docs.skaro.dev) · [PyPI](https://pypi.org/project/skaro/) · [Telegram](https://t.me/skarodev) · [Discord](https://discord.gg/zUv6AHuJwD)
 
 </div>
 
