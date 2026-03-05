@@ -11,25 +11,23 @@
 </picture>
 
 <br />
+<br />
 
 [![PyPI](https://img.shields.io/pypi/v/skaro?style=flat-square&color=blue)](https://pypi.org/project/skaro/)
 [![Python](https://img.shields.io/pypi/pyversions/skaro?style=flat-square)](https://pypi.org/project/skaro/)
 [![License](https://img.shields.io/github/license/skarodev/skaro?style=flat-square)](LICENSE)
 
 <br />
-**Developer is the architect, the AI is the executor.**
-<br />
-**Specifications live in the repository next to code. Context never gets lost.**
-
-<br />
-
-
 
 [Documentation](https://docs.skaro.dev) · [PyPI](https://pypi.org/project/skaro/) · [Telegram](https://t.me/skaro_dev) · [Discord](https://discord.gg/zUv6AHuJwD)
 
 </div>
 
 ---
+
+Developer is the architect, the AI is the executor.
+<br />
+Specifications live in the repository next to code. Context never gets lost.
 
 ## Install
 
