@@ -5,9 +5,9 @@
 <br />
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="assets/logo-dark.svg" />
-  <source media="(prefers-color-scheme: light)" srcset="assets/logo-light.svg" />
-  <img src="assets/logo-dark.svg" alt="Skaro" width="200" />
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/skarodev/skaro/3e2cd385d4e49d4375ff14b7391903931652b62b/assets/logo-dark.svg" />
+  <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/skarodev/skaro/3e2cd385d4e49d4375ff14b7391903931652b62b/assets/logo-light.svg" />
+  <img src="https://raw.githubusercontent.com/skarodev/skaro/3e2cd385d4e49d4375ff14b7391903931652b62b/assets/logo-dark.svg" alt="Skaro" width="200" />
 </picture>
 
 <br />
