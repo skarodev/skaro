@@ -1,6 +1,7 @@
 """Skaro Web API — router registry."""
 
 from skaro_web.api.architecture import router as architecture_router
+from skaro_web.api.autopilot import router as autopilot_router
 from skaro_web.api.config import router as config_router
 from skaro_web.api.constitution import router as constitution_router
 from skaro_web.api.devplan import router as devplan_router
@@ -20,6 +21,7 @@ all_routers = [
     review_router,
     config_router,
     git_router,
+    autopilot_router,
 ]
 
 __all__ = ["all_routers"]

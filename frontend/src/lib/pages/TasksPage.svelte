@@ -4,9 +4,11 @@
 	import { addLog, addError } from '$lib/stores/logStore.js';
 	import { invalidate } from '$lib/api/cache.js';
 	import { api } from '$lib/api/client.js';
-	import { Package, Plus, GripVertical } from 'lucide-svelte';
+	import { Package, Plus, GripVertical, Rocket } from 'lucide-svelte';
 	import TaskCard from '$lib/pages/tasks/TaskCard.svelte';
 	import CreateTaskModal from '$lib/pages/tasks/CreateTaskModal.svelte';
+	import AutopilotOverlay from '$lib/pages/tasks/AutopilotOverlay.svelte';
+	import { startAutopilot, autopilotRunning } from '$lib/stores/autopilotStore.js';
 
 	let activeTab = $state('__all__');
 	let statusFilter = $state('all');
@@ -27,6 +29,11 @@
 			(k) => phases[k] === 'complete'
 		);
 	}
+
+	/** Whether there are incomplete tasks that autopilot can process. */
+	let hasActiveTasks = $derived(
+		($status?.tasks || []).some((t) => !isTaskDone(t))
+	);
 
 	/** Apply status filter to a task list. */
 	function applyStatusFilter(tasks) {
@@ -200,6 +207,15 @@
 					>{$t('task.filter_done')}</button>
 				</div>
 			{/if}
+			{#if hasActiveTasks}
+				<button
+					class="btn btn-sm btn-autopilot"
+					disabled={$autopilotRunning}
+					onclick={startAutopilot}
+				>
+					<Rocket size={14} /> {$t('autopilot.run_all')}
+				</button>
+			{/if}
 			<button class="btn btn-primary btn-sm" onclick={() => showCreateModal = true}>
 				<Plus size={14} /> {$t('task.create')}
 			</button>
@@ -277,6 +293,9 @@
 		onClose={() => showCreateModal = false}
 	/>
 {/if}
+
+<!-- Autopilot Mission Control overlay -->
+<AutopilotOverlay />
 
 <style>
 	.main-header {
@@ -464,5 +483,24 @@
 
 	.drag-over-below {
 		box-shadow: 0 0.125rem 0 0 var(--ac);
+	}
+
+	/* Autopilot button */
+	.btn-autopilot {
+		background: linear-gradient(135deg, rgba(88, 157, 246, 0.12), rgba(152, 118, 170, 0.12));
+		border: 1px solid var(--ac-dim);
+		color: var(--ac);
+		transition: all 0.2s;
+	}
+
+	.btn-autopilot:hover:not(:disabled) {
+		background: linear-gradient(135deg, rgba(88, 157, 246, 0.22), rgba(152, 118, 170, 0.22));
+		border-color: var(--ac);
+		box-shadow: 0 0 12px rgba(88, 157, 246, 0.15);
+	}
+
+	.btn-autopilot:disabled {
+		opacity: 0.4;
+		cursor: not-allowed;
 	}
 </style>
