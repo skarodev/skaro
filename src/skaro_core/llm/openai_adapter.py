@@ -2,12 +2,19 @@
 
 from __future__ import annotations
 
+import re
 from typing import AsyncIterator
 
 import openai
 
 from skaro_core.config import LLMConfig
 from skaro_core.llm.base import BaseLLMAdapter, LLMError, LLMMessage, LLMResponse, openai_wrap_error
+
+# Models that require `max_completion_tokens` instead of `max_tokens`.
+# Covers: o1-*, o3-*, gpt-4.1*, gpt-5*, and their variants.
+_MAX_COMPLETION_TOKENS_RE = re.compile(
+    r"^(o[13]|gpt-(4\.1|5))", re.IGNORECASE,
+)
 
 
 class OpenAIAdapter(BaseLLMAdapter):
@@ -22,14 +29,25 @@ class OpenAIAdapter(BaseLLMAdapter):
     def _wrap_error(self, exc: Exception) -> LLMError:
         return openai_wrap_error(exc, "openai")
 
+    def _token_limit_kwargs(self) -> dict[str, int]:
+        """Return the correct token-limit parameter for the current model.
+
+        Newer OpenAI models (o1, o3, gpt-4.1, gpt-5+) reject ``max_tokens``
+        and require ``max_completion_tokens``.  Older models and
+        OpenAI-compatible third-party endpoints still expect ``max_tokens``.
+        """
+        if _MAX_COMPLETION_TOKENS_RE.match(self.config.model):
+            return {"max_completion_tokens": self.config.max_tokens}
+        return {"max_tokens": self.config.max_tokens}
+
     async def complete(self, messages: list[LLMMessage]) -> LLMResponse:
         oai_messages = [{"role": m.role, "content": m.content} for m in messages]
         try:
             response = await self.client.chat.completions.create(
                 model=self.config.model,
-                max_tokens=self.config.max_tokens,
                 temperature=self.config.temperature,
                 messages=oai_messages,
+                **self._token_limit_kwargs(),
             )
         except LLMError:
             raise
@@ -51,11 +69,11 @@ class OpenAIAdapter(BaseLLMAdapter):
         try:
             stream = await self.client.chat.completions.create(
                 model=self.config.model,
-                max_tokens=self.config.max_tokens,
                 temperature=self.config.temperature,
                 messages=oai_messages,
                 stream=True,
                 stream_options={"include_usage": True},
+                **self._token_limit_kwargs(),
             )
         except LLMError:
             raise
