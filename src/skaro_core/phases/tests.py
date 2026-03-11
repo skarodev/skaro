@@ -21,7 +21,7 @@ import yaml
 
 from skaro_core.phases._command_runner import CommandRunnerMixin
 from skaro_core.phases._plan_utils import count_plan_stages
-from skaro_core.phases.base import BasePhase, PhaseResult, SOURCE_EXTENSIONS, SKIP_DIRS
+from skaro_core.phases.base import BasePhase, PhaseResult, SKIP_DIRS
 
 # Patterns for detecting test files
 _TEST_FILE_PATTERNS = [
@@ -141,43 +141,17 @@ class TestsPhase(CommandRunnerMixin, BasePhase):
         checks: list[dict] = []
         root = self.artifacts.root
 
-        # Check 1: files mentioned in plan exist on disk
-        planned_files = self._extract_file_paths(plan)
+        # Scan existing project files (used by test files check)
         existing_files = set()
         for path in root.rglob("*"):
             parts = path.relative_to(root).parts
-            if any(p in SKIP_DIRS or p.startswith(".") for p in parts):
+            # Skip dot-directories (.git, .venv) but NOT dot-files (.env, .eslintrc)
+            if any(p in SKIP_DIRS or p.startswith(".") for p in parts[:-1]):
                 continue
             if path.is_file():
                 existing_files.add(str(path.relative_to(root)).replace("\\", "/"))
 
-        if planned_files:
-            found = 0
-            missing: list[str] = []
-            for fp in planned_files:
-                normalized = fp.replace("\\", "/")
-                if normalized in existing_files:
-                    found += 1
-                elif any(
-                    ef == normalized
-                    or ef.endswith("/" + normalized)
-                    for ef in existing_files
-                ):
-                    # Plan may reference "main.tsx" while disk has "src/main.tsx"
-                    found += 1
-                else:
-                    missing.append(fp)
-            checks.append({
-                "id": "planned_files",
-                "label": "Files from plan exist",
-                "passed": len(missing) == 0,
-                "detail": (
-                    f"{found}/{len(planned_files)} files found"
-                    + (f". Missing: {', '.join(missing[:10])}" if missing else "")
-                ),
-            })
-
-        # Check 2: test files exist in the project
+        # Check 1: test files exist in the project
         test_files: list[str] = []
         for fpath in existing_files:
             filename = fpath.split("/")[-1]
@@ -195,7 +169,7 @@ class TestsPhase(CommandRunnerMixin, BasePhase):
             ),
         })
 
-        # Check 3: spec.md exists and is non-empty
+        # Check 2: spec.md exists and is non-empty
         spec = self.artifacts.find_and_read_task_file(task, "spec.md")
         spec_filled = bool(spec and len(spec.strip()) > 50)
         checks.append({
@@ -205,7 +179,7 @@ class TestsPhase(CommandRunnerMixin, BasePhase):
             "detail": f"{len(spec)} chars" if spec else "Missing",
         })
 
-        # Check 4: all stages completed
+        # Check 3: all stages completed
         completed = self.artifacts.find_completed_stages(task)
         plan_stages = count_plan_stages(plan)
         all_stages_done = plan_stages > 0 and len(completed) >= plan_stages
@@ -217,23 +191,3 @@ class TestsPhase(CommandRunnerMixin, BasePhase):
         })
 
         return checks
-
-    @staticmethod
-    def _extract_file_paths(plan: str) -> list[str]:
-        """Extract file paths mentioned in the plan."""
-        paths: list[str] = []
-        seen: set[str] = set()
-
-        backtick_re = re.compile(r"`([a-zA-Z0-9_./-]+\.[a-zA-Z]{1,10})`")
-        bare_re = re.compile(r"(?:^|\s)([a-zA-Z0-9_.-]+(?:/[a-zA-Z0-9_.-]+)+\.[a-zA-Z]{1,10})(?:\s|$|,|;)")
-
-        for pattern in (backtick_re, bare_re):
-            for match in pattern.finditer(plan):
-                fp = match.group(1).strip()
-                if fp.startswith("http") or fp.startswith("//"):
-                    continue
-                if fp not in seen:
-                    seen.add(fp)
-                    paths.append(fp)
-
-        return paths

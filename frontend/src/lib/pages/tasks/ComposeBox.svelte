@@ -65,7 +65,7 @@
 				class="cancel-circle"
 				onclick={onCancel}
 			>
-				<Square size={12} />
+				<Square size={12} fill="currentColor" strokeWidth={0} />
 			</button>
 		{:else}
 			<button

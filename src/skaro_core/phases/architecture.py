@@ -9,13 +9,48 @@ from pathlib import Path
 from typing import Any
 
 from skaro_core.llm.base import LLMMessage
-from skaro_core.phases.base import BasePhase, PhaseResult
+from skaro_core.phases.base import BasePhase, PhaseResult, _has_inner_close_ahead
 
 
 # Marker that separates review from proposed architecture in LLM response.
 _PROPOSED_HEADING_RE = re.compile(
     r"^##\s+Proposed\s+Architecture", re.IGNORECASE | re.MULTILINE
 )
+
+
+def _strip_file_block(text: str, filepath: str) -> str:
+    """Remove a fenced file block (``\u0060\u0060\u0060<filepath>`` … ``\u0060\u0060\u0060``) from *text*.
+
+    Correctly handles nested code fences inside the block.
+    """
+    lines = text.splitlines(True)  # keep line endings
+    i = 0
+    while i < len(lines):
+        if lines[i].strip().startswith("```") and lines[i].strip()[3:].strip() == filepath:
+            block_start = i
+            i += 1
+            inner_fence = False
+            while i < len(lines):
+                stripped = lines[i].strip()
+                if inner_fence:
+                    if stripped == "```":
+                        inner_fence = False
+                elif stripped.startswith("```") and len(stripped) > 3:
+                    inner_fence = True
+                elif stripped == "```":
+                    # Check whether this is inner open or outer close
+                    if _has_inner_close_ahead(
+                        [l.rstrip("\n\r") for l in lines], i + 1
+                    ):
+                        inner_fence = True
+                    else:
+                        # Outer close found — remove lines[block_start..i] inclusive
+                        return "".join(lines[:block_start] + lines[i + 1 :])
+                i += 1
+            # No closing fence found — remove from block_start to end
+            return "".join(lines[:block_start])
+        i += 1
+    return text
 
 
 class ArchitecturePhase(BasePhase):
@@ -74,10 +109,8 @@ class ArchitecturePhase(BasePhase):
         # Strip the code fence from the visible message
         display_message = response_content
         if arch_content:
-            display_message = re.sub(
-                r"```architecture\.md\s*\n[\s\S]*?\n\s*```",
-                "",
-                display_message,
+            display_message = _strip_file_block(
+                display_message, "architecture.md"
             ).strip()
 
         updated_conversation = list(conversation) + [

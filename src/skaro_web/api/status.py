@@ -138,7 +138,8 @@ def _build_stats(project_root: Path) -> dict[str, Any]:
     if project_root and project_root.is_dir():
         for path in project_root.rglob("*"):
             parts = path.relative_to(project_root).parts
-            if any(p in SKIP_DIRS or p.startswith(".") for p in parts):
+            # Skip dot-directories (.git, .venv) but NOT dot-files (.env, .eslintrc)
+            if any(p in SKIP_DIRS or p.startswith(".") for p in parts[:-1]):
                 continue
             if path.is_file() and path.suffix:
                 ext = path.suffix.lower()

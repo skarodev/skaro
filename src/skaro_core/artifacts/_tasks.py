@@ -186,7 +186,18 @@ class TasksMixin:
             phases[Phase.ARCHITECTURE] = Status.NOT_STARTED
 
         if (tdir / "clarifications.md").exists():
-            phases[Phase.CLARIFY] = Status.COMPLETE
+            # Clarify is complete only when ALL questions have answers
+            from skaro_core.phases.clarify import parse_clarifications
+
+            clarify_text = (tdir / "clarifications.md").read_text(encoding="utf-8")
+            parsed_qs = parse_clarifications(clarify_text)
+            if parsed_qs and all(q.get("answer", "").strip() for q in parsed_qs):
+                phases[Phase.CLARIFY] = Status.COMPLETE
+            elif parsed_qs:
+                phases[Phase.CLARIFY] = Status.IN_PROGRESS
+            else:
+                # File exists but no parseable questions — treat as complete
+                phases[Phase.CLARIFY] = Status.COMPLETE
         else:
             phases[Phase.CLARIFY] = Status.NOT_STARTED
 

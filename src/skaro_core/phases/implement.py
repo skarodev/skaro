@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import re
 from typing import Any, AsyncIterator
 
@@ -62,12 +63,30 @@ class ImplementPhase(BasePhase):
             )
 
         # Build context — order matters for LLM attention
-        extra_context: dict[str, str] = {}
+        # Use smart context: AST signatures for all files + full code for relevant ones
+        from skaro_core.context import SmartContextBuilder
 
-        # Architecture — project structure
+        builder = SmartContextBuilder(self.artifacts.root)
+        smart = await asyncio.to_thread(
+            builder.build,
+            stage_section=stage_section,
+            plan=plan,
+            max_full_files=15,
+            max_full_file_size=15_000,
+        )
+
+        # ── Cacheable context (stable across stages → prompt caching) ──
+        cacheable_context: dict[str, str] = {}
+
         architecture = self.artifacts.read_architecture()
         if architecture.strip():
-            extra_context["Architecture"] = architecture
+            cacheable_context["Architecture"] = architecture
+
+        if smart.signatures:
+            cacheable_context["Project API Index (all modules)"] = smart.signatures
+
+        # ── Dynamic context (changes per stage) ──
+        extra_context: dict[str, str] = {}
 
         # Spec
         spec = self.artifacts.find_and_read_task_file(task, "spec.md")
@@ -86,23 +105,23 @@ class ImplementPhase(BasePhase):
         if prev_notes:
             extra_context["Previous stage AI_NOTES"] = prev_notes
 
-        # Existing source files — LLM needs to see what's already written
-        if not source_files:
-            source_files = await self._collect_project_sources_async(max_files=20, max_file_size=10_000)
+        # Relevant source files — full code for files this stage touches
+        if smart.full_files:
+            extra_context["Relevant source files (full code)"] = smart.full_files
 
+        # Override with explicitly passed source_files if any
         if source_files:
-            # Bundle existing files so LLM can import from them
             files_text = ""
             for fpath, content in source_files.items():
                 files_text += f"\n### {fpath}\n```\n{content}\n```\n"
-            extra_context["Current project files (already implemented)"] = files_text
+            extra_context["Relevant source files (full code)"] = files_text
 
         # Project tree as overview
         project_tree = await self._scan_project_tree_async()
         if project_tree:
             extra_context["Current project file tree"] = project_tree
 
-        messages = self._build_messages(prompt, extra_context)
+        messages = self._build_messages(prompt, extra_context, cacheable_context=cacheable_context)
         response_content = await self._stream_collect(messages, min_tokens=16384, task=task or "")
 
         # Parse response into files

@@ -1,5 +1,6 @@
 <script>
 	import { t } from '$lib/i18n/index.js';
+	import { slide } from 'svelte/transition';
 	import { FileCode, Check, CheckCircle } from 'lucide-svelte';
 
 	let {
@@ -14,31 +15,36 @@
 	let allApplied = $derived(fileEntries.length > 0 && fileEntries.every(([f]) => appliedFiles[f]));
 </script>
 
+{#if fileEntries.length > 0}
 <div class="card" style="margin-top: 2rem">
 	<h3>{$t('impl.stage_complete', { n: stage })}</h3>
-	{#if fileEntries.length > 0}
-		<p class="subtitle">{$t('impl.files_generated')}</p>
-		<div class="impl-file-list">
-			{#each fileEntries as [fpath, fdata]}
-				{@const isApplied = !!appliedFiles[fpath]}
-				<!-- svelte-ignore a11y_click_events_have_key_events -->
-				<!-- svelte-ignore a11y_no_static_element_interactions -->
-				<div class="impl-file-item" class:impl-file-applied={isApplied} onclick={() => onOpenDiff(fpath, fdata)}>
-					<FileCode size={14} />
-					<span class="impl-file-name">{fpath}</span>
-					{#if fdata.is_new}<span class="impl-badge-new">{$t('fix.new')}</span>{/if}
-					{#if isApplied}<Check size={14} class="impl-applied-icon" />{/if}
-				</div>
-			{/each}
-		</div>
-		{#if !allApplied}
-			<button class="btn btn-primary" style="margin-top: 10px" onclick={onApplyAll}>
-				<CheckCircle size={14} /> {$t('impl.apply_all')}
-			</button>
-		{/if}
+	<p class="subtitle">{$t('impl.files_generated')}</p>
+	<div class="impl-file-list">
+		{#each fileEntries as [fpath, fdata] (fpath)}
+			{@const isApplied = !!appliedFiles[fpath]}
+			<!-- svelte-ignore a11y_click_events_have_key_events -->
+			<!-- svelte-ignore a11y_no_static_element_interactions -->
+			<div
+				class="impl-file-item"
+				class:impl-file-applied={isApplied}
+				onclick={() => onOpenDiff(fpath, fdata)}
+				out:slide={{ duration: 300 }}
+			>
+				<FileCode size={14} />
+				<span class="impl-file-name">{fpath}</span>
+				{#if fdata.is_new}<span class="impl-badge-new">{$t('fix.new')}</span>{/if}
+				{#if isApplied}<Check size={14} class="impl-applied-icon" />{/if}
+			</div>
+		{/each}
+	</div>
+	{#if !allApplied}
+		<button class="btn btn-primary" style="margin-top: 10px" onclick={onApplyAll}>
+			<CheckCircle size={14} /> {$t('impl.apply_all')}
+		</button>
 	{/if}
 	<div class="alert alert-info" style="margin-top: 10px">{$t('impl.review_hint')}</div>
 </div>
+{/if}
 
 <style>
 	.impl-file-list {

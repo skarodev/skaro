@@ -39,6 +39,12 @@ Do NOT create stages with fewer than 3 output files unless there is a strong rea
 VERIFY COMMANDS — MANDATORY:
 At the END of plan.md (after all stages), add a `## Verify` section with shell commands
 that will be run automatically after implementation to validate correctness.
+
+CRITICAL: Commands MUST be compatible with the user's OS and shell specified in the
+ENVIRONMENT section of the system prompt. Do NOT use Unix commands on Windows or vice versa.
+For example, on Windows/PowerShell use `python -m pytest` instead of `pytest`,
+use semicolons instead of `&&`, and avoid Unix-only tools like `grep`, `sed`, `awk`.
+
 Choose commands specific to THIS task's files and modules. Format as YAML list:
 ```
 ## Verify

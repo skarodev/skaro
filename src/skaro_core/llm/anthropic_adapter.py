@@ -1,4 +1,4 @@
-"""Anthropic Claude LLM adapter."""
+"""Anthropic Claude LLM adapter with prompt caching support."""
 
 from __future__ import annotations
 
@@ -33,26 +33,67 @@ class AnthropicAdapter(BaseLLMAdapter):
             return LLMError(f"Anthropic API error: {exc}", provider="anthropic")
         return LLMError(f"Anthropic request failed: {exc}", provider="anthropic")
 
-    def _prepare_messages(self, messages: list[LLMMessage]) -> tuple[str, list[dict]]:
-        """Split system messages out (Anthropic uses a separate parameter)."""
-        system_msg = ""
-        chat_messages = []
+    def _prepare_messages(
+        self, messages: list[LLMMessage],
+    ) -> tuple[list[dict] | str, list[dict]]:
+        """Split system messages out and apply cache_control hints.
+
+        Returns ``(system, chat_messages)`` where *system* is either a plain
+        string (no caching) or a list of content blocks (with optional
+        ``cache_control``).
+        """
+        system_parts: list[dict] = []
+        chat_messages: list[dict] = []
+        any_system_cached = False
+
         for msg in messages:
             if msg.role == "system":
-                system_msg += msg.content + "\n"
+                block: dict = {"type": "text", "text": msg.content}
+                if msg.cache:
+                    block["cache_control"] = {"type": "ephemeral"}
+                    any_system_cached = True
+                system_parts.append(block)
             else:
-                chat_messages.append({"role": msg.role, "content": msg.content})
-        return system_msg.strip(), chat_messages
+                if msg.cache:
+                    # Structured content with cache_control
+                    content = [
+                        {
+                            "type": "text",
+                            "text": msg.content,
+                            "cache_control": {"type": "ephemeral"},
+                        }
+                    ]
+                else:
+                    content = msg.content
+                chat_messages.append({"role": msg.role, "content": content})
+
+        # If no caching was requested, fall back to plain string for system
+        # (avoids unnecessary structured format for non-caching calls).
+        if not any_system_cached and system_parts:
+            plain = "\n".join(p["text"] for p in system_parts).strip()
+            return plain, chat_messages
+
+        return system_parts, chat_messages
+
+    @staticmethod
+    def _extract_cache_stats(usage) -> dict[str, int] | None:
+        """Extract prompt caching statistics from an Anthropic usage object."""
+        stats: dict[str, int] = {}
+        if hasattr(usage, "cache_creation_input_tokens") and usage.cache_creation_input_tokens:
+            stats["cache_creation_input_tokens"] = usage.cache_creation_input_tokens
+        if hasattr(usage, "cache_read_input_tokens") and usage.cache_read_input_tokens:
+            stats["cache_read_input_tokens"] = usage.cache_read_input_tokens
+        return stats if stats else None
 
     async def complete(self, messages: list[LLMMessage]) -> LLMResponse:
-        system_msg, chat_messages = self._prepare_messages(messages)
+        system, chat_messages = self._prepare_messages(messages)
 
         try:
             response = await self.client.messages.create(
                 model=self.config.model,
                 max_tokens=self.config.max_tokens,
                 temperature=self.config.temperature,
-                system=system_msg if system_msg else anthropic.NOT_GIVEN,
+                system=system if system else anthropic.NOT_GIVEN,
                 messages=chat_messages,
             )
         except LLMError:
@@ -72,17 +113,18 @@ class AnthropicAdapter(BaseLLMAdapter):
                 "input_tokens": response.usage.input_tokens,
                 "output_tokens": response.usage.output_tokens,
             },
+            cache_stats=self._extract_cache_stats(response.usage),
         )
 
     async def stream(self, messages: list[LLMMessage]) -> AsyncIterator[str]:
-        system_msg, chat_messages = self._prepare_messages(messages)
+        system, chat_messages = self._prepare_messages(messages)
 
         try:
             async with self.client.messages.stream(
                 model=self.config.model,
                 max_tokens=self.config.max_tokens,
                 temperature=self.config.temperature,
-                system=system_msg if system_msg else anthropic.NOT_GIVEN,
+                system=system if system else anthropic.NOT_GIVEN,
                 messages=chat_messages,
             ) as stream:
                 async for text in stream.text_stream:
@@ -94,6 +136,10 @@ class AnthropicAdapter(BaseLLMAdapter):
                         "input_tokens": final.usage.input_tokens,
                         "output_tokens": final.usage.output_tokens,
                     }
+                    # Store cache stats for tracking
+                    cache_stats = self._extract_cache_stats(final.usage)
+                    if cache_stats:
+                        self.last_usage.update(cache_stats)
         except LLMError:
             raise
         except Exception as e:

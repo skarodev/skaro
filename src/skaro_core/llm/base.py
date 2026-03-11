@@ -29,6 +29,7 @@ class LLMError(Exception):
 class LLMMessage:
     role: str  # "system" | "user" | "assistant"
     content: str
+    cache: bool = False  # hint for prompt caching (provider-specific)
 
 
 @dataclass
@@ -36,6 +37,8 @@ class LLMResponse:
     content: str
     model: str
     usage: dict[str, int] | None = None
+    # Cache statistics (provider-specific): cache_creation_input_tokens, cache_read_input_tokens
+    cache_stats: dict[str, int] | None = None
 
 
 class BaseLLMAdapter(ABC):

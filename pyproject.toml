@@ -45,6 +45,18 @@ dev = [
     "pytest-asyncio>=0.24",
     "ruff>=0.8",
 ]
+ast = [
+    "tree-sitter>=0.23",
+    "tree-sitter-python>=0.23",
+    "tree-sitter-javascript>=0.23",
+    "tree-sitter-typescript>=0.23",
+    "tree-sitter-go>=0.23",
+    "tree-sitter-rust>=0.23",
+    "tree-sitter-java>=0.23",
+    "tree-sitter-ruby>=0.23",
+    "tree-sitter-html>=0.23",
+    "tree-sitter-css>=0.23",
+]
 
 [project.scripts]
 skaro = "skaro_cli.main:cli"

@@ -55,6 +55,7 @@ async def save_constitution(
     am: ArtifactManager = Depends(get_am),
 ):
     am.write_constitution(payload.content)
+    am.generate_project_gitignore(payload.content)
     await broadcast(request, {"event": "artifact:updated", "artifact": "constitution"})
     return {"success": True}
 

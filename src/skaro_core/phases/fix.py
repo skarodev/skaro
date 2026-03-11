@@ -42,12 +42,52 @@ class FixPhase(ConversationalFixBase):
         if not user_message.strip():
             return PhaseResult(success=False, message="Message is required.")
 
-        extra_context = await asyncio.to_thread(
-            self._build_task_context, task, max_files=30, max_file_size=15_000,
+        # Build smart context: AST index (cacheable) + relevant files (dynamic)
+        from skaro_core.context import SmartContextBuilder
+
+        builder = SmartContextBuilder(self.artifacts.root)
+        smart = await asyncio.to_thread(
+            builder.build,
+            stage_section=user_message,
+            max_full_files=15,
+            max_full_file_size=15_000,
         )
 
+        # Cacheable context (stable across fix turns within same task)
+        cacheable_context: dict[str, str] = {}
+        architecture = self.artifacts.read_architecture()
+        if architecture.strip():
+            cacheable_context["Architecture"] = architecture
+        if smart.signatures:
+            cacheable_context["Project API Index (all modules)"] = smart.signatures
+
+        # Dynamic context (may change between turns)
+        extra_context: dict[str, str] = {}
+        spec = self.artifacts.find_and_read_task_file(task, "spec.md")
+        if spec:
+            extra_context["Task Specification"] = spec
+        clarif = self.artifacts.find_and_read_task_file(task, "clarifications.md")
+        if clarif:
+            extra_context["Clarifications"] = clarif
+        plan = self.artifacts.find_and_read_task_file(task, "plan.md")
+        if plan:
+            extra_context["Implementation Plan"] = plan
+        # AI_NOTES from completed stages
+        completed = self.artifacts.find_completed_stages(task)
+        for s in sorted(completed):
+            notes_path = self.artifacts.find_stage_dir(task, s) / "AI_NOTES.md"
+            if notes_path.exists():
+                extra_context[f"Stage {s} AI_NOTES"] = notes_path.read_text(encoding="utf-8")
+        if smart.full_files:
+            extra_context["Relevant source files (full code)"] = smart.full_files
+        tree = await self._scan_project_tree_async()
+        if tree:
+            extra_context["Project File Tree"] = tree
+
         response, proposed, file_diffs, updated_conv = await self._run_fix(
-            user_message, conversation, extra_context, task=task,
+            user_message, conversation, extra_context,
+            task=task,
+            cacheable_context=cacheable_context,
         )
 
         # Persist

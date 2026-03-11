@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import platform
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -26,6 +27,29 @@ SOURCE_EXTENSIONS: set[str] = {
 }
 
 SKIP_BINARY_EXTENSIONS: set[str] = {".pyc", ".pyo", ".so", ".dylib"}
+
+
+def _has_inner_close_ahead(lines: list[str], start: int) -> bool:
+    """Check whether a bare ````` has a matching close ````` ahead.
+
+    Scans forward from *start*, skipping over any labeled fence pairs
+    (e.g. ``\u0060\u0060\u0060python`` … ``\u0060\u0060\u0060``) encountered
+    on the way.  Returns ``True`` if a bare ````` is found that would
+    close the inner block — meaning the ````` that triggered this check
+    is an inner opener, not the outer block closer.
+    """
+    depth = 0
+    for k in range(start, len(lines)):
+        stripped = lines[k].strip()
+        if stripped.startswith("```") and len(stripped) > 3:
+            # Labeled opener inside the look-ahead — track it
+            depth += 1
+        elif stripped == "```":
+            if depth > 0:
+                depth -= 1  # closes a labeled inner fence
+            else:
+                return True  # matching close for the bare inner block
+    return False
 
 
 class _TrackingLLMAdapter(BaseLLMAdapter):
@@ -142,12 +166,44 @@ class BasePhase(ABC):
         lang_name = self._LANG_NAMES.get(lang, lang)
         return f"IMPORTANT: You MUST respond entirely in {lang_name}. All explanations, comments in code, AI_NOTES, headings, and descriptions must be in {lang_name}."
 
+    @staticmethod
+    def _os_info() -> str:
+        """Return OS/shell information for LLM context.
+
+        Ensures that generated shell commands (verify, scripts, etc.)
+        are compatible with the user's operating system.
+        """
+        os_name = platform.system()  # "Windows", "Linux", "Darwin"
+        if os_name == "Windows":
+            shell = "PowerShell"
+            note = (
+                "Use PowerShell-compatible syntax for all shell commands. "
+                "Do NOT use Unix-specific commands (grep, sed, awk, chmod, etc.) or bash syntax. "
+                "Use PowerShell equivalents: Select-String, ForEach-Object, Get-ChildItem, etc. "
+                "Use semicolons or backticks for line continuation, not backslashes."
+            )
+        elif os_name == "Darwin":
+            shell = "zsh"
+            note = "Use macOS-compatible commands. Prefer POSIX-compliant syntax."
+        else:
+            shell = "bash"
+            note = "Use standard Linux/bash commands."
+
+        return (
+            f"OS: {os_name} ({platform.machine()})\n"
+            f"Default shell: {shell}\n"
+            f"{note}"
+        )
+
     def _build_system_message(self) -> str:
         """Build system message with language, constitution, and invariants."""
         parts = []
 
         # Language instruction — always first, unconditional
         parts.append(f"# LANGUAGE\n\n{self._lang_instruction()}")
+
+        # OS environment — so LLM generates compatible commands
+        parts.append(f"# ENVIRONMENT\n\n{self._os_info()}")
 
         constitution = self.artifacts.read_constitution()
         if constitution:
@@ -170,16 +226,47 @@ class BasePhase(ABC):
         return "\n\n---\n\n".join(parts)
 
     def _build_messages(
-        self, user_content: str, extra_context: dict[str, str] | None = None
+        self,
+        user_content: str,
+        extra_context: dict[str, str] | None = None,
+        cacheable_context: dict[str, str] | None = None,
     ) -> list[LLMMessage]:
-        """Build message list with system context and user prompt."""
+        """Build message list with system context and user prompt.
+
+        Args:
+            user_content: The main user prompt text.
+            extra_context: Dynamic context (stage-specific files, plan, etc.).
+            cacheable_context: Stable context that benefits from prompt caching
+                (e.g. AST index).  Sent before *extra_context* and marked with
+                ``cache=True`` so providers that support prompt caching can
+                reuse the prefix across calls.
+        """
         messages = []
 
         system = self._build_system_message()
         if system:
-            messages.append(LLMMessage(role="system", content=system))
+            # System message is stable across stages → cacheable
+            messages.append(LLMMessage(role="system", content=system, cache=True))
 
-        # Add extra context files
+        # ── Cacheable context (AST index, architecture) — sent first ──
+        if cacheable_context:
+            context_parts = []
+            for label, content in cacheable_context.items():
+                if content.strip():
+                    context_parts.append(f"## {label}\n\n{content}")
+            if context_parts:
+                messages.append(
+                    LLMMessage(
+                        role="user",
+                        content="\n\n---\n\n".join(context_parts),
+                        cache=True,
+                    )
+                )
+                messages.append(
+                    LLMMessage(role="assistant", content="I've reviewed the project context. Ready for your request.")
+                )
+
+        # ── Dynamic context (stage-specific, changes each call) ──
         if extra_context:
             context_parts = []
             for label, content in extra_context.items():
@@ -213,7 +300,8 @@ class BasePhase(ABC):
 
         for path in sorted(root.rglob("*")):
             parts = path.relative_to(root).parts
-            if any(p in SKIP_DIRS or p.startswith(".") for p in parts):
+            # Skip dot-directories (.git, .venv) but NOT dot-files (.env, .eslintrc)
+            if any(p in SKIP_DIRS or p.startswith(".") for p in parts[:-1]):
                 continue
             if path.is_file() and path.suffix in SKIP_BINARY_EXTENSIONS:
                 continue
@@ -245,7 +333,8 @@ class BasePhase(ABC):
 
         for path in sorted(root.rglob("*")):
             parts = path.relative_to(root).parts
-            if any(p in SKIP_DIRS or p.startswith(".") for p in parts):
+            # Skip dot-directories (.git, .venv) but NOT dot-files (.env, .eslintrc)
+            if any(p in SKIP_DIRS or p.startswith(".") for p in parts[:-1]):
                 continue
             if path.is_file() and path.suffix in extensions:
                 rel = str(path.relative_to(root))
@@ -339,10 +428,15 @@ class BasePhase(ABC):
     def _parse_file_blocks(content: str) -> dict[str, str]:
         """Parse LLM output into {filepath: content} dict.
 
-        Expects format:
-        ```path/to/file.ext
-        content here
-        ```
+        Expects format::
+
+            ```path/to/file.ext
+            content here (may contain nested code fences)
+            ```
+
+        Handles nested code fences: both labeled (e.g. ``\u0060\u0060\u0060python``)
+        and bare (``\u0060\u0060\u0060``) inner blocks are tracked so the first
+        inner ``\u0060\u0060\u0060`` is not mistaken for the outer closing fence.
         """
         files: dict[str, str] = {}
         lines = content.splitlines()
@@ -354,10 +448,35 @@ class BasePhase(ABC):
                 # Ignore language-only fences like ```python, ```typescript
                 if "/" in fence or "." in fence:
                     filepath = fence
-                    file_lines = []
+                    file_lines: list[str] = []
                     i += 1
-                    while i < len(lines) and not lines[i].strip() == "```":
-                        file_lines.append(lines[i])
+                    inner_fence = False
+                    while i < len(lines):
+                        stripped = lines[i].strip()
+                        if inner_fence:
+                            # Inside an inner code fence — wait for its close
+                            file_lines.append(lines[i])
+                            if stripped == "```":
+                                inner_fence = False
+                        elif stripped.startswith("```") and len(stripped) > 3:
+                            # Labeled inner fence opener (```python, ```yaml …)
+                            inner_fence = True
+                            file_lines.append(lines[i])
+                        elif stripped == "```":
+                            # Bare ``` when not inside inner fence.
+                            # Determine whether this opens an inner bare block
+                            # or closes the outer file block.
+                            # Heuristic: look ahead for a matching bare ```
+                            # that would close this inner block, skipping over
+                            # any labeled fence pairs encountered on the way.
+                            if _has_inner_close_ahead(lines, i + 1):
+                                inner_fence = True
+                                file_lines.append(lines[i])
+                            else:
+                                # No matching close ahead — this is outer close
+                                break
+                        else:
+                            file_lines.append(lines[i])
                         i += 1
                     files[filepath] = "\n".join(file_lines)
             i += 1

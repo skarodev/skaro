@@ -261,10 +261,31 @@
 		implDiffModal = { filepath, oldContent: fileData.old, newContent: fileData.new, isNew: fileData.is_new, applied: !!implAppliedFiles[filepath] };
 	}
 
+	/** Remove a file from the implement result store; clear store if empty. */
+	function dismissImplFile(filepath) {
+		lastImplementResult.update((r) => {
+			if (!r?.data?.files) return r;
+			const { [filepath]: _, ...rest } = r.data.files;
+			if (Object.keys(rest).length === 0) return null;
+			return { ...r, data: { ...r.data, files: rest } };
+		});
+	}
+
+	/** Schedule file removal 2 s after successful apply. */
+	function scheduleImplDismiss(filepath) {
+		setTimeout(() => dismissImplFile(filepath), 2000);
+	}
+
 	async function applyImplFile(filepath, content) {
 		try {
 			const result = await api.applyImplementFile(taskName, filepath, content);
-			if (result.success) { implAppliedFiles[filepath] = true; implAppliedFiles = { ...implAppliedFiles }; addLog($t('log.fix_applied', { file: filepath })); implDiffModal = null; }
+			if (result.success) {
+				implAppliedFiles[filepath] = true;
+				implAppliedFiles = { ...implAppliedFiles };
+				addLog($t('log.fix_applied', { file: filepath }));
+				implDiffModal = null;
+				scheduleImplDismiss(filepath);
+			}
 			else addError(result.message, 'applyImplFile');
 		} catch (e) { addError(e.message, 'applyImplFile'); }
 	}

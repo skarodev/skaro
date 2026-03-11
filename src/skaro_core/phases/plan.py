@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import re
 from typing import Any
 
@@ -59,11 +60,24 @@ class PlanPhase(BasePhase):
         )
 
         extra_context: dict[str, str] = {}
+        cacheable_context: dict[str, str] = {}
 
-        # Architecture — tells LLM what project structure to use
+        # Architecture — tells LLM what project structure to use (cacheable)
         architecture = self.artifacts.read_architecture()
         if architecture.strip():
-            extra_context["Architecture"] = architecture
+            cacheable_context["Architecture"] = architecture
+
+        # AST index — gives LLM visibility into existing codebase (cacheable)
+        from skaro_core.context import SmartContextBuilder
+
+        builder = SmartContextBuilder(self.artifacts.root)
+        smart = await asyncio.to_thread(
+            builder.build,
+            stage_section=spec,
+            max_full_files=0,  # Plan only needs signatures, not full code
+        )
+        if smart.signatures:
+            cacheable_context["Project API Index (existing code)"] = smart.signatures
 
         extra_context["Specification (final)"] = spec
 
@@ -75,7 +89,7 @@ class PlanPhase(BasePhase):
         if project_tree:
             extra_context["Current project file tree"] = project_tree
 
-        messages = self._build_messages(prompt, extra_context)
+        messages = self._build_messages(prompt, extra_context, cacheable_context=cacheable_context)
         response_content = await self._stream_collect(messages, task=task or "")
 
         # Split response into plan and tasks

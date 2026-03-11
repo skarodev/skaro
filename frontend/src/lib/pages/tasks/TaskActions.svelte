@@ -25,7 +25,7 @@
 			</button>
 		</div>
 
-	{:else if phases.clarify === 'complete' && phases.plan !== 'complete'}
+	{:else if phases.clarify === 'complete' && !hasUnanswered && phases.plan !== 'complete'}
 		<p class="phase-hint"><strong>{$t('phase_hint.prefix')}</strong>{$t('phase_hint.plan')}</p>
 		<div class="btn-group">
 			<button class="btn btn-primary" disabled={!!actionLoading} onclick={onPlan}>

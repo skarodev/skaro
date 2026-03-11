@@ -35,10 +35,32 @@ class ProjectFixPhase(ConversationalFixBase):
         if not user_message.strip():
             return PhaseResult(success=False, message="Message is required.")
 
-        extra_context = await asyncio.to_thread(self._gather_context, scope_tasks)
+        # Build smart context
+        from skaro_core.context import SmartContextBuilder
+
+        builder = SmartContextBuilder(self.artifacts.root)
+        smart = await asyncio.to_thread(
+            builder.build,
+            stage_section=user_message,
+            max_full_files=15,
+            max_full_file_size=15_000,
+        )
+
+        # Cacheable: architecture + AST index
+        cacheable_context: dict[str, str] = {}
+        arch = self.artifacts.read_architecture()
+        if arch.strip():
+            cacheable_context["Architecture"] = arch
+        if smart.signatures:
+            cacheable_context["Project API Index (all modules)"] = smart.signatures
+
+        extra_context = await asyncio.to_thread(self._gather_dynamic_context, scope_tasks)
+        if smart.full_files:
+            extra_context["Relevant source files (full code)"] = smart.full_files
 
         response, proposed, file_diffs, updated_conv = await self._run_fix(
             user_message, conversation, extra_context,
+            cacheable_context=cacheable_context,
         )
 
         # Persist
@@ -76,12 +98,9 @@ class ProjectFixPhase(ConversationalFixBase):
 
     # ── Context (project-wide, multi-task) ──
 
-    def _gather_context(self, scope_tasks: list[str]) -> dict[str, str]:
+    def _gather_dynamic_context(self, scope_tasks: list[str]) -> dict[str, str]:
+        """Gather task-specific context (specs, plans, AI_NOTES)."""
         ctx: dict[str, str] = {}
-
-        arch = self.artifacts.read_architecture()
-        if arch.strip():
-            ctx["Architecture"] = arch
 
         state = self.artifacts.get_project_state()
         tasks_to_include = scope_tasks if scope_tasks else [ts.name for ts in state.tasks]
@@ -104,8 +123,18 @@ class ProjectFixPhase(ConversationalFixBase):
                         notes = notes[:3000] + "\n... (truncated)"
                     ctx[f"Task '{task_name}' Stage {s} AI_NOTES"] = notes
 
-        self._append_source_context(ctx, max_files=40, max_file_size=15_000)
+        tree = self._scan_project_tree()
+        if tree:
+            ctx["Project File Tree"] = tree
 
+        return ctx
+
+    def _gather_context(self, scope_tasks: list[str]) -> dict[str, str]:
+        """Backward-compatible context gathering (used by API for token estimation)."""
+        ctx = self._gather_dynamic_context(scope_tasks)
+        arch = self.artifacts.read_architecture()
+        if arch.strip():
+            ctx["Architecture"] = arch
         return ctx
 
     # ── Path helpers ──

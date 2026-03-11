@@ -47,6 +47,7 @@ class ConversationalFixBase(BasePhase):
         extra_context: dict[str, str],
         *,
         task: str = "",
+        cacheable_context: dict[str, str] | None = None,
     ) -> tuple[str, dict[str, str], dict[str, dict], list[dict]]:
         """Execute the shared fix-conversation flow.
 
@@ -69,9 +70,31 @@ class ConversationalFixBase(BasePhase):
         )
 
         # ── Messages ──
-        messages: list[LLMMessage] = [LLMMessage(role="system", content=system)]
+        messages: list[LLMMessage] = [LLMMessage(role="system", content=system, cache=True)]
 
-        # Inject rich context
+        # Inject cacheable context (AST index, architecture) — prompt caching
+        if cacheable_context:
+            ctx_parts = [
+                f"## {label}\n\n{content}"
+                for label, content in cacheable_context.items()
+                if content.strip()
+            ]
+            if ctx_parts:
+                messages.append(
+                    LLMMessage(
+                        role="user",
+                        content="\n\n---\n\n".join(ctx_parts),
+                        cache=True,
+                    )
+                )
+                messages.append(
+                    LLMMessage(
+                        role="assistant",
+                        content="I've reviewed the project API index. Ready to help fix issues.",
+                    )
+                )
+
+        # Inject dynamic context
         if extra_context:
             ctx_parts = [
                 f"## {label}\n\n{content}"
