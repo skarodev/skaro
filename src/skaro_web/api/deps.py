@@ -99,9 +99,35 @@ async def llm_phase(
     ws_manager: ConnectionManager,
     phase_name: str,
     phase_obj: Any = None,
+    request: Request | None = None,
 ) -> AsyncIterator[None]:
-    """Wrap LLM phase execution: broadcast start/chunk/complete over WS."""
+    """Wrap LLM phase execution: broadcast start/chunk/complete over WS.
+
+    When *request* is provided, monitors the HTTP connection and cancels
+    the running LLM stream when the client disconnects (e.g. stop button).
+    """
     await ws_manager.broadcast({"event": "llm:start", "phase": phase_name})
+
+    cancel_event: asyncio.Event | None = None
+    monitor_task: asyncio.Task | None = None
+
+    if request is not None and phase_obj is not None:
+        cancel_event = asyncio.Event()
+        phase_obj._cancel_event = cancel_event
+
+        async def _monitor_disconnect() -> None:
+            """Poll request connection; set cancel event on disconnect."""
+            try:
+                while not cancel_event.is_set():
+                    if await request.is_disconnected():
+                        logger.info("Client disconnected during %s — cancelling", phase_name)
+                        cancel_event.set()
+                        return
+                    await asyncio.sleep(0.5)
+            except asyncio.CancelledError:
+                pass
+
+        monitor_task = asyncio.create_task(_monitor_disconnect())
 
     if phase_obj is not None:
         async def _on_chunk(text: str) -> None:
@@ -111,4 +137,12 @@ async def llm_phase(
     try:
         yield
     finally:
+        if cancel_event is not None:
+            cancel_event.set()
+        if monitor_task is not None:
+            monitor_task.cancel()
+            try:
+                await monitor_task
+            except asyncio.CancelledError:
+                pass
         await ws_manager.broadcast({"event": "llm:complete", "phase": phase_name})

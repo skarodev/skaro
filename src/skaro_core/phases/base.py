@@ -15,6 +15,11 @@ from skaro_core.artifacts import ArtifactManager
 from skaro_core.config import SkaroConfig, add_token_usage, load_config
 from skaro_core.llm.base import BaseLLMAdapter, LLMMessage, LLMResponse, create_llm_adapter
 
+
+class CancelledByClientError(Exception):
+    """Raised when an LLM streaming operation is cancelled by the client."""
+
+
 # ── Shared constants ──────────────────────────────────────────
 SKIP_DIRS: set[str] = {
     ".skaro", ".git", "__pycache__", "node_modules", ".venv", "venv",
@@ -166,6 +171,7 @@ class BasePhase(ABC):
         self._llm: BaseLLMAdapter | None = None
         self._current_task: str = ""
         self.on_stream_chunk: Callable[[str], Any] | None = None
+        self._cancel_event: asyncio.Event | None = None
 
     def _get_llm(self, task: str = "") -> BaseLLMAdapter:
         """Get or create LLM adapter, updating task context."""
@@ -592,6 +598,8 @@ class BasePhase(ABC):
             last_flush = monotonic()
 
             async for chunk in llm.stream(messages):
+                if self._cancel_event and self._cancel_event.is_set():
+                    raise CancelledByClientError("LLM request cancelled by client")
                 chunks.append(chunk)
                 if self.on_stream_chunk:
                     buf.append(chunk)

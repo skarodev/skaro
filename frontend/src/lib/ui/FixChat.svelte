@@ -181,6 +181,8 @@
 			}
 		} catch (e) {
 			if (e.name === 'AbortError') {
+				// Remove the user message that was added optimistically
+				conversation = conversation.slice(0, -1);
 				addLog($t('fix.cancelled'));
 			} else {
 				addError(e.message, errorSource);

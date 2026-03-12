@@ -78,19 +78,29 @@ async def get_architecture(am: ArtifactManager = Depends(get_am)):
 
 @router.post("/chat")
 async def arch_chat(
+    request: Request,
     payload: ArchChatBody,
     project_root: Path = Depends(get_project_root),
     ws: ConnectionManager = Depends(get_ws_manager),
 ):
     """Send a message in the architecture generation chat."""
     from skaro_core.phases.architecture import ArchitecturePhase
+    from skaro_core.phases.base import CancelledByClientError
 
     phase = ArchitecturePhase(project_root=project_root)
-    async with llm_phase(ws, "architecture-chat", phase):
-        result = await phase.chat(
-            message=payload.message,
-            conversation=payload.conversation,
-        )
+    try:
+        async with llm_phase(ws, "architecture-chat", phase, request=request):
+            result = await phase.chat(
+                message=payload.message,
+                conversation=payload.conversation,
+            )
+    except CancelledByClientError:
+        return {
+            "success": False,
+            "message": "Cancelled by user",
+            "files": {},
+            "has_architecture": False,
+        }
     return {
         "success": result.success,
         "message": result.message,

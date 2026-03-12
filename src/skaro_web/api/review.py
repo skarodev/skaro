@@ -43,20 +43,25 @@ async def get_review_results(
 
 @router.post("/fix")
 async def run_project_fix(
+    request: Request,
     payload: ProjectFixBody,
     project_root: Path = Depends(get_project_root),
     ws: ConnectionManager = Depends(get_ws_manager),
 ):
     from skaro_core.phases.project_fix import ProjectFixPhase
+    from skaro_core.phases.base import CancelledByClientError
 
     phase = ProjectFixPhase(project_root=project_root)
-    async with llm_phase(ws, "project_fix", phase):
-        result = await phase.run(
-            message=payload.message,
-            conversation=payload.conversation,
-            scope_tasks=payload.scope_tasks,
-            scope_paths=payload.scope_paths,
-        )
+    try:
+        async with llm_phase(ws, "project_fix", phase, request=request):
+            result = await phase.run(
+                message=payload.message,
+                conversation=payload.conversation,
+                scope_tasks=payload.scope_tasks,
+                scope_paths=payload.scope_paths,
+            )
+    except CancelledByClientError:
+        return {"success": False, "message": "Cancelled by user", "files": {}, "conversation": []}
     if result.success:
         await ws.broadcast({"event": "review:fix_response"})
     return {

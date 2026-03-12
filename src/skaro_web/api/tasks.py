@@ -398,15 +398,20 @@ async def complete_stage(
 @router.post("/{name}/fix")
 async def run_fix(
     name: str,
+    request: Request,
     payload: FixBody,
     project_root: Path = Depends(get_project_root),
     ws: ConnectionManager = Depends(get_ws_manager),
 ):
     from skaro_core.phases.fix import FixPhase
+    from skaro_core.phases.base import CancelledByClientError
 
     phase = FixPhase(project_root=project_root)
-    async with llm_phase(ws, "fix", phase):
-        result = await phase.run(task=name, message=payload.message, conversation=payload.conversation, scope_paths=payload.scope_paths)
+    try:
+        async with llm_phase(ws, "fix", phase, request=request):
+            result = await phase.run(task=name, message=payload.message, conversation=payload.conversation, scope_paths=payload.scope_paths)
+    except CancelledByClientError:
+        return {"success": False, "message": "Cancelled by user", "files": {}, "conversation": []}
     if result.success:
         await ws.broadcast({"event": "fix:response", "task": name})
     return {
