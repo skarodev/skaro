@@ -170,6 +170,7 @@ class DevPlanPhase(BasePhase):
             if not self.artifacts.milestone_exists(ms_slug):
                 self.artifacts.create_milestone(ms_slug, title=ms_title, description=ms_desc)
 
+            task_slugs: list[str] = []
             for task_data in tasks:
                 name = task_data.get("name", "").strip()
                 spec = task_data.get("spec", "").strip()
@@ -182,7 +183,15 @@ class DevPlanPhase(BasePhase):
                 if spec:
                     self.artifacts.write_task_file(ms_slug, slug, "spec.md", spec)
 
+                task_slugs.append(slug)
                 created.append(f"{ms_slug}/{slug}")
+
+            # Persist LLM-defined task order so list_tasks() respects it
+            if task_slugs:
+                existing_order = self.artifacts.get_task_order(ms_slug)
+                merged = existing_order + [s for s in task_slugs if s not in set(existing_order)]
+                self.artifacts.save_task_order(ms_slug, merged)
+
         return created
 
     def _read_template(self, name: str) -> str:

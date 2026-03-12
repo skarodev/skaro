@@ -269,6 +269,11 @@ class TestDevPlanPhase:
         spec = am.read_task_file("01-core", "auth", "spec.md")
         assert "JWT auth" in spec
 
+        # Verify task order is preserved (not alphabetical)
+        order = am.get_task_order("01-core")
+        assert order == ["auth", "database"], f"Expected LLM order, got {order}"
+        assert am.list_tasks("01-core") == ["auth", "database"]
+
     @pytest.mark.asyncio
     async def test_confirm_plan_updates_changelog(self, project_with_arch):
         from skaro_core.phases.devplan import DevPlanPhase
