@@ -21,6 +21,7 @@ Each spec MUST follow this structure:
 {spec_template}
 
 Rules:
+- If a "COMPLETED WORK" section, "Project File Tree", or "Project API Index" is provided in context, you MUST account for existing code — do NOT plan tasks that recreate already-implemented functionality
 - First milestone should contain foundational work: project structure, configs, base models
 - Subsequent milestones build on the foundation with functional tasks
 - Order tasks so that dependencies come first

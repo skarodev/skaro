@@ -5,8 +5,13 @@ This phase is invoked during ``skaro init`` when the user chooses option B
   1. Scans the repository via RepoScanner.
   2. LLM Call 1: generates constitution.md from code.
   3. LLM Call 2: generates architecture.md (with constitution as context).
-  4. Creates a default "backlog" milestone so the user can start creating tasks immediately.
-  5. Records import metadata in state.yaml.
+  4. LLM Call 3: generates completed-work.md (inventory of existing code).
+  5. Creates a default "backlog" milestone so the user can start creating tasks immediately.
+  6. Records import metadata in state.yaml.
+
+The completed-work.md document ensures that subsequent phases (especially
+DevPlan) are aware of what is already implemented and do not plan redundant
+work.
 
 Invariants are NOT generated during import. They are created when the user
 runs Architecture Review (same as in the normal pipeline).
@@ -43,6 +48,13 @@ _ARCHITECTURE_TOKEN_LIMITS: dict[str, int] = {
     "openai": 32_768,
     "groq": 16_384,
     "ollama": 32_768,
+}
+
+_COMPLETED_WORK_TOKEN_LIMITS: dict[str, int] = {
+    "anthropic": 16_384,
+    "openai": 16_384,
+    "groq": 8_192,
+    "ollama": 16_384,
 }
 
 
@@ -120,6 +132,24 @@ class ImportAnalyzePhase(BasePhase):
         am.architecture_path.write_text(architecture, encoding="utf-8")
         created.append(str(am.architecture_path))
 
+        # ── 3.5. LLM Call 3: Completed Work ──────────────────────────────
+        # Generates an inventory of what is already implemented so that
+        # DevPlan and other phases do not plan redundant work.
+        await asyncio.sleep(5)
+
+        completed_work = await self._generate_completed_work(
+            project_name, tree_text, files_text, constitution, architecture
+        )
+
+        if completed_work.strip():
+            from skaro_core.phases._import_parser import _unwrap_fenced
+            completed_work = _unwrap_fenced(completed_work)
+
+            cw_path = am.skaro / "docs" / "completed-work.md"
+            cw_path.parent.mkdir(parents=True, exist_ok=True)
+            cw_path.write_text(completed_work, encoding="utf-8")
+            created.append(str(cw_path))
+
         # ── 4. Create default milestone ──────────────────────────────────
         if not am.milestone_exists(_DEFAULT_MILESTONE):
             am.create_milestone(
@@ -135,7 +165,7 @@ class ImportAnalyzePhase(BasePhase):
         return PhaseResult(
             success=True,
             message=(
-                f"Import complete. Constitution and architecture generated. "
+                f"Import complete. Constitution, architecture, and completed work generated. "
                 f"Default milestone '{_DEFAULT_MILESTONE}' created — "
                 f"you can start adding tasks."
             ),
@@ -144,6 +174,7 @@ class ImportAnalyzePhase(BasePhase):
                 "analysis": {
                     "constitution": constitution,
                     "architecture": architecture,
+                    "completed_work": completed_work if completed_work.strip() else "",
                 },
                 "scan": {
                     "files_included": len(scan.files),
@@ -208,6 +239,39 @@ class ImportAnalyzePhase(BasePhase):
         # Strip code fences if the LLM wrapped the response
         from skaro_core.phases._import_parser import _unwrap_fenced
         return _unwrap_fenced(response.strip())
+
+    async def _generate_completed_work(
+        self,
+        project_name: str,
+        tree: str,
+        files: str,
+        constitution: str,
+        architecture: str,
+    ) -> str:
+        """LLM Call 3: Generate completed-work.md — inventory of existing code.
+
+        Uses constitution + architecture (already generated) plus tree and
+        source files to produce a detailed list of what is already implemented.
+        This document is consumed by DevPlan and other phases via the system
+        message (see BasePhase._build_system_message).
+        """
+        prompt_template = self._load_prompt_template("repo-completed-work")
+        if not prompt_template:
+            return ""
+
+        prompt = (
+            prompt_template
+            .replace("{project_name}", project_name)
+            .replace("{tree}", tree)
+            .replace("{files}", files)
+            .replace("{constitution}", constitution)
+            .replace("{architecture}", architecture)
+        )
+
+        messages = self._build_messages_no_constitution(prompt)
+        return await self._llm_collect_with_limit(
+            messages, _COMPLETED_WORK_TOKEN_LIMITS
+        )
 
     # ── Private helpers ──────────────────────────────────────────────────
 

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 from datetime import date
 from typing import Any
 
@@ -41,16 +42,43 @@ class DevPlanPhase(BasePhase):
                 message="Architecture is not approved. Review and approve it first.",
             )
 
-        prompt = self._load_prompt_template("devplan") or DEFAULT_PROMPT
+        # ── Choose prompt based on whether this is an imported project ────
+        is_imported = self.artifacts.import_mode is not None
+
+        if is_imported:
+            prompt = self._load_prompt_template("devplan-imported") or DEFAULT_PROMPT
+        else:
+            prompt = self._load_prompt_template("devplan") or DEFAULT_PROMPT
+
         prompt = prompt.replace("{spec_template}", self._read_template("spec-template.md"))
         prompt = prompt.replace("{devplan_template}", self._read_template("devplan-template.md"))
 
-        extra_context = {"Architecture": architecture}
+        extra_context: dict[str, str] = {"Architecture": architecture}
+        cacheable_context: dict[str, str] = {}
+
         if invariants.strip():
             extra_context["Invariants"] = invariants
         self._add_adr_context(extra_context)
 
-        messages = self._build_messages(prompt, extra_context)
+        # ── Add codebase context so LLM knows what already exists ─────────
+        # Project file tree — shows what files are already on disk
+        project_tree = await self._scan_project_tree_async()
+        if project_tree:
+            extra_context["Project File Tree"] = project_tree
+
+        # AST index — compact view of existing classes/functions/types
+        from skaro_core.context import SmartContextBuilder
+
+        builder = SmartContextBuilder(self.artifacts.root)
+        smart = await asyncio.to_thread(
+            builder.build,
+            stage_section=architecture,
+            max_full_files=0,  # DevPlan only needs signatures, not full code
+        )
+        if smart.signatures:
+            cacheable_context["Project API Index (existing code)"] = smart.signatures
+
+        messages = self._build_messages(prompt, extra_context, cacheable_context=cacheable_context)
         response_content = await self._llm_collect_with_high_limit(messages)
 
         milestones = parse_milestones(response_content)
