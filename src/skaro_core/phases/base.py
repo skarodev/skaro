@@ -195,11 +195,27 @@ class BasePhase(ABC):
             add_token_usage(response.usage, self.project_root)
 
     def _load_prompt_template(self, name: str) -> str:
-        """Load a prompt template from the prompts directory."""
-        prompts_dir = Path(__file__).parent.parent / "prompts"
-        path = prompts_dir / f"{name}.md"
-        if path.exists():
-            return path.read_text(encoding="utf-8")
+        """Load a prompt template, preferring project-level overrides.
+
+        Lookup order:
+        1. ``{project_root}/.skaro/prompts/{name}.md`` — user override
+        2. Built-in ``skaro_core/prompts/{name}.md`` — default
+
+        This allows users to customise any phase prompt without forking
+        the project.  Place a file in ``.skaro/prompts/`` with the same
+        base name to override the built-in template.
+        """
+        # 1. Project-level override
+        if self.project_root is not None:
+            override = self.project_root / ".skaro" / "prompts" / f"{name}.md"
+            if override.exists():
+                return override.read_text(encoding="utf-8")
+
+        # 2. Built-in default
+        builtin = Path(__file__).parent.parent / "prompts" / f"{name}.md"
+        if builtin.exists():
+            return builtin.read_text(encoding="utf-8")
+
         return ""
 
     # Language code → human-readable name for LLM instruction
