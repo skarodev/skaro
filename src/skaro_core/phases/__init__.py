@@ -1,6 +1,8 @@
 """Skaro Phases — all development phases."""
 
+from skaro_core.phases.analytics import AnalyticsPhase
 from skaro_core.phases.architecture import ArchitecturePhase
+from skaro_core.phases.cicd import CICDPhase
 from skaro_core.phases.base import (
     BasePhase,
     PhaseResult,
@@ -21,7 +23,9 @@ __all__ = [
     "PhaseResult",
     "SKIP_DIRS",
     "SOURCE_EXTENSIONS",
+    "AnalyticsPhase",
     "ArchitecturePhase",
+    "CICDPhase",
     "ClarifyPhase",
     "DevPlanPhase",
     "ImportAnalyzePhase",
@@ -37,7 +41,10 @@ __all__ = [
 def get_phase(name: str, **kwargs) -> BasePhase:
     """Get a phase instance by name."""
     phases = {
+        "analytics": AnalyticsPhase,
         "architecture": ArchitecturePhase,
+        "cicd": CICDPhase,
+        "clarify": ClarifyPhase,
         "clarify": ClarifyPhase,
         "devplan": DevPlanPhase,
         "import_analyze": ImportAnalyzePhase,
