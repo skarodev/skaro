@@ -9,7 +9,7 @@
 <div class="about-page">
 	<div class="about-card">
 		<div class="about-header">
-			<img src="/logo.svg" alt="Skaro" class="about-logo" />
+			<img src="/mark.svg" alt="Skaro" class="about-logo" />
 			<div>
 				<h1 class="about-title">Skaro</h1>
 				<p class="about-tagline">{$t('about.tagline')}</p>

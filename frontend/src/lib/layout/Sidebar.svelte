@@ -42,7 +42,7 @@
 	let collapsed = $state(readStored());
 	let currentPath = $derived($page.url.pathname);
 	let hoveredTab = $state('');
-	let logoSrc = $derived($theme === 'light' ? '/logo.svg' : '/logo.svg');
+	let logoSrc = $derived($theme === 'light' ? '/logo-light.svg' : '/logo-dark.svg');
 
 	function toggle() {
 		collapsed = !collapsed;
@@ -197,8 +197,8 @@
 	}
 
 	.logo-img {
-		width: 30px;
-		height: 30px;
+		width: auto;
+		height: 18px;
 		display: block;
 		flex-shrink: 0;
 	}
