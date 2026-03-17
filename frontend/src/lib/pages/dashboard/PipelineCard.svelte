@@ -14,6 +14,13 @@
 		if (!status?.initialized) return [];
 		return [
 			{
+				id: 'analytics',
+				label: $t('dash.pipe_analytics'),
+				done: status.analytics_done,
+				active: status.has_spec && !status.analytics_done,
+				href: '/tasks',
+			},
+			{
 				id: 'constitution',
 				label: $t('dash.pipe_constitution'),
 				done: status.constitution_validated,
@@ -54,6 +61,13 @@
 				done: status.review_passed === true,
 				active: allTasksDone && status.review_passed !== true,
 				href: '/review',
+			},
+			{
+				id: 'cicd',
+				label: $t('dash.pipe_cicd'),
+				done: status.cicd_done,
+				active: status.review_passed === true && !status.cicd_done,
+				href: '/tasks',
 			},
 		];
 	});
