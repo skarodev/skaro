@@ -3,8 +3,8 @@
 	import { onMount, onDestroy } from 'svelte';
 	import { addLog, addError } from '$lib/stores/logStore.js';
 	import { Loader2 } from 'lucide-svelte';
-	import ChatMessage from '$lib/pages/tasks/ChatMessage.svelte';
-	import ComposeBox from '$lib/pages/tasks/ComposeBox.svelte';
+	import ChatMessage from '$lib/ui/ChatMessage.svelte';
+	import ComposeBox from '$lib/ui/ComposeBox.svelte';
 	import DiffModal from '$lib/ui/DiffModal.svelte';
 	import ScopeModal from '$lib/ui/ScopeModal.svelte';
 

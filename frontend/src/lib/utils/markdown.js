@@ -129,7 +129,7 @@ function stripOuterMarkdownFence(text) {
 	// NOT a simple outer wrapper. Walk inner lines and track fence depth.
 	let depth = 0;
 	for (let i = first + 1; i < last; i++) {
-		const m = lines[i].match(/^(`{3,})(\w*)\s*$/);
+		const m = lines[i].match(/^(`{3,})(\S*)\s*$/);
 		if (!m) continue;
 		if (m[1].length >= minLen) {
 			// This could be an inner open or close fence
@@ -168,8 +168,8 @@ function extractFencedBlocks(text, replacer) {
 
 	for (const line of lines) {
 		if (!inFence) {
-			// Try to match an opening fence: 3+ backticks, optional language, at line start
-			const open = line.match(/^(`{3,})(\w*)\s*$/);
+			// Try to match an opening fence: 3+ backticks, optional label, at line start
+			const open = line.match(/^(`{3,})(\S*)\s*$/);
 			if (open) {
 				inFence = true;
 				fenceLen = open[1].length;
@@ -201,6 +201,43 @@ function extractFencedBlocks(text, replacer) {
 	}
 
 	return output.join('\n');
+}
+
+/**
+ * Strip all top-level fenced code blocks from text, returning only the
+ * non-code parts. Uses the same line-by-line state machine as
+ * extractFencedBlocks, so it correctly handles nested fences inside
+ * JSON/spec content from LLM responses.
+ *
+ * @param {string} text
+ * @returns {string}
+ */
+export function stripFencedBlocks(text) {
+	return extractFencedBlocks(text, () => '');
+}
+
+/**
+ * Strip only file-path code blocks from text, preserving all others.
+ *
+ * File blocks are identified by a fence label containing ``/`` or ``.``
+ * (e.g. ``\`\`\`src/app.py``), matching the backend ``_parse_file_blocks``
+ * heuristic.  These blocks are shown as interactive file cards in the UI,
+ * so they must be removed from the markdown text to avoid duplication.
+ *
+ * All other fenced blocks (language tags like ``python``, ``json``, or
+ * bare ``\`\`\```) are kept intact for {@link renderMarkdown} to render
+ * as ``<pre><code>`` elements.
+ *
+ * @param {string} text
+ * @returns {string}
+ */
+export function stripFilePathBlocks(text) {
+	return extractFencedBlocks(text, (lang, code) => {
+		if (lang && (lang.includes('/') || lang.includes('.'))) {
+			return '';
+		}
+		return `\`\`\`${lang}\n${code}\n\`\`\``;
+	});
 }
 
 /** @param {string} s */

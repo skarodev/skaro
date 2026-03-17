@@ -1,6 +1,6 @@
 <script>
 	import { t } from '$lib/i18n/index.js';
-	import { renderMarkdown, stripFencedBlocks } from '$lib/utils/markdown.js';
+	import { renderMarkdown, stripFilePathBlocks } from '$lib/utils/markdown.js';
 	import { FileCode, Check, Bot } from 'lucide-svelte';
 
 	let {
@@ -14,17 +14,15 @@
 	/**
 	 * Content to render as markdown.
 	 *
-	 * Code blocks are always stripped from assistant messages because they
-	 * are displayed by dedicated UI components:
-	 *   - fix chat → file cards (turn.files)
-	 *   - feature chat → FeatureProposal (```json proposal)
+	 * File-path code blocks (```src/app.py … ```) are stripped because they
+	 * are displayed by dedicated file-card UI (turn.files / DiffModal).
 	 *
-	 * The text outside code blocks is the LLM's explanation — that's what
-	 * ChatMessage renders.
+	 * All other code blocks (```python, ```json, bare ```) are preserved
+	 * for renderMarkdown to convert into <pre><code> elements.
 	 */
 	let displayContent = $derived(
 		turn.role === 'assistant'
-			? stripFencedBlocks(turn.content || '').trim()
+			? stripFilePathBlocks(turn.content || '').trim()
 			: (turn.content || '')
 	);
 
@@ -164,6 +162,14 @@
 		overflow-x: auto;
 		font-size: 0.75rem;
 		margin: 0.375rem 0;
+	}
+
+	.turn-text :global(pre code) {
+		background: none;
+		padding: 0;
+		border-radius: 0;
+		color: inherit;
+		font-size: inherit;
 	}
 
 	.user-text {
