@@ -29,8 +29,8 @@ def _analytics_report_path(am: ArtifactManager) -> Path:
 
 
 def _docx_to_markdown(content: bytes) -> str:
-    """Convert docx bytes to markdown text."""
-    import tempfile, os
+    """Convert docx bytes to clean markdown text."""
+    import tempfile, os, re
     with tempfile.NamedTemporaryFile(suffix=".docx", delete=False) as f:
         f.write(content)
         tmp_path = f.name
@@ -39,7 +39,7 @@ def _docx_to_markdown(content: bytes) -> str:
             import mammoth
             with open(tmp_path, "rb") as f:
                 result = mammoth.convert_to_markdown(f)
-                return result.value
+                raw = result.value
         except ImportError:
             # Fallback: try python-docx + basic conversion
             from docx import Document
@@ -59,9 +59,41 @@ def _docx_to_markdown(content: bytes) -> str:
                     lines.append(f"### {text}")
                 else:
                     lines.append(text)
-            return "\n".join(lines)
+            raw = "\n".join(lines)
+
+        return _clean_markdown(raw)
     finally:
         os.unlink(tmp_path)
+
+
+def _clean_markdown(text: str) -> str:
+    """Clean up mammoth markdown output."""
+    import re
+
+    # Remove HTML anchor tags: <a id="..."></a>
+    text = re.sub(r'<a\s+id="[^"]*"\s*>\s*</a>', '', text)
+
+    # Remove any remaining HTML tags (but keep content)
+    text = re.sub(r'<[^>]+>', '', text)
+
+    # Clean up double underscores used as formatting (mammoth artifact)
+    # Replace __text__ with **text** for bold
+    text = re.sub(r'__(.+?)__', r'**\1**', text)
+
+    # Remove leftover standalone __
+    text = text.replace('__', '')
+
+    # Fix multiple consecutive blank lines (max 2)
+    text = re.sub(r'\n{4,}', '\n\n\n', text)
+
+    # Fix lines that are just whitespace
+    lines = text.split('\n')
+    cleaned = []
+    for line in lines:
+        # Strip trailing whitespace but preserve blank lines
+        cleaned.append(line.rstrip())
+
+    return '\n'.join(cleaned).strip()
 
 
 @router.get("")
