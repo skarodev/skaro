@@ -248,7 +248,7 @@ Original document:
             LLMMessage(role="user", content=prompt),
         ])
 
-    cleaned = response.text.strip()
+    cleaned = response.content.strip()
     # Remove markdown fences if LLM added them
     if cleaned.startswith("```"):
         lines = cleaned.split("\n")
