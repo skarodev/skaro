@@ -103,6 +103,35 @@ def _get_llm_adapter(project_root: Path):
     return create_llm_adapter(llm_config)
 
 
+def _load_prompt(name: str, project_root: Path) -> str:
+    """Load prompt template with language instruction."""
+    from skaro_core.config import load_config
+    from skaro_core.phases.base import BasePhase
+
+    config = load_config(project_root)
+
+    # Try project-level override first
+    project_override = project_root / ".skaro" / "prompts" / f"{name}.md"
+    if project_override.exists():
+        template = project_override.read_text(encoding="utf-8")
+    else:
+        # Fall back to built-in prompt
+        builtin = Path(__file__).parent.parent.parent / "skaro_core" / "prompts" / f"{name}.md"
+        if builtin.exists():
+            template = builtin.read_text(encoding="utf-8")
+        else:
+            template = ""
+
+    # Prepend language instruction if not English
+    lang = config.lang
+    if lang and lang != "en":
+        lang_name = BasePhase._LANG_NAMES.get(lang, lang)
+        lang_instruction = f"IMPORTANT: You MUST respond entirely in {lang_name}. All headings, descriptions, and text must be in {lang_name}.\n\n"
+        template = lang_instruction + template
+
+    return template
+
+
 def _docx_to_markdown(content: bytes) -> str:
     """Convert docx bytes to clean markdown text."""
     import tempfile, os, re
@@ -308,19 +337,8 @@ async def clean_ts_with_llm(
         raise HTTPException(status_code=400, detail="No TS found")
 
     raw_content = tz_path.read_text(encoding="utf-8")
-
-    prompt = """Clean up this technical specification document. Fix formatting issues:
-- Remove HTML artifacts (anchors, tags)
-- Fix broken markdown formatting
-- Normalize headings (# structure)
-- Fix bullet points and numbering
-- Remove duplicate/empty lines
-- Keep ALL original content and meaning
-- Output clean, well-formatted markdown
-
-Original document:
-
-""" + raw_content
+    prompt_template = _load_prompt("ts-clean", project_root)
+    prompt = prompt_template + f"\n\n---\n\nOriginal document:\n\n{raw_content}"
 
     config = load_config(project_root)
     llm_config = config.llm_for_phase("analytics")
@@ -352,33 +370,6 @@ Original document:
     }
 
 
-REQUIREMENTS_PROMPT = """Analyze this technical specification and extract ALL formal requirements.
-
-For each requirement, output EXACTLY in this format:
-
-### {REQ_ID}: {Short Title}
-
-{Detailed description of the requirement in 1-3 sentences}
-
-**Acceptance Criteria:**
-- {criterion 1}
-- {criterion 2}
-- {criterion 3}
-
----
-
-Generate requirements for:
-- Functional requirements (what the system must do)
-- Non-functional requirements (performance, security, availability)
-- Integration requirements (external systems, APIs)
-- Data requirements (storage, migration, validation)
-
-Be thorough. Each requirement should be testable and unambiguous.
-Use sequential IDs starting from FR-001.
-
-Return ONLY the requirements list. No preamble."""
-
-
 @router.post("/generate-requirements")
 async def generate_requirements(
     ws: ConnectionManager = Depends(get_ws_manager),
@@ -393,7 +384,8 @@ async def generate_requirements(
         raise HTTPException(status_code=400, detail="No TS found")
 
     ts_content = tz_path.read_text(encoding="utf-8")
-    prompt = REQUIREMENTS_PROMPT + "\n\n---\n\n## Technical Specification\n\n" + ts_content
+    prompt_template = _load_prompt("requirements-generate", project_root)
+    prompt = prompt_template + "\n\n---\n\n## Technical Specification\n\n" + ts_content
 
     adapter = _get_llm_adapter(project_root)
 
@@ -460,27 +452,8 @@ async def generate_requirement(
         raise HTTPException(status_code=400, detail="No text provided")
 
     req_id = _next_req_id(am)
-
-    prompt = f"""Convert this text from a technical specification into a single formal requirement.
-
-Format EXACTLY as:
-
-### {req_id}: {{Short Title}}
-
-{{Detailed description of the requirement in 1-3 sentences}}
-
-**Acceptance Criteria:**
-- {{criterion 1}}
-- {{criterion 2}}
-- {{criterion 3}}
-
----
-
-Source text:
-
-{selected_text}
-
-Return ONLY the requirement. No preamble."""
+    prompt_template = _load_prompt("requirement-from-text", project_root)
+    prompt = prompt_template.replace("REQ_ID", req_id) + f"\n\n---\n\nSource text:\n\n{selected_text}"
 
     adapter = _get_llm_adapter(project_root)
 
@@ -529,48 +502,8 @@ async def review_ts(
         raise HTTPException(status_code=400, detail="No TS found")
 
     ts_content = tz_path.read_text(encoding="utf-8")
-
-    prompt = f"""Conduct a thorough critical review of this technical specification.
-
-Your review MUST include these sections:
-
-## 1. Completeness Assessment
-- Missing sections or unclear areas
-- Undefined requirements or vague statements
-- Gaps in acceptance criteria
-
-## 2. Technical Feasibility
-- Are the stated requirements technically achievable?
-- Are there contradictions between requirements?
-- Technology stack compatibility issues
-
-## 3. Risks & Concerns
-- List each risk with severity (HIGH/MEDIUM/LOW)
-- Security implications
-- Performance bottlenecks
-- Scalability concerns
-
-## 4. Questions for Clarification
-- List specific questions that need answers before development
-- Ambiguous terms or requirements
-
-## 5. Recommendations
-- Suggested improvements
-- Missing best practices
-- Standards compliance issues
-
-## 6. Overall Verdict
-- Overall quality: EXCELLENT / GOOD / NEEDS_WORK / POOR
-- Ready for development: YES / NO / WITH_CONDITIONS
-- Summary (2-3 sentences)
-
-Be critical and thorough. Flag ALL issues, even minor ones.
-
-Technical Specification:
-
-{ts_content}
-
-Return ONLY the review report. No preamble."""
+    prompt_template = _load_prompt("ts-review", project_root)
+    prompt = prompt_template + f"\n\n---\n\nTechnical Specification:\n\n{ts_content}"
 
     adapter = _get_llm_adapter(project_root)
 
