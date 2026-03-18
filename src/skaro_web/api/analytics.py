@@ -55,7 +55,11 @@ def _list_requirements(am: ArtifactManager, req_type: str | None = None) -> list
         content = f.read_text(encoding="utf-8")
         # Extract title from first line (# heading or first line)
         lines = content.strip().split("\n")
-        title = lines[0].lstrip("# ").strip() if lines else f.stem
+        raw_title = lines[0].lstrip("# ").strip() if lines else f.stem
+        # Remove ID prefix like "FR-001: " from title for cleaner display
+        title = re.sub(r"^[\w]+-\d+:\s*", "", raw_title).strip()
+        if not title:
+            title = raw_title
         # Extract ID from filename (e.g., "FR-001.md")
         req_id = f.stem
         # Read metadata
@@ -477,7 +481,14 @@ async def generate_requirements(
             req_id = _next_req_id_for_type(am, req_type)
 
         # Normalize the title to use correct ID
+        # Remove any ID prefix like "FR-001:", "BR-001:", "REQ_ID:" from the title
         clean_title = re.sub(r"^[\w]+-\d+:\s*", "", title_line)
+        # Also remove "REQ_ID: " prefix if LLM duplicated it
+        clean_title = re.sub(r"^REQ_ID:\s*", "", clean_title)
+        # Remove leading/trailing whitespace and markdown bold
+        clean_title = clean_title.strip().strip("*")
+        if not clean_title:
+            clean_title = req_id
         final_content = f"# {req_id}: {clean_title}\n" + "\n".join(lines[1:])
 
         req_file = _requirements_dir(am) / f"{req_id}.md"
