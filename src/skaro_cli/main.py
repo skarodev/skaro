@@ -727,7 +727,7 @@ def ui(port: int | None, no_browser: bool) -> None:
         from skaro_web.app import create_app
 
         app = create_app(project_root=am.root)
-        uvicorn.run(app, host="127.0.0.1", port=actual_port, log_level="info")
+        uvicorn.run(app, host="0.0.0.0", port=actual_port, log_level="info")
     except KeyboardInterrupt:
         console.print(f"\n{t('cli.ui.stopped')}")
     except ImportError as e:

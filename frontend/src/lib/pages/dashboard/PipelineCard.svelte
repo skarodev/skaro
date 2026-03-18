@@ -18,7 +18,7 @@
 				label: $t('dash.pipe_analytics'),
 				done: status.analytics_done,
 				active: status.has_spec && !status.analytics_done,
-				href: '/tasks',
+				href: '/analytics',
 			},
 			{
 				id: 'constitution',
@@ -67,7 +67,7 @@
 				label: $t('dash.pipe_cicd'),
 				done: status.cicd_done,
 				active: status.review_passed === true && !status.cicd_done,
-				href: '/tasks',
+				href: '/cicd',
 			},
 		];
 	});
