@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import re
 from pathlib import Path
 from typing import Any
 
@@ -16,6 +17,8 @@ router = APIRouter(prefix="/api/analytics", tags=["analytics"])
 
 TZ_FILENAME = "ts.md"
 ANALYTICS_REPORT = "analytics-report.md"
+REQUIREMENTS_DIR = "requirements"
+REVIEW_FILENAME = "review.md"
 
 
 def _tz_path(am: ArtifactManager) -> Path:
@@ -26,6 +29,63 @@ def _tz_path(am: ArtifactManager) -> Path:
 def _analytics_report_path(am: ArtifactManager) -> Path:
     """Path to the analytics report."""
     return am.skaro / ANALYTICS_REPORT
+
+
+def _requirements_dir(am: ArtifactManager) -> Path:
+    """Directory for individual requirement files."""
+    d = am.skaro / REQUIREMENTS_DIR
+    d.mkdir(parents=True, exist_ok=True)
+    return d
+
+
+def _review_path(am: ArtifactManager) -> Path:
+    """Path to the TS review report."""
+    return am.skaro / REVIEW_FILENAME
+
+
+def _list_requirements(am: ArtifactManager) -> list[dict[str, Any]]:
+    """List all requirements as structured objects (like ADRs)."""
+    req_dir = _requirements_dir(am)
+    if not req_dir.is_dir():
+        return []
+
+    reqs = []
+    for f in sorted(req_dir.glob("*.md")):
+        content = f.read_text(encoding="utf-8")
+        # Extract title from first line (# heading or first line)
+        lines = content.strip().split("\n")
+        title = lines[0].lstrip("# ").strip() if lines else f.stem
+        # Extract ID from filename (e.g., "FR-001.md")
+        req_id = f.stem
+        reqs.append({
+            "id": req_id,
+            "title": title,
+            "content": content,
+            "filename": f.name,
+        })
+    return reqs
+
+
+def _next_req_id(am: ArtifactManager) -> str:
+    """Generate next requirement ID (FR-001, FR-002, ...)."""
+    reqs = _list_requirements(am)
+    if not reqs:
+        return "FR-001"
+    max_num = 0
+    for r in reqs:
+        m = re.match(r"FR-(\d+)", r["id"])
+        if m:
+            max_num = max(max_num, int(m.group(1)))
+    return f"FR-{max_num + 1:03d}"
+
+
+def _get_llm_adapter(project_root: Path):
+    """Create LLM adapter from project config."""
+    from skaro_core.llm.base import create_llm_adapter
+    from skaro_core.config import load_config
+    config = load_config(project_root)
+    llm_config = config.llm_for_phase("analytics")
+    return create_llm_adapter(llm_config)
 
 
 def _docx_to_markdown(content: bytes) -> str:
@@ -98,9 +158,10 @@ def _clean_markdown(text: str) -> str:
 
 @router.get("")
 async def get_analytics(am: ArtifactManager = Depends(get_am)):
-    """Get current ТЗ and analytics report if they exist."""
+    """Get current ТЗ, analytics report, requirements, and review if they exist."""
     tz_path = _tz_path(am)
     report_path = _analytics_report_path(am)
+    review_file = _review_path(am)
 
     tz_content = ""
     if tz_path.exists():
@@ -110,11 +171,18 @@ async def get_analytics(am: ArtifactManager = Depends(get_am)):
     if report_path.exists():
         report_content = report_path.read_text(encoding="utf-8")
 
+    review_content = ""
+    if review_file.exists():
+        review_content = review_file.read_text(encoding="utf-8")
+
     return {
         "has_tz": tz_path.exists(),
         "tz_content": tz_content,
         "has_report": report_path.exists(),
         "report_content": report_content,
+        "requirements": _list_requirements(am),
+        "has_review": review_file.exists(),
+        "review_content": review_content,
     }
 
 
@@ -269,16 +337,302 @@ Original document:
     }
 
 
+REQUIREMENTS_PROMPT = """Analyze this technical specification and extract ALL formal requirements.
+
+For each requirement, output EXACTLY in this format:
+
+### {REQ_ID}: {Short Title}
+
+{Detailed description of the requirement in 1-3 sentences}
+
+**Acceptance Criteria:**
+- {criterion 1}
+- {criterion 2}
+- {criterion 3}
+
+---
+
+Generate requirements for:
+- Functional requirements (what the system must do)
+- Non-functional requirements (performance, security, availability)
+- Integration requirements (external systems, APIs)
+- Data requirements (storage, migration, validation)
+
+Be thorough. Each requirement should be testable and unambiguous.
+Use sequential IDs starting from FR-001.
+
+Return ONLY the requirements list. No preamble."""
+
+
+@router.post("/generate-requirements")
+async def generate_requirements(
+    ws: ConnectionManager = Depends(get_ws_manager),
+    am: ArtifactManager = Depends(get_am),
+    project_root: Path = Depends(get_project_root),
+):
+    """Generate formal requirements from the entire TS document."""
+    from skaro_core.llm.base import LLMMessage
+
+    tz_path = _tz_path(am)
+    if not tz_path.exists():
+        raise HTTPException(status_code=400, detail="No TS found")
+
+    ts_content = tz_path.read_text(encoding="utf-8")
+    prompt = REQUIREMENTS_PROMPT + "\n\n---\n\n## Technical Specification\n\n" + ts_content
+
+    adapter = _get_llm_adapter(project_root)
+
+    async with llm_phase(ws, "requirements", None):
+        response = await adapter.complete([
+            LLMMessage(role="user", content=prompt),
+        ])
+
+    # Parse generated requirements and save as individual files
+    raw = response.content.strip()
+    # Remove markdown fences
+    if raw.startswith("```"):
+        lines = raw.split("\n")
+        if lines[0].startswith("```"):
+            lines = lines[1:]
+        if lines and lines[-1].strip() == "```":
+            lines = lines[:-1]
+        raw = "\n".join(lines)
+
+    # Split by ### headers to get individual requirements
+    sections = re.split(r"^### ", raw, flags=re.MULTILINE)
+    created = []
+
+    for section in sections:
+        section = section.strip()
+        if not section:
+            continue
+        lines = section.split("\n")
+        title_line = lines[0].strip() if lines else ""
+        content = section
+
+        # Extract ID from title (e.g., "FR-001: Title")
+        id_match = re.match(r"(FR-\d+)", title_line)
+        req_id = id_match.group(1) if id_match else _next_req_id(am)
+
+        req_file = _requirements_dir(am) / f"{req_id}.md"
+        # Don't overwrite existing
+        if not req_file.exists():
+            req_file.write_text(f"# {content}", encoding="utf-8")
+            created.append(req_id)
+
+    await ws.broadcast({"event": "analytics:requirements_generated", "count": len(created)})
+
+    return {
+        "success": True,
+        "message": f"Generated {len(created)} requirements",
+        "requirements": _list_requirements(am),
+        "created": created,
+    }
+
+
+@router.post("/generate-requirement")
+async def generate_requirement(
+    body: dict[str, Any],
+    ws: ConnectionManager = Depends(get_ws_manager),
+    am: ArtifactManager = Depends(get_am),
+    project_root: Path = Depends(get_project_root),
+):
+    """Generate a single formal requirement from selected text."""
+    from skaro_core.llm.base import LLMMessage
+
+    selected_text = body.get("text", "")
+    if not selected_text.strip():
+        raise HTTPException(status_code=400, detail="No text provided")
+
+    req_id = _next_req_id(am)
+
+    prompt = f"""Convert this text from a technical specification into a single formal requirement.
+
+Format EXACTLY as:
+
+### {req_id}: {{Short Title}}
+
+{{Detailed description of the requirement in 1-3 sentences}}
+
+**Acceptance Criteria:**
+- {{criterion 1}}
+- {{criterion 2}}
+- {{criterion 3}}
+
+---
+
+Source text:
+
+{selected_text}
+
+Return ONLY the requirement. No preamble."""
+
+    adapter = _get_llm_adapter(project_root)
+
+    async with llm_phase(ws, "requirements", None):
+        response = await adapter.complete([
+            LLMMessage(role="user", content=prompt),
+        ])
+
+    raw = response.content.strip()
+    if raw.startswith("```"):
+        lines = raw.split("\n")
+        if lines[0].startswith("```"):
+            lines = lines[1:]
+        if lines and lines[-1].strip() == "```":
+            lines = lines[:-1]
+        raw = "\n".join(lines)
+
+    req_file = _requirements_dir(am) / f"{req_id}.md"
+    req_file.write_text(f"# {raw}", encoding="utf-8")
+
+    await ws.broadcast({"event": "analytics:requirement_added", "id": req_id})
+
+    return {
+        "success": True,
+        "message": f"Requirement {req_id} created",
+        "requirement": {
+            "id": req_id,
+            "title": raw.split("\n")[0].lstrip("# ").strip() if raw else req_id,
+            "content": raw,
+        },
+        "requirements": _list_requirements(am),
+    }
+
+
+@router.post("/review")
+async def review_ts(
+    ws: ConnectionManager = Depends(get_ws_manager),
+    am: ArtifactManager = Depends(get_am),
+    project_root: Path = Depends(get_project_root),
+):
+    """Generate a critical review of the TS document."""
+    from skaro_core.llm.base import LLMMessage
+
+    tz_path = _tz_path(am)
+    if not tz_path.exists():
+        raise HTTPException(status_code=400, detail="No TS found")
+
+    ts_content = tz_path.read_text(encoding="utf-8")
+
+    prompt = f"""Conduct a thorough critical review of this technical specification.
+
+Your review MUST include these sections:
+
+## 1. Completeness Assessment
+- Missing sections or unclear areas
+- Undefined requirements or vague statements
+- Gaps in acceptance criteria
+
+## 2. Technical Feasibility
+- Are the stated requirements technically achievable?
+- Are there contradictions between requirements?
+- Technology stack compatibility issues
+
+## 3. Risks & Concerns
+- List each risk with severity (HIGH/MEDIUM/LOW)
+- Security implications
+- Performance bottlenecks
+- Scalability concerns
+
+## 4. Questions for Clarification
+- List specific questions that need answers before development
+- Ambiguous terms or requirements
+
+## 5. Recommendations
+- Suggested improvements
+- Missing best practices
+- Standards compliance issues
+
+## 6. Overall Verdict
+- Overall quality: EXCELLENT / GOOD / NEEDS_WORK / POOR
+- Ready for development: YES / NO / WITH_CONDITIONS
+- Summary (2-3 sentences)
+
+Be critical and thorough. Flag ALL issues, even minor ones.
+
+Technical Specification:
+
+{ts_content}
+
+Return ONLY the review report. No preamble."""
+
+    adapter = _get_llm_adapter(project_root)
+
+    async with llm_phase(ws, "review", None):
+        response = await adapter.complete([
+            LLMMessage(role="user", content=prompt),
+        ])
+
+    review = response.content.strip()
+    if review.startswith("```"):
+        lines = review.split("\n")
+        if lines[0].startswith("```"):
+            lines = lines[1:]
+        if lines and lines[-1].strip() == "```":
+            lines = lines[:-1]
+        review = "\n".join(lines)
+
+    review_file = _review_path(am)
+    review_file.write_text(review, encoding="utf-8")
+
+    await ws.broadcast({"event": "analytics:review_done"})
+
+    return {
+        "success": True,
+        "message": "Review completed",
+        "review": review,
+    }
+
+
+@router.get("/requirements")
+async def get_requirements(am: ArtifactManager = Depends(get_am)):
+    """List all requirements."""
+    return {"requirements": _list_requirements(am)}
+
+
+@router.get("/requirements/{req_id}")
+async def get_requirement(req_id: str, am: ArtifactManager = Depends(get_am)):
+    """Get a single requirement by ID."""
+    req_file = _requirements_dir(am) / f"{req_id}.md"
+    if not req_file.exists():
+        raise HTTPException(status_code=404, detail=f"Requirement {req_id} not found")
+    content = req_file.read_text(encoding="utf-8")
+    return {
+        "id": req_id,
+        "title": content.split("\n")[0].lstrip("# ").strip() if content else req_id,
+        "content": content,
+    }
+
+
+@router.get("/review")
+async def get_review(am: ArtifactManager = Depends(get_am)):
+    """Get the TS review if it exists."""
+    review_file = _review_path(am)
+    if not review_file.exists():
+        return {"has_review": False, "review": ""}
+    return {
+        "has_review": True,
+        "review": review_file.read_text(encoding="utf-8"),
+    }
+
+
 @router.delete("")
 async def clear_analytics(am: ArtifactManager = Depends(get_am)):
-    """Clear ТЗ and analytics report."""
+    """Clear ТЗ, analytics report, requirements, and review."""
     tz_path = _tz_path(am)
     report_path = _analytics_report_path(am)
+    review_file = _review_path(am)
+    req_dir = _requirements_dir(am)
     analytics_dir = am.skaro / "analytics"
 
-    for p in [tz_path, report_path]:
+    for p in [tz_path, report_path, review_file]:
         if p.exists():
             p.unlink()
+
+    if req_dir.is_dir():
+        import shutil
+        shutil.rmtree(req_dir)
 
     if analytics_dir.exists():
         import shutil

@@ -273,6 +273,14 @@ export const api = {
 	},
 	runAnalytics: (signal) => post('/api/analytics/run', {}, signal),
 	cleanTs: (signal) => post('/api/analytics/clean', {}, signal),
+	generateRequirements: (signal) => post('/api/analytics/generate-requirements', {}, signal),
+	generateRequirement: (/** @type {string} */ text, signal) =>
+		post('/api/analytics/generate-requirement', { text }, signal),
+	reviewTs: (signal) => post('/api/analytics/review', {}, signal),
+	getRequirements: (signal) => get('/api/analytics/requirements', signal),
+	getRequirement: (/** @type {string} */ id, signal) =>
+		get(`/api/analytics/requirements/${id}`, signal),
+	getReview: (signal) => get('/api/analytics/review', signal),
 	clearAnalytics: (signal) => del('/api/analytics', signal),
 
 	// Git
