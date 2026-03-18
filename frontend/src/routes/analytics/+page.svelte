@@ -7,10 +7,11 @@
 	import { invalidate } from '$lib/api/cache.js';
 	import {
 		BarChart3, Upload, FileText, Loader2, Trash2, AlertTriangle,
-		CheckCircle, Play, Pencil, ChevronLeft, ListChecks, Sparkles,
+		CheckCircle, Pencil, ChevronLeft, ListChecks, Sparkles,
 		ClipboardCheck, Eye, MessageSquare
 	} from 'lucide-svelte';
 	import MarkdownContent from '$lib/ui/MarkdownContent.svelte';
+	import MdEditor from '$lib/ui/md-editor/MdEditor.svelte';
 
 	let data = $state(null);
 	let loading = $state(true);
@@ -23,8 +24,7 @@
 	let reviewing = $state(false);
 
 	// TS editor state
-	let showEditor = $state(false);
-	let editorContent = $state('');
+	let tsEditorContent = $state('');
 	/** @type {HTMLInputElement | null} */
 	let fileInput = $state(null);
 
@@ -34,6 +34,12 @@
 	// Requirements detail
 	/** @type {any | null} */
 	let selectedReq = $state(null);
+	let changingStatus = $state(null);
+
+	// MdEditor state (shared for TS and requirements)
+	let showEditor = $state(false);
+	let editorContent = $state('');
+	let editorTarget = $state(''); // 'ts' or req id
 
 	onMount(() => { load(); });
 
@@ -50,26 +56,30 @@
 
 	// ── TS Operations ──
 
-	async function saveTs() {
-		if (!editorContent.trim()) return;
-		try {
-			await api.saveTz(editorContent);
-			addLog($t('nav.analytics') + ': TS saved');
-			showEditor = false;
-			await load();
-		} catch (e) {
-			error = e.message;
-		}
-	}
-
-	function openEditor() {
+	function openTsEditor() {
+		editorTarget = 'ts';
 		editorContent = data?.tz_content || '';
 		showEditor = true;
 	}
 
-	function triggerUpload() {
-		fileInput?.click();
+	async function saveEditor(content) {
+		try {
+			if (editorTarget === 'ts') {
+				await api.saveTz(content);
+				addLog($t('nav.analytics') + ': TS saved');
+			} else {
+				await api.saveRequirementContent(editorTarget, content);
+				addLog($t('nav.analytics') + ': Requirement saved');
+			}
+			showEditor = false;
+			await load();
+		} catch (e) {
+			error = e.message;
+			throw e;
+		}
 	}
+
+	function triggerUpload() { fileInput?.click(); }
 
 	async function handleFileUpload(event) {
 		const file = event.target?.files?.[0];
@@ -80,9 +90,7 @@
 			const result = await api.uploadTz(file);
 			addLog(`${$t('nav.analytics')}: ${result.message}`);
 			await load();
-		} catch (e) {
-			error = e.message;
-		}
+		} catch (e) { error = e.message; }
 		uploading = false;
 		if (fileInput) fileInput.value = '';
 	}
@@ -95,9 +103,7 @@
 			const result = await api.cleanTs();
 			addLog($t('nav.analytics') + ': ' + result.message);
 			await load();
-		} catch (e) {
-			error = e.message;
-		}
+		} catch (e) { error = e.message; }
 		cleaning = false;
 	}
 
@@ -114,9 +120,7 @@
 			status.set(await api.getStatus());
 			await load();
 			activeTab = 'requirements';
-		} catch (e) {
-			error = e.message;
-		}
+		} catch (e) { error = e.message; }
 		generatingReqs = false;
 	}
 
@@ -134,13 +138,32 @@
 			addLog($t('nav.analytics') + ': ' + result.message);
 			await load();
 			activeTab = 'requirements';
-		} catch (e) {
-			error = e.message;
-		}
+		} catch (e) { error = e.message; }
 		generatingFromSel = false;
 	}
 
-	// ── Review Operation ──
+	async function changeReqStatus(req, newStatus) {
+		changingStatus = req.id;
+		try {
+			const result = await api.updateRequirementStatus(req.id, newStatus);
+			if (result.success) {
+				addLog(`${$t('nav.analytics')}: ${req.id} → ${newStatus}`);
+				await load();
+				if (selectedReq?.id === req.id) {
+					selectedReq = data?.requirements?.find(r => r.id === req.id) || null;
+				}
+			}
+		} catch (e) { error = e.message; }
+		changingStatus = null;
+	}
+
+	function openReqEditor(req) {
+		editorTarget = req.id;
+		editorContent = req.content;
+		showEditor = true;
+	}
+
+	// ── Review ──
 
 	async function reviewTs() {
 		reviewing = true;
@@ -151,9 +174,7 @@
 			addLog($t('nav.analytics') + ': ' + result.message);
 			await load();
 			activeTab = 'review';
-		} catch (e) {
-			error = e.message;
-		}
+		} catch (e) { error = e.message; }
 		reviewing = false;
 	}
 
@@ -167,15 +188,28 @@
 			invalidate('status');
 			status.set(await api.getStatus());
 			await load();
-		} catch (e) {
-			error = e.message;
-		}
+		} catch (e) { error = e.message; }
 	}
 
-	// ── Derived ──
+	// ── Helpers ──
 
 	let requirements = $derived(data?.requirements || []);
 	let hasReview = $derived(data?.has_review || false);
+
+	const STATUSES = ['proposed', 'accepted', 'deprecated', 'superseded'];
+	const STATUS_LABELS = {
+		proposed: 'Предложено',
+		accepted: 'Принято',
+		deprecated: 'Устарело',
+		superseded: 'Заменено',
+	};
+
+	function statusBadgeClass(s) {
+		if (s === 'accepted') return 'badge-accepted';
+		if (s === 'deprecated') return 'badge-deprecated';
+		if (s === 'superseded') return 'badge-superseded';
+		return 'badge-proposed';
+	}
 </script>
 
 <div class="main-header">
@@ -207,7 +241,7 @@
 				Загрузить (.docx / .md)
 			</button>
 
-			<button class="btn" onclick={openEditor}>
+			<button class="btn" onclick={openTsEditor}>
 				<Pencil size={14} />
 				{data?.has_tz ? 'Редактировать' : 'Ввести вручную'}
 			</button>
@@ -237,23 +271,6 @@
 		{#if data?.has_tz && !showEditor}
 			<div class="card ts-card">
 				<MarkdownContent content={data.tz_content} />
-			</div>
-		{/if}
-
-		{#if showEditor}
-			<div class="editor-panel">
-				<textarea
-					class="ts-editor"
-					bind:value={editorContent}
-					placeholder="Вставьте текст технического задания..."
-					rows="12"
-				></textarea>
-				<div class="btn-group">
-					<button class="btn btn-primary" onclick={saveTs} disabled={!editorContent.trim()}>
-						<CheckCircle size={14} /> Сохранить
-					</button>
-					<button class="btn" onclick={() => showEditor = false}>Отмена</button>
-				</div>
 			</div>
 		{/if}
 	</div>
@@ -286,22 +303,16 @@
 	<!-- ══ OUTPUT: Tabs (Bottom) ══ -->
 	<div class="section">
 		<div class="tabs">
-			<button
-				class="tab"
-				class:active={activeTab === 'requirements'}
-				onclick={() => { activeTab = 'requirements'; selectedReq = null; }}
-			>
+			<button class="tab" class:active={activeTab === 'requirements'}
+				onclick={() => { activeTab = 'requirements'; selectedReq = null; }}>
 				<ClipboardCheck size={16} />
 				Требования
 				{#if requirements.length > 0}
 					<span class="tab-badge">{requirements.length}</span>
 				{/if}
 			</button>
-			<button
-				class="tab"
-				class:active={activeTab === 'review'}
-				onclick={() => activeTab = 'review'}
-			>
+			<button class="tab" class:active={activeTab === 'review'}
+				onclick={() => activeTab = 'review'}>
 				<Eye size={16} />
 				Ревью
 				{#if hasReview}
@@ -310,7 +321,7 @@
 			</button>
 		</div>
 
-		<!-- Requirements Tab -->
+		<!-- ══ Requirements Tab ══ -->
 		{#if activeTab === 'requirements'}
 			{#if requirements.length === 0}
 				<div class="card empty">
@@ -318,26 +329,47 @@
 					<p class="hint">Загрузите TS и нажмите «Сгенерировать требования»</p>
 				</div>
 			{:else if selectedReq}
+				<!-- Detail View -->
 				<div>
 					<button class="back-btn" onclick={() => selectedReq = null}>
 						<ChevronLeft size={14} /> К списку требований
 					</button>
 				</div>
+
 				<div class="detail-header">
 					<span class="req-id">{selectedReq.id}</span>
+					<span class="badge {statusBadgeClass(selectedReq.status)}">
+						{STATUS_LABELS[selectedReq.status] || selectedReq.status}
+					</span>
 					<h3>{selectedReq.title}</h3>
 				</div>
+
+				<div class="status-actions">
+					{#each STATUSES.filter(s => s !== selectedReq.status) as s}
+						<button class="btn-status"
+							disabled={changingStatus === selectedReq.id}
+							onclick={() => changeReqStatus(selectedReq, s)}>
+							→ {STATUS_LABELS[s]}
+						</button>
+					{/each}
+					<button class="btn-status" onclick={() => openReqEditor(selectedReq)}>
+						<Pencil size={12} /> Редактировать
+					</button>
+				</div>
+
 				<div class="card">
 					<MarkdownContent content={selectedReq.content} />
 				</div>
 			{:else}
+				<!-- List View (table like ADR) -->
 				<div class="req-table-wrap">
 					<table class="req-table">
 						<thead>
 							<tr>
 								<th class="col-id">ID</th>
 								<th class="col-title">Требование</th>
-								<th class="col-preview">Описание</th>
+								<th class="col-status">Статус</th>
+								<th class="col-date">Дата</th>
 							</tr>
 						</thead>
 						<tbody>
@@ -345,7 +377,12 @@
 								<tr class="req-row" onclick={() => selectedReq = req}>
 									<td class="col-id">{req.id}</td>
 									<td class="col-title">{req.title}</td>
-									<td class="col-preview">{req.content.substring(0, 80)}...</td>
+									<td class="col-status">
+										<span class="badge {statusBadgeClass(req.status)}">
+											{STATUS_LABELS[req.status] || req.status}
+										</span>
+									</td>
+									<td class="col-date">{req.date || '—'}</td>
 								</tr>
 							{/each}
 						</tbody>
@@ -354,7 +391,7 @@
 			{/if}
 		{/if}
 
-		<!-- Review Tab -->
+		<!-- ══ Review Tab ══ -->
 		{#if activeTab === 'review'}
 			{#if !hasReview}
 				<div class="card empty">
@@ -370,223 +407,132 @@
 	</div>
 {/if}
 
+<!-- ══ MdEditor (shared for TS and requirements) ══ -->
+{#if showEditor}
+	<MdEditor
+		content={editorContent}
+		onSave={saveEditor}
+		onClose={() => showEditor = false}
+	/>
+{/if}
+
 <style>
-	.main-header {
-		margin-bottom: 1.5rem;
-	}
+	.main-header { margin-bottom: 1.5rem; }
 	.main-header h2 {
-		display: flex;
-		align-items: center;
-		gap: 0.5rem;
-		margin: 0 0 0.25rem 0;
+		display: flex; align-items: center; gap: 0.5rem; margin: 0 0 0.25rem 0;
 	}
-	.main-header p {
-		color: var(--dm);
-		margin: 0;
-	}
+	.main-header p { color: var(--dm); margin: 0; }
 	.section { margin-bottom: 2rem; }
 	.section h3 {
-		display: flex;
-		align-items: center;
-		gap: 0.5rem;
-		margin: 0 0 1rem 0;
+		display: flex; align-items: center; gap: 0.5rem; margin: 0 0 1rem 0;
 	}
 	.btn-group {
-		display: flex;
-		gap: 0.5rem;
-		flex-wrap: wrap;
-		margin-bottom: 1rem;
+		display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1rem;
 	}
 	.card {
-		background: var(--bg2);
-		border-radius: var(--r);
-		padding: 1.5rem;
-		margin-top: 1rem;
+		background: var(--bg2); border-radius: var(--r); padding: 1.5rem; margin-top: 1rem;
 	}
-	.card.empty {
-		text-align: center;
-		padding: 2rem 1.25rem;
-		color: var(--dm);
-	}
+	.card.empty { text-align: center; padding: 2rem 1.25rem; color: var(--dm); }
 	.card.empty p { margin: 0.25rem 0; }
 	.card.empty .hint { font-size: 0.8125rem; }
-
-	/* ── TS Editor ── */
-	.editor-panel { margin-top: 1rem; }
-	.ts-editor {
-		width: 100%;
-		min-height: 250px;
-		padding: 1rem;
-		border: 1px solid var(--bd);
-		border-radius: var(--r);
-		background: var(--bg);
-		color: var(--tx);
-		font-family: var(--font-mono);
-		font-size: 0.875rem;
-		line-height: 1.5;
-		resize: vertical;
-	}
-	.ts-editor:focus { outline: none; border-color: var(--ac); }
 	.ts-card { max-height: 250px; overflow-y: auto; }
 
 	/* ── Run Section ── */
-	.run-section {
-		display: flex;
-		align-items: center;
-		gap: 1rem;
-		margin: 1.5rem 0;
-	}
+	.run-section { display: flex; align-items: center; gap: 1rem; margin: 1.5rem 0; }
 	.separator { flex: 1; height: 1px; background: var(--bd); }
-	.run-buttons {
-		display: flex;
-		gap: 0.5rem;
-		flex-wrap: wrap;
-		justify-content: center;
-	}
+	.run-buttons { display: flex; gap: 0.5rem; flex-wrap: wrap; justify-content: center; }
 	.btn-action {
-		display: inline-flex;
-		align-items: center;
-		gap: 0.375rem;
-		padding: 0.5rem 0.875rem;
-		font-size: 0.8125rem;
-		font-weight: 500;
-		border: 1px solid var(--bd);
-		border-radius: var(--r);
-		background: var(--bg2);
-		color: var(--tx);
-		cursor: pointer;
-		white-space: nowrap;
+		display: inline-flex; align-items: center; gap: 0.375rem;
+		padding: 0.5rem 0.875rem; font-size: 0.8125rem; font-weight: 500;
+		border: 1px solid var(--bd); border-radius: var(--r);
+		background: var(--bg2); color: var(--tx); cursor: pointer; white-space: nowrap;
 		transition: background .15s, border-color .15s;
 	}
-	.btn-action:hover:not(:disabled) {
-		background: var(--sf);
-		border-color: var(--ac);
-	}
+	.btn-action:hover:not(:disabled) { background: var(--sf); border-color: var(--ac); }
 	.btn-action:disabled { opacity: 0.5; cursor: default; }
 
 	/* ── Tabs ── */
 	.tabs {
-		display: flex;
-		gap: 0.25rem;
-		border-bottom: 1px solid var(--bd);
-		margin-bottom: 1rem;
+		display: flex; gap: 0.25rem; border-bottom: 1px solid var(--bd); margin-bottom: 1rem;
 	}
 	.tab {
-		display: inline-flex;
-		align-items: center;
-		gap: 0.375rem;
-		padding: 0.5rem 0.75rem;
-		background: none;
-		border: none;
-		border-bottom: 2px solid transparent;
-		color: var(--dm);
-		cursor: pointer;
-		font-size: 0.875rem;
-		font-family: inherit;
+		display: inline-flex; align-items: center; gap: 0.375rem;
+		padding: 0.5rem 0.75rem; background: none; border: none;
+		border-bottom: 2px solid transparent; color: var(--dm);
+		cursor: pointer; font-size: 0.875rem; font-family: inherit;
 		transition: color .15s, border-color .15s;
 	}
 	.tab:hover { color: var(--tx); }
-	.tab.active {
-		color: var(--tx-bright);
-		border-bottom-color: var(--ac);
-	}
+	.tab.active { color: var(--tx-bright); border-bottom-color: var(--ac); }
 	.tab-badge {
-		display: inline-block;
-		padding: 0 0.375rem;
-		border-radius: 0.5rem;
-		background: var(--sf);
-		color: var(--dm);
-		font-size: 0.75rem;
-		line-height: 1.25rem;
+		display: inline-block; padding: 0 0.375rem; border-radius: 0.5rem;
+		background: var(--sf); color: var(--dm); font-size: 0.75rem; line-height: 1.25rem;
 	}
 	.tab-badge.ok { color: var(--gn-bright); }
 
 	/* ── Requirements Table ── */
 	.req-table-wrap {
-		margin-top: 0.75rem;
-		border: 0.0625rem solid var(--bd);
-		border-radius: var(--r);
-		overflow: hidden;
+		margin-top: 0.75rem; border: 0.0625rem solid var(--bd);
+		border-radius: var(--r); overflow: hidden;
 	}
-	.req-table {
-		width: 100%;
-		border-collapse: collapse;
-		font-size: 0.875rem;
-	}
+	.req-table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
 	.req-table thead { background: var(--sf); }
 	.req-table th {
-		padding: 0.5rem 0.75rem;
-		text-align: left;
-		color: var(--dm);
-		font-weight: 600;
-		font-size: 0.75rem;
-		text-transform: uppercase;
-		letter-spacing: .03em;
-		border-bottom: 0.0625rem solid var(--bd);
+		padding: 0.5rem 0.75rem; text-align: left; color: var(--dm);
+		font-weight: 600; font-size: 0.75rem; text-transform: uppercase;
+		letter-spacing: .03em; border-bottom: 0.0625rem solid var(--bd);
 	}
-	.req-table td {
-		padding: 0.625rem 0.75rem;
-		border-bottom: 0.0625rem solid var(--bd);
-	}
+	.req-table td { padding: 0.625rem 0.75rem; border-bottom: 0.0625rem solid var(--bd); }
 	.req-table tr:last-child td { border-bottom: none; }
 	.req-row { cursor: pointer; transition: background .1s; }
 	.req-row:hover { background: var(--bg2); }
 	.col-id { width: 5rem; font-family: var(--font-ui); color: var(--dm); font-weight: 600; }
-	.col-preview {
-		color: var(--dm);
-		font-size: 0.8125rem;
-		max-width: 20rem;
-		overflow: hidden;
-		text-overflow: ellipsis;
-		white-space: nowrap;
+	.col-status { width: 7rem; }
+	.col-date { width: 6.875rem; font-family: var(--font-ui); color: var(--dm); font-size: 0.8125rem; }
+
+	/* ── Status badges (like ADR) ── */
+	.badge {
+		display: inline-block; padding: 0.125rem 0.5rem; border-radius: 0.625rem;
+		font-size: 0.75rem; font-weight: 500; line-height: 1.125rem; white-space: nowrap;
 	}
+	.badge-proposed { background: rgba(187, 181, 41, .12); color: var(--yl); }
+	.badge-accepted { background: rgba(106, 135, 89, .15); color: var(--gn-bright); }
+	.badge-deprecated { background: rgba(180, 80, 80, .12); color: var(--rd); }
+	.badge-superseded { background: rgba(130, 130, 160, .12); color: var(--dm); }
 
 	/* ── Detail view ── */
 	.back-btn {
-		display: inline-flex;
-		align-items: center;
-		gap: 0.25rem;
-		background: none;
-		border: none;
-		color: var(--ac);
-		cursor: pointer;
-		padding: 0.25rem 0;
-		font-size: 0.875rem;
-		font-family: inherit;
-		margin-bottom: 0.5rem;
+		display: inline-flex; align-items: center; gap: 0.25rem;
+		background: none; border: none; color: var(--ac); cursor: pointer;
+		padding: 0.25rem 0; font-size: 0.875rem; font-family: inherit; margin-bottom: 0.5rem;
 	}
 	.back-btn:hover { text-decoration: underline; }
 	.detail-header {
-		display: flex;
-		align-items: center;
-		gap: 0.75rem;
-		margin-bottom: 0.75rem;
+		display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem;
 	}
-	.detail-header h3 {
-		margin: 0;
-		font-size: 1.125rem;
-		color: var(--tx-bright);
-	}
+	.detail-header h3 { margin: 0; font-size: 1.125rem; color: var(--tx-bright); }
 	.req-id {
-		display: inline-block;
-		padding: 0.125rem 0.5rem;
-		border-radius: 0.375rem;
-		background: rgba(59, 130, 246, 0.15);
-		color: var(--ac);
-		font-size: 0.75rem;
-		font-weight: 600;
-		font-family: var(--font-ui);
-		white-space: nowrap;
+		display: inline-block; padding: 0.125rem 0.5rem; border-radius: 0.375rem;
+		background: rgba(59, 130, 246, 0.15); color: var(--ac);
+		font-size: 0.75rem; font-weight: 600; font-family: var(--font-ui); white-space: nowrap;
 	}
+
+	.status-actions {
+		display: flex; gap: 0.375rem; margin-bottom: 0.75rem; flex-wrap: wrap;
+	}
+	.btn-status {
+		display: inline-flex; align-items: center; gap: 0.25rem;
+		padding: 0.25rem 0.625rem; border: 0.0625rem solid var(--bd);
+		border-radius: var(--r); background: var(--bg2); color: var(--tx);
+		cursor: pointer; font-size: 0.75rem; font-family: inherit;
+		transition: background .1s, border-color .1s;
+	}
+	.btn-status:hover { background: var(--sf); border-color: var(--ac); }
+	.btn-status:disabled { opacity: .5; cursor: default; }
 
 	/* ── Shared ── */
 	.alert-info {
-		background: rgba(59, 130, 246, 0.1);
-		border: 1px solid rgba(59, 130, 246, 0.3);
-		color: var(--tx);
+		background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3); color: var(--tx);
 	}
-	.btn-ghost {
-		background: transparent;
-		border: 1px solid var(--bd);
-	}
+	.btn-ghost { background: transparent; border: 1px solid var(--bd); }
 </style>

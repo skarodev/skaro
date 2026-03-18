@@ -57,11 +57,26 @@ def _list_requirements(am: ArtifactManager) -> list[dict[str, Any]]:
         title = lines[0].lstrip("# ").strip() if lines else f.stem
         # Extract ID from filename (e.g., "FR-001.md")
         req_id = f.stem
+        # Read status from metadata file
+        meta_file = req_dir / f"{req_id}.json"
+        status = "proposed"
+        date = ""
+        if meta_file.exists():
+            import json
+            try:
+                meta = json.loads(meta_file.read_text(encoding="utf-8"))
+                status = meta.get("status", "proposed")
+                date = meta.get("date", "")
+            except (json.JSONDecodeError, OSError):
+                pass
+
         reqs.append({
             "id": req_id,
             "title": title,
             "content": content,
             "filename": f.name,
+            "status": status,
+            "date": date,
         })
     return reqs
 
@@ -598,10 +613,83 @@ async def get_requirement(req_id: str, am: ArtifactManager = Depends(get_am)):
     if not req_file.exists():
         raise HTTPException(status_code=404, detail=f"Requirement {req_id} not found")
     content = req_file.read_text(encoding="utf-8")
+
+    # Read status from metadata
+    import json
+    meta_file = _requirements_dir(am) / f"{req_id}.json"
+    status = "proposed"
+    date = ""
+    if meta_file.exists():
+        try:
+            meta = json.loads(meta_file.read_text(encoding="utf-8"))
+            status = meta.get("status", "proposed")
+            date = meta.get("date", "")
+        except (json.JSONDecodeError, OSError):
+            pass
+
     return {
         "id": req_id,
         "title": content.split("\n")[0].lstrip("# ").strip() if content else req_id,
         "content": content,
+        "status": status,
+        "date": date,
+    }
+
+
+@router.put("/requirements/{req_id}")
+async def save_requirement_content(
+    req_id: str,
+    body: dict[str, Any],
+    am: ArtifactManager = Depends(get_am),
+):
+    """Save/update requirement content."""
+    req_file = _requirements_dir(am) / f"{req_id}.md"
+    if not req_file.exists():
+        raise HTTPException(status_code=404, detail=f"Requirement {req_id} not found")
+
+    content = body.get("content", "")
+    if not content.strip():
+        raise HTTPException(status_code=400, detail="Content cannot be empty")
+
+    req_file.write_text(content, encoding="utf-8")
+    return {"success": True, "message": f"Requirement {req_id} saved"}
+
+
+@router.patch("/requirements/{req_id}/status")
+async def update_requirement_status(
+    req_id: str,
+    body: dict[str, Any],
+    am: ArtifactManager = Depends(get_am),
+):
+    """Update requirement status (proposed/accepted/deprecated/superseded)."""
+    import json
+    from datetime import datetime, timezone
+
+    req_file = _requirements_dir(am) / f"{req_id}.md"
+    if not req_file.exists():
+        raise HTTPException(status_code=404, detail=f"Requirement {req_id} not found")
+
+    new_status = body.get("status", "")
+    valid_statuses = ["proposed", "accepted", "deprecated", "superseded"]
+    if new_status not in valid_statuses:
+        raise HTTPException(status_code=400, detail=f"Invalid status. Must be one of: {valid_statuses}")
+
+    meta_file = _requirements_dir(am) / f"{req_id}.json"
+    meta = {}
+    if meta_file.exists():
+        try:
+            meta = json.loads(meta_file.read_text(encoding="utf-8"))
+        except (json.JSONDecodeError, OSError):
+            pass
+
+    meta["status"] = new_status
+    meta["date"] = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    meta_file.write_text(json.dumps(meta, ensure_ascii=False, indent=2), encoding="utf-8")
+
+    return {
+        "success": True,
+        "message": f"Requirement {req_id} status changed to {new_status}",
+        "requirements": _list_requirements(am),
     }
 
 

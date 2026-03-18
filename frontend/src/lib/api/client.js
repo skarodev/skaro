@@ -280,6 +280,10 @@ export const api = {
 	getRequirements: (signal) => get('/api/analytics/requirements', signal),
 	getRequirement: (/** @type {string} */ id, signal) =>
 		get(`/api/analytics/requirements/${id}`, signal),
+	saveRequirementContent: (/** @type {string} */ id, /** @type {string} */ content, signal) =>
+		put(`/api/analytics/requirements/${id}`, { content }, signal),
+	updateRequirementStatus: (/** @type {string} */ id, /** @type {string} */ reqStatus, signal) =>
+		patch(`/api/analytics/requirements/${id}/status`, { status: reqStatus }, signal),
 	getReview: (signal) => get('/api/analytics/review', signal),
 	clearAnalytics: (signal) => del('/api/analytics', signal),
 
