@@ -46,13 +46,18 @@ def _review_passed(am: ArtifactManager) -> bool | None:
 
 
 def _analytics_done(am: ArtifactManager, project_root: Path) -> bool:
-    """Return True if analytics reports exist for any task."""
-    tasks_dir = am.skaro / "tasks"
-    if not tasks_dir.is_dir():
+    """Return True if there are accepted requirements."""
+    req_dir = am.skaro / "requirements"
+    if not req_dir.is_dir():
         return False
-    for task_dir in tasks_dir.iterdir():
-        if task_dir.is_dir() and (task_dir / "analytics-report.md").is_file():
-            return True
+    import json
+    for meta_file in req_dir.glob("*.json"):
+        try:
+            meta = json.loads(meta_file.read_text(encoding="utf-8"))
+            if meta.get("status") == "accepted":
+                return True
+        except (json.JSONDecodeError, OSError):
+            pass
     return False
 
 
