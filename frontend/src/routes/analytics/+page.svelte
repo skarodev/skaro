@@ -72,8 +72,8 @@
 				await api.saveRequirementContent(editorTarget, content);
 				addLog($t('nav.analytics') + ': Requirement saved');
 			}
-			showEditor = false;
 			await load();
+			showEditor = false;
 		} catch (e) {
 			error = e.message;
 			throw e;
