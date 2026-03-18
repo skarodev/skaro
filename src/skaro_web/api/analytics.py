@@ -693,6 +693,37 @@ async def update_requirement_status(
     }
 
 
+@router.delete("/requirements/{req_id}")
+async def delete_requirement(req_id: str, am: ArtifactManager = Depends(get_am)):
+    """Delete a single requirement."""
+    req_dir = _requirements_dir(am)
+    req_file = req_dir / f"{req_id}.md"
+    meta_file = req_dir / f"{req_id}.json"
+
+    if not req_file.exists():
+        raise HTTPException(status_code=404, detail=f"Requirement {req_id} not found")
+
+    req_file.unlink()
+    if meta_file.exists():
+        meta_file.unlink()
+
+    return {
+        "success": True,
+        "message": f"Requirement {req_id} deleted",
+        "requirements": _list_requirements(am),
+    }
+
+
+@router.delete("/requirements")
+async def clear_all_requirements(am: ArtifactManager = Depends(get_am)):
+    """Delete all requirements."""
+    import shutil
+    req_dir = _requirements_dir(am)
+    if req_dir.is_dir():
+        shutil.rmtree(req_dir)
+    return {"success": True, "message": "All requirements cleared"}
+
+
 @router.get("/review")
 async def get_review(am: ArtifactManager = Depends(get_am)):
     """Get the TS review if it exists."""

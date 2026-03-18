@@ -22,6 +22,7 @@
 	let generatingReqs = $state(false);
 	let generatingFromSel = $state(false);
 	let reviewing = $state(false);
+	let clearingReqs = $state(false);
 
 	// TS editor state
 	let tsEditorContent = $state('');
@@ -178,6 +179,29 @@
 		reviewing = false;
 	}
 
+	// ── Requirements Delete ──
+
+	async function deleteRequirement(req) {
+		if (!confirm(`Удалить требование ${req.id}?`)) return;
+		try {
+			const result = await api.deleteRequirement(req.id);
+			addLog($t('nav.analytics') + ': ' + result.message);
+			await load();
+		} catch (e) { error = e.message; }
+	}
+
+	async function clearRequirements() {
+		if (!confirm('Удалить ВСЕ требования?')) return;
+		clearingReqs = true;
+		error = '';
+		try {
+			await api.clearRequirements();
+			addLog($t('nav.analytics') + ': All requirements cleared');
+			await load();
+		} catch (e) { error = e.message; }
+		clearingReqs = false;
+	}
+
 	// ── Clear ──
 
 	async function clearAll() {
@@ -296,6 +320,14 @@
 				{#if reviewing}<Loader2 size={16} class="spin" />{:else}<Eye size={16} />{/if}
 				Ревью ТЗ
 			</button>
+
+			{#if requirements.length > 0}
+				<button class="btn btn-action btn-action-danger" onclick={clearRequirements}
+					disabled={clearingReqs}>
+					{#if clearingReqs}<Loader2 size={16} class="spin" />{:else}<Trash2 size={16} />{/if}
+					Очистить требования
+				</button>
+			{/if}
 		</div>
 		<div class="separator"></div>
 	</div>
@@ -370,6 +402,7 @@
 								<th class="col-title">Требование</th>
 								<th class="col-status">Статус</th>
 								<th class="col-date">Дата</th>
+								<th class="col-actions"></th>
 							</tr>
 						</thead>
 						<tbody>
@@ -383,6 +416,12 @@
 										</span>
 									</td>
 									<td class="col-date">{req.date || '—'}</td>
+									<td class="col-actions">
+										<button class="btn-icon" title="Удалить"
+											onclick={(e) => { e.stopPropagation(); deleteRequirement(req); }}>
+											<Trash2 size={14} />
+										</button>
+									</td>
 								</tr>
 							{/each}
 						</tbody>
@@ -489,6 +528,17 @@
 	.col-id { width: 5rem; font-family: var(--font-ui); color: var(--dm); font-weight: 600; }
 	.col-status { width: 7rem; }
 	.col-date { width: 6.875rem; font-family: var(--font-ui); color: var(--dm); font-size: 0.8125rem; }
+	.col-actions { width: 2.5rem; text-align: center; }
+
+	.btn-icon {
+		display: inline-flex; align-items: center; justify-content: center;
+		width: 1.5rem; height: 1.5rem; border: none; border-radius: var(--r);
+		background: none; color: var(--dm); cursor: pointer;
+		transition: color .15s, background .15s;
+	}
+	.btn-icon:hover { color: var(--rd); background: rgba(180, 80, 80, .1); }
+
+	.btn-action-danger:hover:not(:disabled) { border-color: var(--rd); background: rgba(180, 80, 80, .1); color: var(--rd); }
 
 	/* ── Status badges (like ADR) ── */
 	.badge {

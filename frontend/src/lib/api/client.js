@@ -284,6 +284,9 @@ export const api = {
 		put(`/api/analytics/requirements/${id}`, { content }, signal),
 	updateRequirementStatus: (/** @type {string} */ id, /** @type {string} */ reqStatus, signal) =>
 		patch(`/api/analytics/requirements/${id}/status`, { status: reqStatus }, signal),
+	deleteRequirement: (/** @type {string} */ id, signal) =>
+		del(`/api/analytics/requirements/${id}`, signal),
+	clearRequirements: (signal) => del('/api/analytics/requirements', signal),
 	getReview: (signal) => get('/api/analytics/review', signal),
 	clearAnalytics: (signal) => del('/api/analytics', signal),
 
