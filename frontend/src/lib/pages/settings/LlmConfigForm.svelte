@@ -109,7 +109,7 @@
 				type="number"
 				bind:value={maxTokens}
 				min="256"
-				max="200000"
+				max="2097152"
 				step="256"
 			/>
 		</div>

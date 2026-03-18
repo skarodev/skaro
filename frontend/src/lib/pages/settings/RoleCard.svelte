@@ -118,7 +118,7 @@
 						type="number"
 						bind:value={override.max_tokens}
 						min="256"
-						max="200000"
+						max="2097152"
 						step="256"
 						placeholder={$t('settings.use_default')}
 					/>
