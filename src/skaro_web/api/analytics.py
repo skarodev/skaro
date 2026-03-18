@@ -43,8 +43,9 @@ def _review_path(am: ArtifactManager) -> Path:
     return am.skaro / REVIEW_FILENAME
 
 
-def _list_requirements(am: ArtifactManager) -> list[dict[str, Any]]:
+def _list_requirements(am: ArtifactManager, req_type: str | None = None) -> list[dict[str, Any]]:
     """List all requirements as structured objects (like ADRs)."""
+    import json
     req_dir = _requirements_dir(am)
     if not req_dir.is_dir():
         return []
@@ -57,18 +58,29 @@ def _list_requirements(am: ArtifactManager) -> list[dict[str, Any]]:
         title = lines[0].lstrip("# ").strip() if lines else f.stem
         # Extract ID from filename (e.g., "FR-001.md")
         req_id = f.stem
-        # Read status from metadata file
+        # Read metadata
         meta_file = req_dir / f"{req_id}.json"
         status = "proposed"
         date = ""
+        rtype = "FR"
         if meta_file.exists():
-            import json
             try:
                 meta = json.loads(meta_file.read_text(encoding="utf-8"))
                 status = meta.get("status", "proposed")
                 date = meta.get("date", "")
+                rtype = meta.get("type", "FR")
             except (json.JSONDecodeError, OSError):
                 pass
+
+        # Also try to extract type from content if not in meta
+        if rtype == "FR":
+            type_match = re.search(r"\*\*Type:\*\*\s*(\w+)", content)
+            if type_match:
+                rtype = type_match.group(1)
+
+        # Filter by type if requested
+        if req_type and rtype.upper() != req_type.upper():
+            continue
 
         reqs.append({
             "id": req_id,
@@ -77,6 +89,7 @@ def _list_requirements(am: ArtifactManager) -> list[dict[str, Any]]:
             "filename": f.name,
             "status": status,
             "date": date,
+            "type": rtype,
         })
     return reqs
 
@@ -92,6 +105,30 @@ def _next_req_id(am: ArtifactManager) -> str:
         if m:
             max_num = max(max_num, int(m.group(1)))
     return f"FR-{max_num + 1:03d}"
+
+
+# Requirement type prefixes
+REQ_TYPE_PREFIXES = {
+    "FR": "FR",   # Functional
+    "NFR": "NFR", # Non-Functional
+    "IR": "IR",   # Integration
+    "DR": "DR",   # Data
+    "BR": "BR",   # Business Rule
+    "CR": "CR",   # Compliance
+    "UR": "UR",   # UI/UX
+}
+
+
+def _next_req_id_for_type(am: ArtifactManager, req_type: str) -> str:
+    """Generate next requirement ID for a specific type."""
+    prefix = REQ_TYPE_PREFIXES.get(req_type.upper(), "FR")
+    reqs = _list_requirements(am)
+    max_num = 0
+    for r in reqs:
+        m = re.match(rf"{prefix}-(\d+)", r["id"])
+        if m:
+            max_num = max(max_num, int(m.group(1)))
+    return f"{prefix}-{max_num + 1:03d}"
 
 
 def _get_llm_adapter(project_root: Path):
@@ -219,12 +256,20 @@ async def get_analytics(am: ArtifactManager = Depends(get_am)):
     if review_file.exists():
         review_content = review_file.read_text(encoding="utf-8")
 
+    all_reqs = _list_requirements(am)
+    # Count by type
+    type_counts = {}
+    for r in all_reqs:
+        t = r.get("type", "FR")
+        type_counts[t] = type_counts.get(t, 0) + 1
+
     return {
         "has_tz": tz_path.exists(),
         "tz_content": tz_content,
         "has_report": report_path.exists(),
         "report_content": report_content,
-        "requirements": _list_requirements(am),
+        "requirements": all_reqs,
+        "type_counts": type_counts,
         "has_review": review_file.exists(),
         "review_content": review_content,
     }
@@ -417,14 +462,37 @@ async def generate_requirements(
         title_line = lines[0].strip() if lines else ""
         content = section
 
+        # Extract type from **Type:** line
+        type_match = re.search(r"\*\*Type:\*\*\s*(\w+)", content)
+        req_type = type_match.group(1).upper() if type_match else "FR"
+        # Validate type
+        if req_type not in REQ_TYPE_PREFIXES:
+            req_type = "FR"
+
         # Extract ID from title (e.g., "FR-001: Title")
-        id_match = re.match(r"(FR-\d+)", title_line)
-        req_id = id_match.group(1) if id_match else _next_req_id(am)
+        id_match = re.match(r"((?:FR|NFR|IR|DR|BR|CR|UR)-\d+)", title_line)
+        if id_match:
+            req_id = id_match.group(1)
+        else:
+            req_id = _next_req_id_for_type(am, req_type)
+
+        # Normalize the title to use correct ID
+        clean_title = re.sub(r"^[\w]+-\d+:\s*", "", title_line)
+        final_content = f"# {req_id}: {clean_title}\n" + "\n".join(lines[1:])
 
         req_file = _requirements_dir(am) / f"{req_id}.md"
         # Don't overwrite existing
         if not req_file.exists():
-            req_file.write_text(f"# {content}", encoding="utf-8")
+            req_file.write_text(final_content, encoding="utf-8")
+            # Save metadata with type
+            import json
+            from datetime import datetime, timezone
+            meta_file = _requirements_dir(am) / f"{req_id}.json"
+            meta_file.write_text(json.dumps({
+                "type": req_type,
+                "status": "proposed",
+                "date": datetime.now(timezone.utc).strftime("%Y-%m-%d"),
+            }, ensure_ascii=False), encoding="utf-8")
             created.append(req_id)
 
     await ws.broadcast({"event": "analytics:requirements_generated", "count": len(created)})

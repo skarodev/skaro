@@ -218,7 +218,24 @@
 	// ── Helpers ──
 
 	let requirements = $derived(data?.requirements || []);
+	let typeCounts = $derived(data?.type_counts || {});
 	let hasReview = $derived(data?.has_review || false);
+
+	const REQ_TYPES = [
+		{ code: 'all', label: 'Все', color: 'var(--tx-bright)' },
+		{ code: 'FR', label: 'Функциональные', color: 'var(--ac)' },
+		{ code: 'NFR', label: 'Нефункциональные', color: 'var(--yl)' },
+		{ code: 'IR', label: 'Интеграционные', color: '#a78bfa' },
+		{ code: 'DR', label: 'Данные', color: '#34d399' },
+		{ code: 'BR', label: 'Бизнес-правила', color: '#f97316' },
+		{ code: 'CR', label: 'Соответствие', color: '#ec4899' },
+		{ code: 'UR', label: 'UI/UX', color: '#06b6d4' },
+	];
+
+	let selectedType = $state('all');
+	let filteredRequirements = $derived(
+		selectedType === 'all' ? requirements : requirements.filter(r => r.type === selectedType)
+	);
 
 	const STATUSES = ['proposed', 'accepted', 'deprecated', 'superseded'];
 	const STATUS_LABELS = {
@@ -393,12 +410,31 @@
 					<MarkdownContent content={selectedReq.content} />
 				</div>
 			{:else}
+				<!-- Type filter tabs -->
+				<div class="type-tabs">
+					{#each REQ_TYPES as rt}
+						{@const count = rt.code === 'all' ? requirements.length : (typeCounts[rt.code] || 0)}
+						{#if count > 0 || rt.code === 'all'}
+							<button
+								class="type-tab"
+								class:active={selectedType === rt.code}
+								style="--tab-color: {rt.color}"
+								onclick={() => selectedType = rt.code}
+							>
+								{rt.label}
+								<span class="type-count">{count}</span>
+							</button>
+						{/if}
+					{/each}
+				</div>
+
 				<!-- List View (table like ADR) -->
 				<div class="req-table-wrap">
 					<table class="req-table">
 						<thead>
 							<tr>
 								<th class="col-id">ID</th>
+								<th class="col-type">Тип</th>
 								<th class="col-title">Требование</th>
 								<th class="col-status">Статус</th>
 								<th class="col-date">Дата</th>
@@ -406,9 +442,14 @@
 							</tr>
 						</thead>
 						<tbody>
-							{#each requirements as req}
+							{#each filteredRequirements as req}
 								<tr class="req-row" onclick={() => selectedReq = req}>
 									<td class="col-id">{req.id}</td>
+									<td class="col-type">
+										<span class="type-badge" style="background: {REQ_TYPES.find(t => t.code === req.type)?.color || 'var(--dm)'}20; color: {REQ_TYPES.find(t => t.code === req.type)?.color || 'var(--dm)'}">
+											{req.type || 'FR'}
+										</span>
+									</td>
 									<td class="col-title">{req.title}</td>
 									<td class="col-status">
 										<span class="badge {statusBadgeClass(req.status)}">
@@ -529,6 +570,36 @@
 	.col-status { width: 7rem; }
 	.col-date { width: 6.875rem; font-family: var(--font-ui); color: var(--dm); font-size: 0.8125rem; }
 	.col-actions { width: 2.5rem; text-align: center; }
+	.col-type { width: 6rem; }
+
+	/* ── Type tabs ── */
+	.type-tabs {
+		display: flex; gap: 0.25rem; flex-wrap: wrap;
+		margin: 0.75rem 0; padding-bottom: 0.5rem;
+		border-bottom: 1px solid var(--bd);
+	}
+	.type-tab {
+		display: inline-flex; align-items: center; gap: 0.25rem;
+		padding: 0.25rem 0.625rem; background: none; border: 1px solid transparent;
+		border-radius: var(--r); color: var(--dm); cursor: pointer;
+		font-size: 0.8125rem; font-family: inherit;
+		transition: color .15s, border-color .15s, background .15s;
+	}
+	.type-tab:hover { color: var(--tab-color); background: color-mix(in srgb, var(--tab-color) 8%, transparent); }
+	.type-tab.active {
+		color: var(--tab-color); border-color: var(--tab-color);
+		background: color-mix(in srgb, var(--tab-color) 12%, transparent);
+	}
+	.type-count {
+		display: inline-block; padding: 0 0.25rem; border-radius: 0.375rem;
+		background: var(--sf); font-size: 0.6875rem; line-height: 1.125rem;
+	}
+
+	.type-badge {
+		display: inline-block; padding: 0.0625rem 0.375rem; border-radius: 0.25rem;
+		font-size: 0.6875rem; font-weight: 600; font-family: var(--font-ui);
+		white-space: nowrap;
+	}
 
 	.btn-icon {
 		display: inline-flex; align-items: center; justify-content: center;
