@@ -217,7 +217,7 @@ async def clean_ts_with_llm(
     project_root: Path = Depends(get_project_root),
 ):
     """Clean up TS document using LLM (fix formatting, remove artifacts)."""
-    from skaro_core.llm.base import LLMMessage
+    from skaro_core.llm.base import LLMMessage, create_llm_adapter
     from skaro_core.config import load_config
 
     tz_path = _tz_path(am)
@@ -240,11 +240,11 @@ Original document:
 """ + raw_content
 
     config = load_config(project_root)
-    from skaro_core.providers import get_provider
-    provider = get_provider(config.llm.provider, config.llm.model)
+    llm_config = config.llm_for_phase("analytics")
+    adapter = create_llm_adapter(llm_config)
 
     async with llm_phase(ws, "analytics", None):
-        response = await provider.complete([
+        response = await adapter.complete([
             LLMMessage(role="user", content=prompt),
         ])
 
