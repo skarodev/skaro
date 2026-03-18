@@ -7,7 +7,7 @@
 	import { invalidate } from '$lib/api/cache.js';
 	import {
 		BarChart3, Upload, FileText, Loader2, Trash2, AlertTriangle,
-		CheckCircle, Pencil, ChevronLeft, ListChecks, Sparkles,
+		CheckCircle, Pencil, ChevronLeft, ChevronRight, ListChecks, Sparkles,
 		ClipboardCheck, Eye, MessageSquare
 	} from 'lucide-svelte';
 	import MarkdownContent from '$lib/ui/MarkdownContent.svelte';
@@ -156,6 +156,20 @@
 			}
 		} catch (e) { error = e.message; }
 		changingStatus = null;
+	}
+
+	// Navigation between requirements
+	let currentReqIndex = $derived(
+		selectedReq ? filteredRequirements.findIndex(r => r.id === selectedReq.id) : -1
+	);
+	let hasPrevReq = $derived(currentReqIndex > 0);
+	let hasNextReq = $derived(currentReqIndex >= 0 && currentReqIndex < filteredRequirements.length - 1);
+
+	function goToPrevReq() {
+		if (hasPrevReq) selectedReq = filteredRequirements[currentReqIndex - 1];
+	}
+	function goToNextReq() {
+		if (hasNextReq) selectedReq = filteredRequirements[currentReqIndex + 1];
 	}
 
 	function openReqEditor(req) {
@@ -394,6 +408,14 @@
 				</div>
 
 				<div class="status-actions">
+					<button class="btn-status" onclick={goToPrevReq} disabled={!hasPrevReq}>
+						<ChevronLeft size={14} /> Предыдущее
+					</button>
+					<span class="req-counter">{currentReqIndex + 1} / {filteredRequirements.length}</span>
+					<button class="btn-status" onclick={goToNextReq} disabled={!hasNextReq}>
+						Следующее <ChevronRight size={14} />
+					</button>
+					<span class="status-separator"></span>
 					{#each STATUSES.filter(s => s !== selectedReq.status) as s}
 						<button class="btn-status"
 							disabled={changingStatus === selectedReq.id}
@@ -639,7 +661,14 @@
 	}
 
 	.status-actions {
-		display: flex; gap: 0.375rem; margin-bottom: 0.75rem; flex-wrap: wrap;
+		display: flex; gap: 0.375rem; margin-bottom: 0.75rem; flex-wrap: wrap; align-items: center;
+	}
+	.status-separator {
+		width: 1px; height: 1.25rem; background: var(--bd); margin: 0 0.25rem;
+	}
+	.req-counter {
+		font-size: 0.8125rem; color: var(--dm); font-family: var(--font-ui);
+		white-space: nowrap; padding: 0 0.25rem;
 	}
 	.btn-status {
 		display: inline-flex; align-items: center; gap: 0.25rem;
