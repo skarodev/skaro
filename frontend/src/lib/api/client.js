@@ -272,6 +272,7 @@ export const api = {
 		return res.json();
 	},
 	runAnalytics: (signal) => post('/api/analytics/run', {}, signal),
+	cleanTs: (signal) => post('/api/analytics/clean', {}, signal),
 	clearAnalytics: (signal) => del('/api/analytics', signal),
 
 	// Git

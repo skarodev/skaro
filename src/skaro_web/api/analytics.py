@@ -210,6 +210,65 @@ async def run_analytics(
         raise HTTPException(status_code=500, detail=result.message)
 
 
+@router.post("/clean")
+async def clean_ts_with_llm(
+    ws: ConnectionManager = Depends(get_ws_manager),
+    am: ArtifactManager = Depends(get_am),
+    project_root: Path = Depends(get_project_root),
+):
+    """Clean up TS document using LLM (fix formatting, remove artifacts)."""
+    from skaro_core.llm.base import LLMMessage
+    from skaro_core.config import load_config
+
+    tz_path = _tz_path(am)
+    if not tz_path.exists():
+        raise HTTPException(status_code=400, detail="No TS found")
+
+    raw_content = tz_path.read_text(encoding="utf-8")
+
+    prompt = """Clean up this technical specification document. Fix formatting issues:
+- Remove HTML artifacts (anchors, tags)
+- Fix broken markdown formatting
+- Normalize headings (# structure)
+- Fix bullet points and numbering
+- Remove duplicate/empty lines
+- Keep ALL original content and meaning
+- Output clean, well-formatted markdown
+
+Original document:
+
+""" + raw_content
+
+    config = load_config(project_root)
+    from skaro_core.providers import get_provider
+    provider = get_provider(config.llm.provider, config.llm.model)
+
+    async with llm_phase(ws, "analytics", None):
+        response = await provider.complete([
+            LLMMessage(role="user", content=prompt),
+        ])
+
+    cleaned = response.text.strip()
+    # Remove markdown fences if LLM added them
+    if cleaned.startswith("```"):
+        lines = cleaned.split("\n")
+        if lines[0].startswith("```"):
+            lines = lines[1:]
+        if lines and lines[-1].strip() == "```":
+            lines = lines[:-1]
+        cleaned = "\n".join(lines)
+
+    tz_path.write_text(cleaned, encoding="utf-8")
+
+    await ws.broadcast({"event": "analytics:cleaned"})
+
+    return {
+        "success": True,
+        "message": "TS cleaned via LLM",
+        "content": cleaned,
+    }
+
+
 @router.delete("")
 async def clear_analytics(am: ArtifactManager = Depends(get_am)):
     """Clear ТЗ and analytics report."""

@@ -5,7 +5,7 @@
 	import { addLog, addError } from '$lib/stores/logStore.js';
 	import { status } from '$lib/stores/statusStore.js';
 	import { invalidate } from '$lib/api/cache.js';
-	import { BarChart3, Upload, FileText, Loader2, Trash2, AlertTriangle, CheckCircle, Play, Pencil, ChevronLeft, ListChecks } from 'lucide-svelte';
+	import { BarChart3, Upload, FileText, Loader2, Trash2, AlertTriangle, CheckCircle, Play, Pencil, ChevronLeft, ListChecks, Sparkles } from 'lucide-svelte';
 	import MarkdownContent from '$lib/ui/MarkdownContent.svelte';
 
 	let data = $state(null);
@@ -13,6 +13,7 @@
 	let error = $state('');
 	let running = $state(false);
 	let uploading = $state(false);
+	let cleaning = $state(false);
 
 	// TS editor state
 	let showEditor = $state(false);
@@ -92,6 +93,21 @@
 			addError(e.message, 'analyticsRun');
 		}
 		running = false;
+	}
+
+	async function cleanTs() {
+		cleaning = true;
+		error = '';
+		addLog($t('nav.analytics') + ': Cleaning TS via LLM...');
+		try {
+			const result = await api.cleanTs();
+			addLog($t('nav.analytics') + ': ' + result.message);
+			await load();
+		} catch (e) {
+			error = e.message;
+			addError(e.message, 'analyticsClean');
+		}
+		cleaning = false;
 	}
 
 	async function clearAll() {
@@ -191,7 +207,17 @@
 
 		{#if data?.has_tz && !showEditor}
 			<div class="card ts-card">
-				<div class="card-header">TS (содержимое)</div>
+				<div class="card-header">
+					TS (содержимое)
+					<button class="btn btn-sm" onclick={cleanTs} disabled={cleaning}>
+						{#if cleaning}
+							<Loader2 size={12} class="spin" />
+						{:else}
+							<Sparkles size={12} />
+						{/if}
+						Почистить LLM
+					</button>
+				</div>
 				<MarkdownContent content={data.tz_content} />
 			</div>
 		{/if}
@@ -344,6 +370,17 @@
 		margin-bottom: 1rem;
 		padding-bottom: 0.5rem;
 		border-bottom: 1px solid var(--bd);
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+	}
+
+	.btn-sm {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.25rem;
+		padding: 0.25rem 0.5rem;
+		font-size: 0.75rem;
 	}
 
 	/* ── TS Editor ── */
