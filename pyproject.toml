@@ -31,6 +31,7 @@ dependencies = [
     "openai>=1.50",
     "httpx>=0.27",
     "fastapi>=0.115",
+    "python-multipart>=0.0.6",
     "uvicorn>=0.32",
     "websockets>=13.0",
     "watchfiles>=0.24",
