@@ -1,5 +1,6 @@
 """Skaro Web API — router registry."""
 
+from skaro_web.api.analytics import router as analytics_router
 from skaro_web.api.architecture import router as architecture_router
 from skaro_web.api.autopilot import router as autopilot_router
 from skaro_web.api.config import router as config_router
@@ -15,6 +16,7 @@ from skaro_web.api.status import router as status_router
 from skaro_web.api.tasks import router as tasks_router
 
 all_routers = [
+    analytics_router,
     status_router,
     constitution_router,
     architecture_router,

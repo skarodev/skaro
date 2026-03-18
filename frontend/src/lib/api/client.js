@@ -256,6 +256,24 @@ export const api = {
 	getUpdateCheck: (/** @type {boolean} */ force, signal) =>
 		get(`/api/update-check${force ? '?force=true' : ''}`, signal),
 
+	// Analytics
+	getAnalytics: (signal) => get('/api/analytics', signal),
+	saveTz: (/** @type {string} */ content, signal) =>
+		put('/api/analytics', { content }, signal),
+	uploadTz: async (/** @type {File} */ file, signal) => {
+		const formData = new FormData();
+		formData.append('file', file);
+		const res = await fetch(`${BASE}/api/analytics/upload`, {
+			method: 'POST',
+			body: formData,
+			signal,
+		});
+		if (!res.ok) throw await apiError('POST', '/api/analytics/upload', res);
+		return res.json();
+	},
+	runAnalytics: (signal) => post('/api/analytics/run', {}, signal),
+	clearAnalytics: (signal) => del('/api/analytics', signal),
+
 	// Git
 	getGitStatus: (signal) => get('/api/git/status', signal),
 	getGitDiff: (/** @type {string} */ file, signal) => get(`/api/git/diff?file=${encodeURIComponent(file)}`, signal),
