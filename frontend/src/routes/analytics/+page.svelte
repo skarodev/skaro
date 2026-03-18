@@ -189,6 +189,17 @@
 				{data?.has_tz ? 'Редактировать TS' : 'Ввести вручную'}
 			</button>
 
+			{#if data?.has_tz}
+				<button class="btn" onclick={cleanTs} disabled={cleaning}>
+					{#if cleaning}
+						<Loader2 size={14} class="spin" />
+					{:else}
+						<Sparkles size={14} />
+					{/if}
+					Почистить LLM
+				</button>
+			{/if}
+
 			{#if data?.has_tz || data?.has_report}
 				<button class="btn btn-ghost" onclick={clearAll}>
 					<Trash2 size={14} /> Очистить
@@ -207,17 +218,6 @@
 
 		{#if data?.has_tz && !showEditor}
 			<div class="card ts-card">
-				<div class="card-header">
-					TS (содержимое)
-					<button class="btn btn-sm" onclick={cleanTs} disabled={cleaning}>
-						{#if cleaning}
-							<Loader2 size={12} class="spin" />
-						{:else}
-							<Sparkles size={12} />
-						{/if}
-						Почистить LLM
-					</button>
-				</div>
 				<MarkdownContent content={data.tz_content} />
 			</div>
 		{/if}
