@@ -140,13 +140,15 @@ def _next_req_id_for_type(am: ArtifactManager, req_type: str) -> str:
     return f"{prefix}-{max_num + 1:03d}"
 
 
-def _get_llm_adapter(project_root: Path):
-    """Create LLM adapter from project config."""
+def _get_llm_adapter(project_root: Path, phase: str = "analytics"):
+    """Create LLM adapter with token tracking."""
     from skaro_core.llm.base import create_llm_adapter
     from skaro_core.config import load_config
+    from skaro_core.phases.base import _TrackingLLMAdapter
     config = load_config(project_root)
-    llm_config = config.llm_for_phase("analytics")
-    return create_llm_adapter(llm_config)
+    llm_config = config.llm_for_phase(phase)
+    inner = create_llm_adapter(llm_config)
+    return _TrackingLLMAdapter(inner, project_root, phase=phase)
 
 
 def _load_prompt(name: str, project_root: Path) -> str:
@@ -390,8 +392,7 @@ async def clean_ts_with_llm(
     project_root: Path = Depends(get_project_root),
 ):
     """Clean up TS document using LLM (fix formatting, remove artifacts)."""
-    from skaro_core.llm.base import LLMMessage, create_llm_adapter
-    from skaro_core.config import load_config
+    from skaro_core.llm.base import LLMMessage
 
     tz_path = _tz_path(am)
     if not tz_path.exists():
@@ -401,9 +402,7 @@ async def clean_ts_with_llm(
     prompt_template = _load_prompt("ts-clean", project_root)
     prompt = prompt_template + f"\n\n---\n\nOriginal document:\n\n{raw_content}"
 
-    config = load_config(project_root)
-    llm_config = config.llm_for_phase("analytics")
-    adapter = create_llm_adapter(llm_config)
+    adapter = _get_llm_adapter(project_root)
 
     async with llm_phase(ws, "analytics", None):
         response = await adapter.complete([
