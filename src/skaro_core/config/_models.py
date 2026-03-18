@@ -170,6 +170,14 @@ class ExecutionEnvConfig:
                 parts.append(f"Compose file: {self.docker_compose_file}")
             if self.workdir:
                 parts.append(f"Working directory in container: {self.workdir}")
+                parts.append(
+                    f"CRITICAL: All file paths in commands (pytest, mypy, ruff, etc.) "
+                    f"must be relative to the container working directory ({self.workdir}). "
+                    f"The project file tree shown below reflects the HOST filesystem structure. "
+                    f"Do NOT use host-relative paths in commands — convert them to container-relative paths. "
+                    f"Example: if the file tree shows 'myproject/apps/module.py' and the container "
+                    f"workdir is '/app', the correct command path is 'apps/module.py', NOT 'myproject/apps/module.py'."
+                )
             parts.append(
                 "Generate plain commands (e.g. `pytest tests/`), NOT `docker compose exec ...`. "
                 "The wrapping is handled automatically."

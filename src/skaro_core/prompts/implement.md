@@ -16,19 +16,19 @@ RULES:
 9. Follow coding standards from constitution.
 10. Check compliance with architectural invariants.
 
-OUTPUT FORMAT — each file as a fenced code block with the FULL path as the label:
+OUTPUT FORMAT — each file wrapped in file markers with the FULL path:
 
-```src/game/module.ts
+--- FILE: src/game/module.ts ---
 // file content here
-```
+--- END FILE ---
 
-```tests/module.test.ts
+--- FILE: tests/module.test.ts ---
 // test content here
-```
+--- END FILE ---
 
 LAST file must be AI_NOTES:
 
-```AI_NOTES.md
+--- FILE: AI_NOTES.md ---
 # AI_NOTES — Stage {stage}: <title from plan>
 
 ## What was done
@@ -50,4 +50,4 @@ LAST file must be AI_NOTES:
 
 ## How to verify
 1. <command or manual check>
-```
+--- END FILE ---

@@ -32,9 +32,9 @@ You do NOT need to know everything — fill in reasonable defaults for missing d
 
 ## Output format for the architecture
 
-When you decide to generate the architecture, output it inside a fenced code block with the path `architecture.md`:
+When you decide to generate the architecture, output it wrapped in file markers:
 
-```architecture.md
+--- FILE: architecture.md ---
 # Architecture
 
 ## Overview
@@ -60,8 +60,8 @@ When you decide to generate the architecture, output it inside a fenced code blo
 
 ## Known Trade-offs
 <What was sacrificed and why, assumptions made>
-```
+--- END FILE ---
 
-IMPORTANT: The architecture MUST be inside a ```architecture.md code fence. This is how the system detects and extracts it. Include the COMPLETE document, not a partial draft.
+IMPORTANT: The architecture MUST be inside `--- FILE: architecture.md ---` / `--- END FILE ---` markers. This is how the system detects and extracts it. Include the COMPLETE document, not a partial draft.
 
 After generating, briefly summarize what you produced and note any assumptions you made that the user should verify.

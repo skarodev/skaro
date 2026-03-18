@@ -58,8 +58,10 @@ class ImplementPhase(BasePhase):
                 f"You MUST implement ONLY Stage {stage} of the plan. Nothing else.\n\n"
                 f"Stage {stage} section:\n{stage_section}\n\n"
                 "Output ONLY files for this stage. Use FULL relative paths.\n"
-                "Format: ```path/to/file.ext\n<content>\n```\n"
-                "End with: ```AI_NOTES.md\n<notes>\n```"
+                "Format:\n"
+                "--- FILE: path/to/file.ext ---\n<content>\n--- END FILE ---\n\n"
+                "Last file must be:\n"
+                "--- FILE: AI_NOTES.md ---\n<notes>\n--- END FILE ---"
             )
 
         # Build context — order matters for LLM attention
@@ -188,7 +190,8 @@ class ImplementPhase(BasePhase):
             f"You MUST implement ONLY Stage {stage}.\n\n"
             f"Stage section:\n{stage_section}\n\n"
             "Output ONLY created/modified files. Write tests. Create AI_NOTES.md.\n"
-            "Do NOT leave stubs. Format: ```path/to/file.ext\n<content>\n```"
+            "Do NOT leave stubs. Format:\n"
+            "--- FILE: path/to/file.ext ---\n<content>\n--- END FILE ---"
         )
 
         messages = self._build_messages(prompt, {"Plan": plan})

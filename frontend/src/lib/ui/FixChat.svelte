@@ -359,7 +359,7 @@
 
 	.fix-bar {
 		position: sticky; bottom: 0;
-		background: linear-gradient(0deg, rgba(38, 38, 38, 1) 0%, rgba(38, 38, 38, 1) 77%, rgba(38, 38, 38, 0) 100%);
+		background: var(--bg);
 		padding: 0; z-index: 10;
 	}
 

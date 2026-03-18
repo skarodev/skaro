@@ -37,7 +37,10 @@
 
 	// Load issues when results change and have errors
 	$effect(() => {
-		if (hasErrors && taskName) {
+		// Track `results` reference directly so the effect re-runs
+		// even when hasErrors stays true across consecutive test runs.
+		const r = results;
+		if (r && !r.passed && taskName) {
 			loadIssues();
 		} else {
 			issues = [];

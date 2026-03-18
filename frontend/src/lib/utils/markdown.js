@@ -215,6 +215,39 @@ export function parseClarifyQuestions(text) {
 	return questions;
 }
 
+/**
+ * Strip `--- FILE: path ---` … `--- END FILE ---` marker blocks from text.
+ *
+ * These markers are used by the LLM output format so the backend can parse
+ * proposed file contents.  They must not be rendered in the chat UI because
+ * file cards handle that display.
+ *
+ * @param {string} text
+ * @returns {string}
+ */
+export function stripFileMarkers(text) {
+	if (!text) return '';
+	const lines = text.split('\n');
+	const result = [];
+	let inside = false;
+
+	for (const line of lines) {
+		const stripped = line.trim();
+		if (!inside && stripped.startsWith('--- FILE:') && stripped.endsWith('---')) {
+			inside = true;
+			continue;
+		}
+		if (inside && stripped === '--- END FILE ---') {
+			inside = false;
+			continue;
+		}
+		if (!inside) {
+			result.push(line);
+		}
+	}
+	return result.join('\n');
+}
+
 // ─── Internal helpers ────────────────────────────────────────────────
 
 /**

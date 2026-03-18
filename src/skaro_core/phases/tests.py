@@ -182,12 +182,14 @@ class TestsPhase(CommandRunnerMixin, BasePhase):
         *,
         verify_commands: list[dict[str, str]] | None = None,
         environment_hint: str = "",
+        path_mapping: str = "",
     ) -> str:
         """Build a structured fix prompt from selected issues.
 
         The prompt gives LLM:
         - HOW tests were run (verify commands)
         - WHERE they were run (environment)
+        - PATH MAPPING between container and host paths
         - WHAT failed (issues with full output)
         - Clear guidance on diagnosis vs blind code changes.
         """
@@ -198,6 +200,8 @@ class TestsPhase(CommandRunnerMixin, BasePhase):
             parts.append("## Test execution context\n")
             if environment_hint:
                 parts.append(f"**Environment**: {environment_hint}\n")
+            if path_mapping:
+                parts.append(f"**Path mapping**: {path_mapping}\n")
             if verify_commands:
                 parts.append("**Verify commands** (from verify.yaml):")
                 for vc in verify_commands:
@@ -223,8 +227,23 @@ class TestsPhase(CommandRunnerMixin, BasePhase):
 
         # ── Guidance ──
         parts.append("## Instructions\n")
+
+        if path_mapping:
+            parts.append(
+                "IMPORTANT — PATH MAPPING:\n"
+                "Error tracebacks may show paths from inside a container "
+                "(e.g. `/app/apps/foo.py`). These map to project files "
+                "provided in context (e.g. `casinoref/apps/foo.py`). "
+                "Treat them as the SAME file. When outputting fixed files, "
+                "use the HOST-relative path (as shown in the provided source files), "
+                "NOT the container path.\n\n"
+            )
+
         parts.append(
             "CRITICAL: Diagnose the ROOT CAUSE before doing anything else.\n\n"
+            "The source files mentioned in errors are provided to you in the "
+            "\"Selected source files\" section above. Use ONLY their actual content "
+            "for diagnosis — do NOT guess or regenerate file content.\n\n"
             "Common root causes that do NOT require code changes:\n"
             "- Wrong execution environment (commands run on host but project runs in Docker)\n"
             "- Python/Node/etc not on PATH, virtual environment not activated\n"
@@ -242,11 +261,24 @@ class TestsPhase(CommandRunnerMixin, BasePhase):
         return "\n".join(parts)
 
     @staticmethod
-    def extract_file_paths(issues: list[dict], project_root: Path) -> list[str]:
+    def extract_file_paths(
+        issues: list[dict],
+        project_root: Path,
+        *,
+        docker_workdir: str = "",
+    ) -> list[str]:
         """Extract project file paths mentioned in issue outputs.
 
         Scans tracebacks and error messages for file references that
         exist in the project tree. Used for auto-scope in fix-from-issues.
+
+        When ``docker_workdir`` is provided (e.g. ``/app``), absolute Docker
+        paths like ``/app/apps/foo.py`` are mapped by stripping the workdir
+        prefix before searching on the host.
+
+        As a last resort, searches the project tree by filename alone so
+        that ``/app/apps/providers/tests/test_foo.py`` can match
+        ``casinoref/apps/providers/tests/test_foo.py`` on the host.
 
         Returns de-duplicated list of relative paths.
         """
@@ -275,40 +307,127 @@ class TestsPhase(CommandRunnerMixin, BasePhase):
         for m in re.finditer(r'(\S+\.\w{1,5}):\d+', text):
             candidates.add(m.group(1))
 
-        # Pytest FAILED marker
-        for m in re.finditer(r'FAILED\s+(\S+?)::', text):
+        # Pytest FAILED / ERROR marker
+        for m in re.finditer(r'(?:FAILED|ERROR)\s+(\S+?)(?:::|$)', text):
             candidates.add(m.group(1))
 
-        # Resolve to existing project files
+        # ── Filter out stdlib / site-packages / frozen paths ──
+        project_candidates: set[str] = set()
+        for c in candidates:
+            norm = c.replace("\\", "/")
+            if any(skip in norm for skip in (
+                "/site-packages/", "/lib/python", "<frozen ", "/usr/lib/",
+                "/usr/local/lib/", "\\lib\\python",
+            )):
+                continue
+            project_candidates.add(norm)
+
+        # ── Prepare Docker workdir prefix for stripping ──
+        workdir_prefix = ""
+        if docker_workdir:
+            workdir_prefix = docker_workdir.replace("\\", "/").rstrip("/") + "/"
+
+        # ── Build filename → host relative path index (lazy, once) ──
+        _filename_index: dict[str, list[str]] | None = None
+
+        def _get_filename_index() -> dict[str, list[str]]:
+            nonlocal _filename_index
+            if _filename_index is not None:
+                return _filename_index
+            _filename_index = {}
+            for path in project_root.rglob("*"):
+                parts = path.relative_to(project_root).parts
+                if any(p in SKIP_DIRS or p.startswith(".") for p in parts[:-1]):
+                    continue
+                if path.is_file():
+                    rel = str(path.relative_to(project_root)).replace(os.sep, "/")
+                    _filename_index.setdefault(path.name, []).append(rel)
+            return _filename_index
+
+        # ── Resolve candidates to project files ──
         found: list[str] = []
         seen: set[str] = set()
 
-        for candidate in candidates:
-            # Normalize
-            candidate = candidate.replace("\\", "/")
-            # Strip leading ./ or /
-            candidate = candidate.lstrip("./")
+        def _add(rel: str) -> bool:
+            if rel not in seen:
+                seen.add(rel)
+                found.append(rel)
+                return True
+            return False
 
-            # Try as-is relative to project root
-            full = project_root / candidate
+        def _try_relative(rel_path: str) -> bool:
+            """Try a relative path against project_root."""
+            full = project_root / rel_path
             if full.is_file():
                 rel = str(full.relative_to(project_root)).replace(os.sep, "/")
-                if rel not in seen:
-                    seen.add(rel)
-                    found.append(rel)
+                return _add(rel)
+            return False
+
+        for candidate in project_candidates:
+            # Strip leading ./ or /
+            stripped = candidate.lstrip("./")
+
+            # 1. Try as-is
+            if _try_relative(stripped):
                 continue
 
-            # Try without common prefixes (e.g. /app/src/... → src/...)
-            parts = candidate.split("/")
-            for start in range(1, min(len(parts), 4)):
+            # 2. Strip Docker workdir prefix (e.g. /app/foo → foo)
+            if workdir_prefix and candidate.startswith(workdir_prefix):
+                remainder = candidate[len(workdir_prefix):]
+                if _try_relative(remainder):
+                    continue
+                # Also try stripping from the lstripped version
+                stripped_wd = stripped
+                wd_parts = workdir_prefix.strip("/").split("/")
+                s_parts = stripped.split("/")
+                for n in range(len(wd_parts)):
+                    if n < len(s_parts) and s_parts[n] == wd_parts[n]:
+                        candidate_sub = "/".join(s_parts[n + 1:])
+                        if _try_relative(candidate_sub):
+                            break
+
+            # 3. Progressive prefix stripping (existing logic, extended to 6 levels)
+            parts = stripped.split("/")
+            resolved = False
+            for start in range(1, min(len(parts), 7)):
                 sub = "/".join(parts[start:])
-                full = project_root / sub
-                if full.is_file():
-                    rel = str(full.relative_to(project_root)).replace(os.sep, "/")
-                    if rel not in seen:
-                        seen.add(rel)
-                        found.append(rel)
+                if _try_relative(sub):
+                    resolved = True
                     break
+            if resolved:
+                continue
+
+            # 4. Filename fallback — find by filename anywhere in project
+            filename = stripped.split("/")[-1]
+            if not filename or "." not in filename:
+                continue
+            idx = _get_filename_index()
+            matches = idx.get(filename, [])
+            if len(matches) == 1:
+                # Unambiguous match
+                _add(matches[0])
+            elif len(matches) > 1:
+                # Multiple matches — pick the one with the most path overlap
+                # e.g. candidate "apps/providers/tests/test_foo.py"
+                # should prefer "casinoref/apps/providers/tests/test_foo.py"
+                # over "other/test_foo.py"
+                candidate_parts = stripped.split("/")
+                best_score = -1
+                best_match = ""
+                for m in matches:
+                    m_parts = m.split("/")
+                    # Count trailing path segments that match
+                    score = 0
+                    for cp, mp in zip(reversed(candidate_parts), reversed(m_parts)):
+                        if cp == mp:
+                            score += 1
+                        else:
+                            break
+                    if score > best_score:
+                        best_score = score
+                        best_match = m
+                if best_match:
+                    _add(best_match)
 
         return sorted(found)
 

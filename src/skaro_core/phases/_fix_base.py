@@ -26,8 +26,10 @@ _OUTPUT_FORMAT = (
     "Do NOT output any source code files. Do NOT rewrite existing files "
     "just to 'improve' them — that causes regressions.\n\n"
     "**Path B — Code changes required** (actual bug in source code):\n"
-    "Output EACH changed file using fenced code blocks:\n"
-    "```path/to/file.ext\n<full file content>\n```\n"
+    "Output EACH changed file wrapped in file markers:\n"
+    "--- FILE: path/to/file.ext ---\n"
+    "<full file content>\n"
+    "--- END FILE ---\n\n"
     "Output the COMPLETE file content, not just the diff. "
     "Include ALL changed files. Use relative paths from project root.\n\n"
     "CRITICAL: Only use Path B if the root cause is genuinely in the source code. "
@@ -204,15 +206,15 @@ class ConversationalFixBase(BasePhase):
     def _read_scope_files(
         self,
         scope_paths: list[str],
-        *,
-        max_files: int = 30,
-        max_file_size: int = 15_000,
     ) -> str:
         """Read full code for user-selected scope paths.
 
         Paths can be files or directories. Directories are expanded
         recursively to include all text files within.
-        User explicitly chose these paths — no extension filtering on files.
+
+        No limits applied — user explicitly chose these files, so all of
+        them are sent in full. Token budget management is the caller's
+        responsibility (UI shows estimated token count).
 
         Returns formatted markdown blocks ready for LLM context.
         """
@@ -220,21 +222,16 @@ class ConversationalFixBase(BasePhase):
         collected: dict[str, str] = {}
 
         for sp in scope_paths:
-            if len(collected) >= max_files:
-                break
             target = root / sp
             if target.is_file():
-                # User selected this file explicitly — read it
-                self._read_into(target, root, collected, max_file_size)
+                self._read_into(target, root, collected)
             elif target.is_dir():
                 for child in sorted(target.rglob("*")):
-                    if len(collected) >= max_files:
-                        break
                     parts = child.relative_to(root).parts
                     if any(d in SKIP_DIRS or d.startswith(".") for d in parts[:-1]):
                         continue
                     if child.is_file():
-                        self._read_into(child, root, collected, max_file_size)
+                        self._read_into(child, root, collected)
 
         if not collected:
             return ""
@@ -246,7 +243,7 @@ class ConversationalFixBase(BasePhase):
     @staticmethod
     def _read_into(
         path: Path, root: Path,
-        target: dict[str, str], max_size: int,
+        target: dict[str, str],
     ) -> None:
         """Read a single file into the target dict."""
         rel = str(path.relative_to(root)).replace("\\", "/")
@@ -256,8 +253,6 @@ class ConversationalFixBase(BasePhase):
             content = path.read_text(encoding="utf-8")
         except (UnicodeDecodeError, PermissionError):
             return
-        if len(content) > max_size:
-            content = content[:max_size] + "\n... (truncated)"
         target[rel] = content
 
     def _apply_file_to_disk(self, filepath: str, content: str) -> PhaseResult:
