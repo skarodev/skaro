@@ -98,7 +98,8 @@ md.renderer.rules.link_open = function (tokens, idx, options, env, self) {
  */
 export function renderMarkdown(text) {
 	if (!text) return '';
-	const src = stripOuterMarkdownFence(text);
+	let src = stripOuterMarkdownFence(text);
+	src = unwrapMarkdownFences(src);
 	return md.render(src);
 }
 
@@ -291,4 +292,48 @@ function stripOuterMarkdownFence(text) {
 	}
 
 	return ft.content;
+}
+
+/**
+ * Unwrap top-level ```markdown / ```md fences whose content is plain
+ * markdown and should be rendered normally — not displayed as code.
+ *
+ * Unlike stripOuterMarkdownFence (which only handles a single fence
+ * spanning the entire document), this handles documents where the LLM
+ * placed markdown content inside a ```markdown fence alongside other
+ * blocks (e.g. a ```yaml verify section).
+ *
+ * @param {string} text
+ * @returns {string}
+ */
+function unwrapMarkdownFences(text) {
+	if (!text) return '';
+
+	const tokens = md.parse(text, {});
+	const lines = text.split('\n');
+
+	// Collect fence ranges to unwrap (in reverse order to preserve indices)
+	const replacements = [];
+	for (const token of tokens) {
+		if (token.type !== 'fence' || !token.map) continue;
+		const info = (token.info || '').trim().toLowerCase();
+		if (info !== 'markdown' && info !== 'md') continue;
+		replacements.push({
+			start: token.map[0],
+			end: token.map[1],
+			content: token.content,
+		});
+	}
+
+	if (replacements.length === 0) return text;
+
+	// Apply replacements in reverse to keep line numbers stable
+	const result = [...lines];
+	for (let i = replacements.length - 1; i >= 0; i--) {
+		const r = replacements[i];
+		const unwrapped = r.content.replace(/\n$/, '').split('\n');
+		result.splice(r.start, r.end - r.start, ...unwrapped);
+	}
+
+	return result.join('\n');
 }

@@ -105,6 +105,51 @@ def strip_outer_md_fence(text: str) -> str:
     return "\n".join(lines[first_idx + 1 : last_idx]).strip()
 
 
+_MD_FENCE_RE = re.compile(r"^(`{3,})\s*(markdown|md)\s*$")
+
+
+def unwrap_markdown_fences(text: str) -> str:
+    """Unwrap top-level ```markdown / ```md fences inline.
+
+    LLMs sometimes place plan content inside a ````markdown`` fence alongside
+    other blocks (e.g. a ````yaml`` verify section).  The content of these
+    fences **is** markdown and must be rendered normally, not as ``<pre>``.
+
+    This scans top-level fences only (no nesting awareness needed because
+    a ````markdown`` fence never legitimately appears inside another fence).
+    """
+    if not text:
+        return text
+
+    trailing_nl = text.endswith("\n")
+    lines = text.split("\n")
+    # split("\n") on "a\n" gives ["a", ""] — drop the sentinel empty string
+    if trailing_nl and lines and lines[-1] == "":
+        lines.pop()
+    result: list[str] = []
+    i = 0
+    while i < len(lines):
+        m = _MD_FENCE_RE.match(lines[i].strip())
+        if m:
+            backticks = m.group(1)
+            close_re = re.compile(rf"^{re.escape(backticks)}\s*$")
+            # Find closing fence
+            j = i + 1
+            while j < len(lines):
+                if close_re.match(lines[j].strip()):
+                    break
+                j += 1
+            if j < len(lines):
+                # Unwrap: emit inner lines without the fence delimiters
+                result.extend(lines[i + 1 : j])
+                i = j + 1
+                continue
+        result.append(lines[i])
+        i += 1
+
+    return "\n".join(result) + ("\n" if trailing_nl else "")
+
+
 class _TrackingLLMAdapter(BaseLLMAdapter):
     """Wrapper that tracks token usage from every complete()/stream() call."""
 

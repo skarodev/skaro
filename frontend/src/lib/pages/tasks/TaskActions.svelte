@@ -69,7 +69,7 @@
         color: var(--dm);
         background: var(--bg2);
         line-height: 1.5;
-        border: .0625rem solid var(--dm2);
+        border: .0625rem solid var(--bd);
         border-radius: var(--r);
     }
 </style>

@@ -9,7 +9,7 @@ from typing import Any
 import yaml
 
 from skaro_core.phases._plan_utils import count_plan_stages
-from skaro_core.phases.base import BasePhase, PhaseResult, strip_outer_md_fence
+from skaro_core.phases.base import BasePhase, PhaseResult, strip_outer_md_fence, unwrap_markdown_fences
 
 
 class PlanPhase(BasePhase):
@@ -105,6 +105,11 @@ class PlanPhase(BasePhase):
         # Remove outer code fences if LLM wrapped the response
         plan_content = strip_outer_md_fence(plan_content)
         tasks_content = strip_outer_md_fence(tasks_content)
+
+        # Unwrap inline ```markdown fences (LLM sometimes wraps plan
+        # stages in a ```markdown block alongside a ```yaml verify block)
+        plan_content = unwrap_markdown_fences(plan_content)
+        tasks_content = unwrap_markdown_fences(tasks_content)
 
         # Save
         created = []
