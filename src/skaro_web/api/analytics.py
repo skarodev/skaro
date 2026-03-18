@@ -43,6 +43,11 @@ def _review_path(am: ArtifactManager) -> Path:
     return am.skaro / REVIEW_FILENAME
 
 
+def _req_review_path(am: ArtifactManager) -> Path:
+    """Path to the requirements review report."""
+    return am.skaro / "requirements-review.md"
+
+
 def _list_requirements(am: ArtifactManager, req_type: str | None = None) -> list[dict[str, Any]]:
     """List all requirements as structured objects (like ADRs)."""
     import json
@@ -260,6 +265,11 @@ async def get_analytics(am: ArtifactManager = Depends(get_am)):
     if review_file.exists():
         review_content = review_file.read_text(encoding="utf-8")
 
+    req_review_file = _req_review_path(am)
+    req_review_content = ""
+    if req_review_file.exists():
+        req_review_content = req_review_file.read_text(encoding="utf-8")
+
     all_reqs = _list_requirements(am)
     # Count by type
     type_counts = {}
@@ -276,6 +286,8 @@ async def get_analytics(am: ArtifactManager = Depends(get_am)):
         "type_counts": type_counts,
         "has_review": review_file.exists(),
         "review_content": review_content,
+        "has_req_review": req_review_file.exists(),
+        "req_review_content": req_review_content,
     }
 
 
@@ -609,6 +621,56 @@ async def review_ts(
         "success": True,
         "message": "Review completed",
         "review": review,
+    }
+
+
+@router.post("/review-requirements")
+async def review_requirements(
+    ws: ConnectionManager = Depends(get_ws_manager),
+    am: ArtifactManager = Depends(get_am),
+    project_root: Path = Depends(get_project_root),
+):
+    """Review all requirements for duplicates, contradictions, and incompleteness."""
+    from skaro_core.llm.base import LLMMessage
+
+    reqs = _list_requirements(am)
+    if not reqs:
+        raise HTTPException(status_code=400, detail="No requirements to review")
+
+    # Build requirements text
+    reqs_text = "\n\n---\n\n".join(
+        f"### {r['id']} ({r['type']}): {r['title']}\n\n{r['content']}"
+        for r in reqs
+    )
+
+    prompt_template = _load_prompt("requirements-review", project_root)
+    prompt = prompt_template + f"\n\n---\n\n## Requirements\n\n{reqs_text}"
+
+    adapter = _get_llm_adapter(project_root)
+
+    async with llm_phase(ws, "requirements-review", None):
+        response = await adapter.complete([
+            LLMMessage(role="user", content=prompt),
+        ])
+
+    req_review = response.content.strip()
+    if req_review.startswith("```"):
+        lines = req_review.split("\n")
+        if lines[0].startswith("```"):
+            lines = lines[1:]
+        if lines and lines[-1].strip() == "```":
+            lines = lines[:-1]
+        req_review = "\n".join(lines)
+
+    review_file = _req_review_path(am)
+    review_file.write_text(req_review, encoding="utf-8")
+
+    await ws.broadcast({"event": "analytics:req_review_done"})
+
+    return {
+        "success": True,
+        "message": "Requirements review completed",
+        "review": req_review,
     }
 
 

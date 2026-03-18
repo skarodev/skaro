@@ -22,6 +22,7 @@
 	let generatingReqs = $state(false);
 	let generatingFromSel = $state(false);
 	let reviewing = $state(false);
+	let reviewingReqs = $state(false);
 	let clearingReqs = $state(false);
 
 	// TS editor state
@@ -193,6 +194,19 @@
 		reviewing = false;
 	}
 
+	async function reviewRequirements() {
+		reviewingReqs = true;
+		error = '';
+		addLog($t('nav.analytics') + ': Reviewing requirements...');
+		try {
+			const result = await api.reviewRequirements();
+			addLog($t('nav.analytics') + ': ' + result.message);
+			await load();
+			activeTab = 'req-review';
+		} catch (e) { error = e.message; }
+		reviewingReqs = false;
+	}
+
 	// ── Requirements Delete ──
 
 	async function deleteRequirement(req) {
@@ -234,6 +248,7 @@
 	let requirements = $derived(data?.requirements || []);
 	let typeCounts = $derived(data?.type_counts || {});
 	let hasReview = $derived(data?.has_review || false);
+	let hasReqReview = $derived(!!data?.req_review_content);
 
 	const REQ_TYPES = [
 		{ code: 'all', label: 'Все', color: 'var(--tx-bright)' },
@@ -353,6 +368,11 @@
 			</button>
 
 			{#if requirements.length > 0}
+				<button class="btn btn-action" onclick={reviewRequirements}
+					disabled={reviewingReqs}>
+					{#if reviewingReqs}<Loader2 size={16} class="spin" />{:else}<Eye size={16} />{/if}
+					Ревью требований
+				</button>
 				<button class="btn btn-action btn-action-danger" onclick={clearRequirements}
 					disabled={clearingReqs}>
 					{#if clearingReqs}<Loader2 size={16} class="spin" />{:else}<Trash2 size={16} />{/if}
@@ -377,8 +397,16 @@
 			<button class="tab" class:active={activeTab === 'review'}
 				onclick={() => activeTab = 'review'}>
 				<Eye size={16} />
-				Ревью
+				Ревью ТЗ
 				{#if hasReview}
+					<span class="tab-badge ok">✓</span>
+				{/if}
+			</button>
+			<button class="tab" class:active={activeTab === 'req-review'}
+				onclick={() => activeTab = 'req-review'}>
+				<Eye size={16} />
+				Ревью требований
+				{#if hasReqReview}
 					<span class="tab-badge ok">✓</span>
 				{/if}
 			</button>
@@ -493,7 +521,7 @@
 			{/if}
 		{/if}
 
-		<!-- ══ Review Tab ══ -->
+		<!-- ══ Review TS Tab ══ -->
 		{#if activeTab === 'review'}
 			{#if !hasReview}
 				<div class="card empty">
@@ -503,6 +531,20 @@
 			{:else}
 				<div class="card">
 					<MarkdownContent content={data.review_content} />
+				</div>
+			{/if}
+		{/if}
+
+		<!-- ══ Requirements Review Tab ══ -->
+		{#if activeTab === 'req-review'}
+			{#if !hasReqReview}
+				<div class="card empty">
+					<p>Нет ревью требований</p>
+					<p class="hint">Нажмите «Ревью требований» для анализа</p>
+				</div>
+			{:else}
+				<div class="card">
+					<MarkdownContent content={data.req_review_content} />
 				</div>
 			{/if}
 		{/if}

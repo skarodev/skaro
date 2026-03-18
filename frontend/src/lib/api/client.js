@@ -277,6 +277,7 @@ export const api = {
 	generateRequirement: (/** @type {string} */ text, signal) =>
 		post('/api/analytics/generate-requirement', { text }, signal),
 	reviewTs: (signal) => post('/api/analytics/review', {}, signal),
+	reviewRequirements: (signal) => post('/api/analytics/review-requirements', {}, signal),
 	getRequirements: (signal) => get('/api/analytics/requirements', signal),
 	getRequirement: (/** @type {string} */ id, signal) =>
 		get(`/api/analytics/requirements/${id}`, signal),
