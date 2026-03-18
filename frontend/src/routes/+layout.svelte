@@ -158,13 +158,20 @@
 	}
 
 	.main > :global(*) {
-		max-width: 48rem;
+		max-width: 100%;
+		padding: 0 5%;
 		margin-left: auto;
 		margin-right: auto;
 	}
 
 	.main > :global(.page-with-tabs) {
-		max-width: calc(48rem + 14rem + 1.5rem);
+		max-width: 100%;
+		padding: 0 5%;
+	}
+
+	.main > :global(.page-wide) {
+		max-width: 100%;
+		padding: 0 5%;
 	}
 
 	.center-msg {
