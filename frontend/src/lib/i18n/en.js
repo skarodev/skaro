@@ -426,10 +426,12 @@ export default {
 	// Settings
 	'nav.stats': 'Statistics',
 	'nav.dashboard': 'Dashboard',
+	'nav.analytics': 'Analytics',
 	'nav.settings': 'Settings',
 
 	// ── Review ──
 	'nav.review': 'Review',
+	'nav.cicd': 'CI/CD',
 	'review.title': 'Project Review',
 	'review.subtitle': 'Cross-validate project artifacts and run global verification commands.',
 	'review.tab_tests': 'Project Tests',

@@ -426,10 +426,12 @@ export default {
 	// Settings
 	'nav.stats': 'Статистика',
 	'nav.dashboard': 'Дашборд',
+	'nav.analytics': 'Аналитика',
 	'nav.settings': 'Настройки',
 
 	// ── Review ──
 	'nav.review': 'Ревью',
+	'nav.cicd': 'CI/CD',
 	'review.title': 'Ревью проекта',
 	'review.subtitle': 'Кросс-валидация артефактов проекта и запуск глобальных команд верификации.',
 	'review.tab_tests': 'Тесты проекта',

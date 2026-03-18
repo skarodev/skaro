@@ -45,6 +45,34 @@ def _review_passed(am: ArtifactManager) -> bool | None:
         return None
 
 
+def _analytics_done(am: ArtifactManager, project_root: Path) -> bool:
+    """Return True if analytics reports exist for any task."""
+    tasks_dir = am.skaro / "tasks"
+    if not tasks_dir.is_dir():
+        return False
+    for task_dir in tasks_dir.iterdir():
+        if task_dir.is_dir() and (task_dir / "analytics-report.md").is_file():
+            return True
+    return False
+
+
+def _cicd_done(project_root: Path) -> bool:
+    """Return True if CI/CD pipeline files have been generated."""
+    if not project_root:
+        return False
+    # Check for GitHub Actions workflows
+    workflows_dir = project_root / ".github" / "workflows"
+    if workflows_dir.is_dir() and any(workflows_dir.glob("*.yml")):
+        return True
+    # Check for GitLab CI
+    if (project_root / ".gitlab-ci.yml").is_file():
+        return True
+    # Check for Skaro fallback output
+    if (project_root / ".skaro" / "cicd-output.md").is_file():
+        return True
+    return False
+
+
 def _build_status(am: ArtifactManager, project_root: Path) -> dict[str, Any]:
     """Build project status dict (reused by /status and /dashboard)."""
     if not am.is_initialized:
@@ -97,6 +125,8 @@ def _build_status(am: ArtifactManager, project_root: Path) -> dict[str, Any]:
         "tokens": tokens,
         "git_staged_count": _git_staged_count(project_root),
         "review_passed": _review_passed(am),
+        "analytics_done": _analytics_done(am, project_root),
+        "cicd_done": _cicd_done(project_root),
         "_provider_labels": {k: v.name for k, v in get_providers().items()},
     }
 

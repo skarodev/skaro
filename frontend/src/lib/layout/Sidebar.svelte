@@ -3,7 +3,7 @@
 	import { page } from '$app/stores';
 	import { status } from '$lib/stores/statusStore.js';
 	import { theme } from '$lib/stores/themeStore.js';
-	import { Settings, PanelLeft, Info, BookOpen, ExternalLink } from 'lucide-svelte';
+	import { Settings, PanelLeft, Info, BookOpen, ExternalLink, BarChart3, Workflow } from 'lucide-svelte';
 	import LayoutGridAnimated from '$lib/ui/icons/LayoutGridAnimated.svelte';
 	import FileTextAnimated from '$lib/ui/icons/FileTextAnimated.svelte';
 	import LayersAnimated from '$lib/ui/icons/LayersAnimated.svelte';
@@ -18,6 +18,7 @@
 
 	const mainTabs = [
 		{ id: 'dashboard', icon: LayoutGridAnimated, labelKey: 'nav.dashboard' },
+		{ id: 'analytics', icon: BarChart3, labelKey: 'nav.analytics', lucide: true },
 		{ id: 'constitution', icon: FileTextAnimated, labelKey: 'nav.constitution' },
 		{ id: 'architecture', icon: LayersAnimated, labelKey: 'nav.architecture' },
 		{ id: 'adr', icon: FolderOpenCrossfade, labelKey: 'nav.adr' },
@@ -25,6 +26,7 @@
 		{ id: 'features', icon: SparklesAnimated, labelKey: 'nav.features', separatorBefore: true },
 		{ id: 'tasks', icon: PackageOpenAnimated, labelKey: 'nav.tasks' },
 		{ id: 'review', icon: ShieldCheckAnimated, labelKey: 'nav.review' },
+		{ id: 'cicd', icon: Workflow, labelKey: 'nav.cicd', lucide: true },
 		{ id: 'git', icon: GitBranchAnimated, labelKey: 'nav.git' },
 	];
 
@@ -75,6 +77,8 @@
 			return null;
 		}
 		if (id === 'git') return s.git_staged_count ? { text: s.git_staged_count, cls: 'warn' } : null;
+		if (id === 'analytics') return s.analytics_done ? { text: '✓', cls: 'ok' } : null;
+		if (id === 'cicd') return s.cicd_done ? { text: '✓', cls: 'ok' } : null;
 		return null;
 	}
 </script>
@@ -107,7 +111,13 @@
 				onmouseenter={() => hoveredTab = tab.id}
 				onmouseleave={() => hoveredTab = ''}
 			>
-				<span class="icon"><Icon size={18} active={hoveredTab === tab.id} /></span>
+				<span class="icon">
+					{#if tab.lucide}
+						<Icon size={18} strokeWidth={1.5} />
+					{:else}
+						<Icon size={18} active={hoveredTab === tab.id} />
+					{/if}
+				</span>
 				{#if !collapsed}
 					<span class="label">{$t(tab.labelKey)}</span>
 					{#if badge}<span class="badge {badge.cls}">{badge.text}</span>{/if}

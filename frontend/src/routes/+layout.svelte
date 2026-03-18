@@ -26,12 +26,14 @@
 	// ── Dynamic browser title ──
 	const TAB_NAV_KEYS = {
 		dashboard: 'nav.dashboard',
+		analytics: 'nav.analytics',
 		constitution: 'nav.constitution',
 		architecture: 'nav.architecture',
 		adr: 'nav.adr',
 		devplan: 'nav.devplan',
 		tasks: 'nav.tasks',
 		review: 'nav.review',
+		cicd: 'nav.cicd',
 		git: 'nav.git',
 		settings: 'nav.settings',
 	};
