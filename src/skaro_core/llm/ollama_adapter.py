@@ -99,6 +99,11 @@ class OllamaAdapter(BaseLLMAdapter):
                                     "input_tokens": chunk.get("prompt_eval_count", 0),
                                     "output_tokens": chunk.get("eval_count", 0),
                                 }
+                                done_reason = chunk.get("done_reason", "stop")
+                                if done_reason == "length":
+                                    self.last_stop_reason = "max_tokens"
+                                else:
+                                    self.last_stop_reason = "end_turn"
                                 break
                         except json.JSONDecodeError:
                             continue

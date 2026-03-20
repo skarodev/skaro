@@ -144,6 +144,18 @@ class ConversationalFixBase(BasePhase):
         # ── Parse response ──
         proposed_files = self._parse_file_blocks(response_content)
 
+        # ── Detect truncation ──
+        truncated_paths = set(self._find_truncated_file_blocks(response_content))
+        is_truncated = (
+            self._last_stop_reason in ("max_tokens", "length")
+            or bool(truncated_paths)
+        )
+
+        # Remove truncated files from proposed_files to prevent applying
+        # incomplete content to disk.
+        for tp in truncated_paths:
+            proposed_files.pop(tp, None)
+
         file_diffs: dict[str, dict] = {}
         for fpath, new_content in proposed_files.items():
             old_content = self._read_project_file(fpath)
@@ -152,6 +164,27 @@ class ConversationalFixBase(BasePhase):
                 "new": new_content,
                 "is_new": old_content is None,
             }
+
+        # Add truncated files as non-applicable diffs with warning flag
+        for tp in truncated_paths:
+            old_content = self._read_project_file(tp)
+            file_diffs[tp] = {
+                "old": old_content,
+                "new": None,
+                "is_new": old_content is None,
+                "truncated": True,
+            }
+
+        # Append truncation warning so it is visible in the conversation
+        if is_truncated and truncated_paths:
+            warning = (
+                "\n\n---\n"
+                "⚠️ **Response truncated by token limit.** "
+                "The following files were cut short and cannot be applied:\n"
+                + "".join(f"- `{p}`\n" for p in sorted(truncated_paths))
+                + "\nPlease re-run the fix or increase `max_tokens` in LLM settings."
+            )
+            response_content += warning
 
         updated_conversation = list(conversation) + [
             {"role": "user", "content": user_message},
@@ -177,7 +210,11 @@ class ConversationalFixBase(BasePhase):
             if turn_copy.get("role") == "assistant":
                 content = turn_copy.get("content", "")
                 proposed = self._parse_file_blocks(content)
-                if proposed:
+                truncated_paths = set(self._find_truncated_file_blocks(content))
+                # Remove truncated from proposed — incomplete content
+                for tp in truncated_paths:
+                    proposed.pop(tp, None)
+                if proposed or truncated_paths:
                     file_diffs: dict[str, dict] = {}
                     for fpath, new_content in proposed.items():
                         old_content = self._read_project_file(fpath)
@@ -185,6 +222,14 @@ class ConversationalFixBase(BasePhase):
                             "old": old_content,
                             "new": new_content,
                             "is_new": old_content is None,
+                        }
+                    for tp in truncated_paths:
+                        old_content = self._read_project_file(tp)
+                        file_diffs[tp] = {
+                            "old": old_content,
+                            "new": None,
+                            "is_new": old_content is None,
+                            "truncated": True,
                         }
                     turn_copy["files"] = file_diffs
                 turn_copy["turnIndex"] = i

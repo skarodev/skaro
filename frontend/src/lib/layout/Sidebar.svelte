@@ -328,8 +328,8 @@
 	}
 
 	.badge.ok {
-		color: var(--gn-bright);
-		background:  #1aa5c261;
+		color: #fff;
+		background:  var(--gn);
 	}
 
 	.badge.warn {

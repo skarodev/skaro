@@ -209,14 +209,14 @@
 			{/if}
 			{#if hasActiveTasks}
 				<button
-					class="btn btn-sm btn-autopilot"
+					class="btn btn-autopilot"
 					disabled={$autopilotRunning}
 					onclick={startAutopilot}
 				>
 					<Rocket size={14} /> {$t('autopilot.run_all')}
 				</button>
 			{/if}
-			<button class="btn btn-primary btn-sm" onclick={() => showCreateModal = true}>
+			<button class="btn btn-primary" onclick={() => showCreateModal = true}>
 				<Plus size={14} /> {$t('task.create')}
 			</button>
 		</div>

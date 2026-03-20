@@ -226,6 +226,7 @@ class BasePhase(ABC):
         self._current_task: str = ""
         self.on_stream_chunk: Callable[[str], Any] | None = None
         self._cancel_event: asyncio.Event | None = None
+        self._last_stop_reason: str | None = None
 
     def _get_llm(self, task: str = "") -> BaseLLMAdapter:
         """Get or create LLM adapter, updating task context."""
@@ -648,6 +649,29 @@ class BasePhase(ABC):
         return files
 
     @staticmethod
+    def _find_truncated_file_blocks(content: str) -> list[str]:
+        """Return file paths whose ``--- FILE: ... ---`` block has no closing marker.
+
+        When an LLM response is cut short by ``max_tokens``, the last file
+        block will be missing its ``--- END FILE ---`` delimiter.  This
+        method detects such files so callers can warn the user.
+        """
+        truncated: list[str] = []
+        lines = content.splitlines()
+        open_path: str | None = None
+        for line in lines:
+            stripped = line.strip()
+            if stripped.startswith("--- FILE:") and stripped.endswith("---"):
+                # A new FILE block opened — if a previous one was still open,
+                # it was closed implicitly (not truncated, just legacy format).
+                open_path = stripped[9:-3].strip()
+            elif stripped == "--- END FILE ---":
+                open_path = None
+        if open_path:
+            truncated.append(open_path)
+        return truncated
+
+    @staticmethod
     def _validate_project_path(project_root: Path, filepath: str) -> Path:
         """Validate that filepath resolves inside project_root.
 
@@ -731,6 +755,7 @@ class BasePhase(ABC):
                 except Exception:
                     pass
 
+            self._last_stop_reason = getattr(llm, "last_stop_reason", None)
             return "".join(chunks)
         finally:
             llm.config.max_tokens = original

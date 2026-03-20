@@ -254,15 +254,6 @@
 
 	.section-header .section-title { margin-bottom: 0; }
 
-	.btn-icon {
-		display: inline-flex; align-items: center; justify-content: center;
-		background: none; border: 1px solid var(--bd); border-radius: var(--r2);
-		color: var(--dm); cursor: pointer; padding: 0.25rem;
-		transition: color 0.1s, border-color 0.1s;
-	}
-	.btn-icon:hover { color: var(--ac); border-color: var(--ac); }
-	.btn-danger:hover { color: var(--rd); border-color: var(--rd); }
-
 	.hint { font-size: 0.8125rem; color: var(--dm); padding: 0.375rem 0; }
 
 	/* ── Inline editor ── */
@@ -280,16 +271,9 @@
 
 	.cmd-edit-actions { display: flex; align-items: center; gap: 0.5rem; margin-top: 0.25rem; }
 	.cmd-edit-right { margin-left: auto; display: flex; gap: 0.375rem; }
-	.btn-sm { font-size: 0.75rem; padding: 0.25rem 0.625rem; }
 
 	/* ── Actions ── */
 	.tests-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
-
-	.btn-success {
-		background: var(--gn-bright) !important; color: #fff !important;
-		border-color: var(--gn-bright) !important;
-	}
-	.btn-success:hover { filter: brightness(1.1); }
 
 	.tests-empty { color: var(--dm); font-size: 0.875rem; }
 

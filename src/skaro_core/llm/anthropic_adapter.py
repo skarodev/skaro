@@ -140,6 +140,8 @@ class AnthropicAdapter(BaseLLMAdapter):
                     cache_stats = self._extract_cache_stats(final.usage)
                     if cache_stats:
                         self.last_usage.update(cache_stats)
+                if final:
+                    self.last_stop_reason = final.stop_reason
         except LLMError:
             raise
         except Exception as e:

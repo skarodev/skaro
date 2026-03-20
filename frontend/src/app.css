@@ -38,6 +38,7 @@
    ═══════════════════════════════════════════════ */
 :root {
 	--bg: #212121;
+    --bg1: #111111;
 	--bg2: #1a1a1a;
 	--bg3: #313335;
 	--sf: #3c3f41;
@@ -46,14 +47,14 @@
 	--bd: #323232;
 	--bd2: #515151;
 	--bd-focus: #4b6eaf;
-	--tx: #a9b7c6;
-	--tx-bright: #d4d4d4;
+	--tx: #cccccc;
+	--tx-bright: #eeeeee;
 	--dm: #999999;
 	--dm2: #606060;
 	--ac: #589df6;
 	--ac2: #4b6eaf;
 	--ac-dim: #375a7f;
-	--gn: #6a8759;
+	--gn: #1f9f6d;
 	--gn-bright: #19c884;
 	--yl: #ffc66d;
 	--yl-dim: #bbb529;
@@ -72,6 +73,7 @@
    ═══════════════════════════════════════════════ */
 [data-theme="light"] {
 	--bg: #f2f2f2;
+    --bg1: #ffffff;
 	--bg2: #e8e8ea;
 	--bg3: #dcdcdc;
 	--sf: #ffffff;
@@ -204,22 +206,22 @@ table td {
 .btn {
 	display: inline-flex;
 	align-items: center;
-	gap: 0.3125rem;
-	padding: 0.3125rem 0.75rem;
-	border-radius: var(--r2);
-	border: 0.0625rem solid var(--bd2);
-	background: var(--sf);
-	color: var(--tx);
+	gap: 0.4rem;
+	padding: 0.4rem 0.65rem;
+	border-radius: var(--r);
+	border: 0.0625rem solid var(--dm2);
+    background: transparent;
+	color: var(--tx-bright);
 	cursor: pointer;
-	font-size: 0.8rem;
+	font-size: 0.9rem;
 	font-family: inherit;
-	transition: 0.12s;
-	font-weight: 500;
+	transition: all 0.2s;
+	font-weight: 700;
 }
 
 .btn:hover {
-	border-color: var(--ac);
-	background: var(--sf2);
+    background: var(--bg1);
+    border-color: var(--bg1);
 }
 
 .btn:disabled {
@@ -228,14 +230,14 @@ table td {
 }
 
 .btn-primary {
-	background: var(--ac2);
-	color: #fff;
-	border-color: var(--ac2);
+	background: var(--tx);
+	color: var(--bg2);
+	border-color: var(--tx);
 }
 
 .btn-primary:hover {
-	background: var(--ac);
-	border-color: var(--ac);
+	background: var(--tx-bright);
+	border-color: var(--tx-bright);
 }
 
 .btn-success {
@@ -247,7 +249,7 @@ table td {
 .btn-success:hover {
 	background: var(--gn-bright);
 	border-color: var(--gn-bright);
-	color: #1e1e1e;
+	color: #fff;
 }
 
 .btn-danger {
@@ -260,8 +262,8 @@ table td {
 }
 
 .btn-sm {
-	padding: 0.1875rem 0.5rem;
-	font-size: 0.8125rem;
+	padding: 0.25rem 0.5rem;
+	font-size: 0.8rem;
 }
 
 /* Button Group */

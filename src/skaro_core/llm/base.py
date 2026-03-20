@@ -47,6 +47,7 @@ class BaseLLMAdapter(ABC):
     def __init__(self, config: LLMConfig):
         self.config = config
         self.last_usage: dict[str, int] | None = None
+        self.last_stop_reason: str | None = None
 
     @abstractmethod
     async def complete(self, messages: list[LLMMessage]) -> LLMResponse:

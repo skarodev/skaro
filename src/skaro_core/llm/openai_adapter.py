@@ -83,6 +83,8 @@ class OpenAIAdapter(BaseLLMAdapter):
         async for chunk in stream:
             if chunk.choices and chunk.choices[0].delta.content:
                 yield chunk.choices[0].delta.content
+            if chunk.choices and chunk.choices[0].finish_reason:
+                self.last_stop_reason = chunk.choices[0].finish_reason
             if chunk.usage:
                 self.last_usage = {
                     "input_tokens": chunk.usage.prompt_tokens,
