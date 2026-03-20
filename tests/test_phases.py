@@ -16,7 +16,7 @@ import pytest
 from skaro_core.artifacts import ArtifactManager
 from skaro_core.config import LLMConfig, SkaroConfig
 from skaro_core.llm.base import BaseLLMAdapter, LLMMessage, LLMResponse
-from skaro_core.phases.base import BasePhase, PhaseResult, SKIP_DIRS, SOURCE_EXTENSIONS
+from skaro_core.phases.base import BasePhase, PhaseResult, SKIP_DIRS, SOURCE_EXTENSIONS, BINARY_EXTENSIONS, is_text_file
 
 
 # ═══════════════════════════════════════════════════
@@ -189,19 +189,25 @@ class TestCollectProjectSources:
         assert len(big_key) == 1
         assert files[big_key[0]].endswith("... (truncated)")
 
-    def test_extra_extensions(self, project_with_sources):
-        # Create a .yaml file
+    def test_config_files_collected(self, project_with_sources):
+        """Config files (.yaml, .toml, .json) are now collected by default."""
         (project_with_sources / "config.yaml").write_text("key: value", encoding="utf-8")
+        (project_with_sources / "pyproject.toml").write_text("[project]\nname='x'", encoding="utf-8")
 
         phase = self._make_phase(project_with_sources)
+        files = phase._collect_project_sources()
+        assert any(".yaml" in k for k in files)
+        assert any(".toml" in k for k in files)
 
-        # Without extra_extensions: .yaml not collected
-        files_without = phase._collect_project_sources()
-        assert not any(".yaml" in k for k in files_without)
+    def test_binary_files_skipped(self, project_with_sources):
+        """Binary files (.png, .zip, .pyc) are not collected."""
+        (project_with_sources / "logo.png").write_bytes(b"\x89PNG")
+        (project_with_sources / "cache.pyc").write_bytes(b"\x00\x00")
 
-        # With extra_extensions: .yaml collected
-        files_with = phase._collect_project_sources(extra_extensions={".yaml"})
-        assert any(".yaml" in k for k in files_with)
+        phase = self._make_phase(project_with_sources)
+        files = phase._collect_project_sources()
+        assert not any(".png" in k for k in files)
+        assert not any(".pyc" in k for k in files)
 
     def test_empty_project(self, init_project):
         phase = self._make_phase(init_project)

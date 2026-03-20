@@ -26,7 +26,7 @@ from pathlib import Path
 
 from skaro_core.context._ast_index import build_project_index
 from skaro_core.context._relevance import find_relevant_paths
-from skaro_core.phases.base import SKIP_DIRS, SOURCE_EXTENSIONS
+from skaro_core.phases.base import SKIP_DIRS, is_text_file
 
 log = logging.getLogger(__name__)
 
@@ -61,11 +61,9 @@ class SmartContextBuilder:
         project_root: Path,
         *,
         skip_dirs: set[str] | None = None,
-        source_extensions: set[str] | None = None,
     ):
         self.root = project_root
         self._skip_dirs = skip_dirs or SKIP_DIRS
-        self._extensions = source_extensions or SOURCE_EXTENSIONS
 
     def build(
         self,
@@ -102,11 +100,10 @@ class SmartContextBuilder:
         if extra_relevant:
             relevant |= extra_relevant
 
-        # ── 2. Build AST index (all project files) ─────────────
+        # ── 2. Build AST index (source code files only) ────────
         signatures = build_project_index(
             self.root,
             skip_dirs=self._skip_dirs,
-            source_extensions=self._extensions,
             max_files=max_index_files,
         )
 
@@ -121,7 +118,7 @@ class SmartContextBuilder:
             abs_path = self.root / fp
             if not abs_path.is_file():
                 continue
-            if abs_path.suffix.lower() not in self._extensions:
+            if not is_text_file(abs_path):
                 continue
             # Skip dot-directories but NOT dot-files (.env, .eslintrc)
             parts = abs_path.relative_to(self.root).parts
@@ -153,10 +150,10 @@ class SmartContextBuilder:
 
 
 def _format_full_files(files: dict[str, str]) -> str:
-    """Format a dict of {path: content} into markdown code blocks."""
+    """Format a dict of {path: content} for LLM context."""
     if not files:
         return ""
     parts = []
     for fpath, content in files.items():
-        parts.append(f"### {fpath}\n```\n{content}\n```")
+        parts.append(f"--- FILE: {fpath} ---\n{content}\n--- END FILE ---")
     return "\n\n".join(parts)

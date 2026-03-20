@@ -365,19 +365,21 @@ def build_project_index(
     Args:
         root: Project root directory.
         skip_dirs: Directory names to skip.
-        source_extensions: File extensions to include.
+        source_extensions: File extensions to include.  Defaults to the
+            set of extensions that have a tree-sitter grammar registered
+            in ``_GRAMMAR_MAP``.
         max_files: Maximum number of files to process.
 
     Returns:
         Formatted text ready to embed in an LLM prompt.
         Empty string if no signatures were extracted.
     """
-    from skaro_core.phases.base import SKIP_DIRS, SOURCE_EXTENSIONS
+    from skaro_core.phases.base import SKIP_DIRS
 
     if skip_dirs is None:
         skip_dirs = SKIP_DIRS
     if source_extensions is None:
-        source_extensions = SOURCE_EXTENSIONS
+        source_extensions = set(_GRAMMAR_MAP.keys())
 
     sections: list[str] = []
     file_count = 0

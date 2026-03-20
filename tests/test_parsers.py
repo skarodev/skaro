@@ -18,10 +18,10 @@ class TestParseFileBlocks:
     def test_single_file(self):
         content = (
             "Here is the implementation:\n\n"
-            "```src/main.py\n"
+            "--- FILE: src/main.py ---\n"
             "def main():\n"
             "    print('hello')\n"
-            "```\n"
+            "--- END FILE ---\n"
         )
         result = BasePhase._parse_file_blocks(content)
         assert "src/main.py" in result
@@ -29,35 +29,31 @@ class TestParseFileBlocks:
 
     def test_multiple_files(self):
         content = (
-            "```src/app.py\n"
+            "--- FILE: src/app.py ---\n"
             "from flask import Flask\n"
             "app = Flask(__name__)\n"
-            "```\n\n"
-            "```src/models.py\n"
+            "--- END FILE ---\n\n"
+            "--- FILE: src/models.py ---\n"
             "class User:\n"
             "    pass\n"
-            "```\n"
+            "--- END FILE ---\n"
         )
         result = BasePhase._parse_file_blocks(content)
         assert len(result) == 2
         assert "src/app.py" in result
         assert "src/models.py" in result
 
-    def test_ignores_language_only_fences(self):
+    def test_ignores_non_file_content(self):
         content = (
             "Here's an example:\n\n"
-            "```python\n"
-            "x = 42\n"
-            "```\n\n"
-            "```src/real_file.py\n"
+            "Some explanation text.\n\n"
+            "--- FILE: src/real_file.py ---\n"
             "y = 99\n"
-            "```\n"
+            "--- END FILE ---\n"
         )
         result = BasePhase._parse_file_blocks(content)
         assert len(result) == 1
         assert "src/real_file.py" in result
-        # "python" fence should be ignored (no / or . in name)
-        assert "python" not in result
 
     def test_empty_content(self):
         assert BasePhase._parse_file_blocks("") == {}
@@ -68,33 +64,43 @@ class TestParseFileBlocks:
 
     def test_nested_path(self):
         content = (
-            "```src/api/routes/auth.py\n"
+            "--- FILE: src/api/routes/auth.py ---\n"
             "from fastapi import APIRouter\n"
-            "```\n"
+            "--- END FILE ---\n"
         )
         result = BasePhase._parse_file_blocks(content)
         assert "src/api/routes/auth.py" in result
 
     def test_dotfile_recognized(self):
         content = (
-            "```.gitignore\n"
+            "--- FILE: .gitignore ---\n"
             "*.pyc\n"
             "__pycache__/\n"
-            "```\n"
+            "--- END FILE ---\n"
         )
         result = BasePhase._parse_file_blocks(content)
         assert ".gitignore" in result
 
     def test_preserves_empty_lines(self):
         content = (
-            "```src/main.py\n"
+            "--- FILE: src/main.py ---\n"
             "line1\n"
             "\n"
             "line3\n"
-            "```\n"
+            "--- END FILE ---\n"
         )
         result = BasePhase._parse_file_blocks(content)
         assert result["src/main.py"] == "line1\n\nline3"
+
+    def test_backtick_fences_not_parsed_as_files(self):
+        """Legacy backtick format should NOT be parsed."""
+        content = (
+            "```src/old.py\n"
+            "print('old')\n"
+            "```\n"
+        )
+        result = BasePhase._parse_file_blocks(content)
+        assert result == {}
 
 
 # ═══════════════════════════════════════════════════

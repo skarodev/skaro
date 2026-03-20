@@ -15,6 +15,7 @@ RULES:
 8. If unsure about a decision, list alternatives in AI_NOTES — do NOT make hidden assumptions.
 9. Follow coding standards from constitution.
 10. Check compliance with architectural invariants.
+11. If your code adds new third-party dependencies (imports/requires), you MUST also output the updated dependency config file (`pyproject.toml`, `package.json`, `requirements.txt`, `Cargo.toml`, `go.mod`, etc.) with the new packages added. Check the existing config files provided in context for the correct format.
 
 OUTPUT FORMAT — each file wrapped in file markers with the FULL path:
 
@@ -25,6 +26,9 @@ OUTPUT FORMAT — each file wrapped in file markers with the FULL path:
 --- FILE: tests/module.test.ts ---
 // test content here
 --- END FILE ---
+
+⚠️ You MUST use the --- FILE: / --- END FILE --- markers shown above.
+Do NOT wrap code in ```python, ```javascript or any other markdown code fences — those will NOT be parsed.
 
 LAST file must be AI_NOTES:
 

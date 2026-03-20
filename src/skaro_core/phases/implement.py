@@ -60,6 +60,7 @@ class ImplementPhase(BasePhase):
                 "Output ONLY files for this stage. Use FULL relative paths.\n"
                 "Format:\n"
                 "--- FILE: path/to/file.ext ---\n<content>\n--- END FILE ---\n\n"
+                "Do NOT wrap code in ```python or other markdown fences — use ONLY the --- FILE: --- markers.\n\n"
                 "Last file must be:\n"
                 "--- FILE: AI_NOTES.md ---\n<notes>\n--- END FILE ---"
             )
@@ -115,7 +116,7 @@ class ImplementPhase(BasePhase):
         if source_files:
             files_text = ""
             for fpath, content in source_files.items():
-                files_text += f"\n### {fpath}\n```\n{content}\n```\n"
+                files_text += f"\n--- FILE: {fpath} ---\n{content}\n--- END FILE ---\n"
             extra_context["Relevant source files (full code)"] = files_text
 
         # Project tree as overview
@@ -191,7 +192,8 @@ class ImplementPhase(BasePhase):
             f"Stage section:\n{stage_section}\n\n"
             "Output ONLY created/modified files. Write tests. Create AI_NOTES.md.\n"
             "Do NOT leave stubs. Format:\n"
-            "--- FILE: path/to/file.ext ---\n<content>\n--- END FILE ---"
+            "--- FILE: path/to/file.ext ---\n<content>\n--- END FILE ---\n\n"
+            "Do NOT wrap code in ```python or other markdown fences — use ONLY the --- FILE: --- markers."
         )
 
         messages = self._build_messages(prompt, {"Plan": plan})

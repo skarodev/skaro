@@ -27,44 +27,52 @@ SKIP_DIRS: set[str] = {
     ".ruff_cache", "htmlcov", ".coverage", "coverage", "lcov-report",
 }
 
+# Kept for backward compatibility — prefer is_text_file() for new code.
 SOURCE_EXTENSIONS: set[str] = {
     ".py", ".js", ".ts", ".jsx", ".tsx", ".go", ".rs",
     ".java", ".rb", ".html", ".css", ".vue", ".svelte",
 }
 
-SKIP_BINARY_EXTENSIONS: set[str] = {".pyc", ".pyo", ".so", ".dylib"}
+# Blacklist of known binary / heavy extensions.  Everything NOT in this
+# set is assumed to be a text file worth sending as LLM context.
+BINARY_EXTENSIONS: set[str] = {
+    # Compiled / bytecode
+    ".pyc", ".pyo", ".so", ".dylib", ".dll", ".exe", ".o", ".obj",
+    ".class", ".jar", ".war", ".ear",
+    # Images
+    ".png", ".jpg", ".jpeg", ".gif", ".bmp", ".ico", ".webp", ".svg",
+    ".tiff", ".tif", ".psd", ".ai", ".eps",
+    # Fonts
+    ".woff", ".woff2", ".ttf", ".otf", ".eot",
+    # Audio / Video
+    ".mp3", ".mp4", ".wav", ".ogg", ".flac", ".avi", ".mkv", ".mov",
+    ".webm", ".m4a", ".aac",
+    # Archives / packages
+    ".zip", ".tar", ".gz", ".bz2", ".xz", ".7z", ".rar",
+    ".whl", ".egg", ".rpm", ".deb", ".dmg", ".iso",
+    # Documents (binary)
+    ".pdf", ".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx", ".odt",
+    # Data (large / binary)
+    ".sqlite", ".db", ".sqlite3", ".pkl", ".pickle", ".npy", ".npz",
+    ".h5", ".hdf5", ".parquet", ".arrow", ".feather",
+    # Maps / sourcemaps
+    ".map",
+    # Misc binary
+    ".bin", ".dat", ".DS_Store",
+}
+
+# Legacy alias — use BINARY_EXTENSIONS instead.
+SKIP_BINARY_EXTENSIONS: set[str] = BINARY_EXTENSIONS
 
 
-def _has_inner_close_ahead(lines: list[str], start: int) -> bool:
-    """Check whether a bare ````` has a matching close ````` ahead.
+def is_text_file(path: Path) -> bool:
+    """Return True if *path* looks like a text file worth reading as context.
 
-    Scans forward from *start*, skipping over any labeled fence pairs
-    (e.g. ``\u0060\u0060\u0060python`` … ``\u0060\u0060\u0060``) encountered
-    on the way.  Returns ``True`` if a bare ````` is found that would
-    close the inner block — meaning the ````` that triggered this check
-    is an inner opener, not the outer block closer.
-
-    Labeled fences that look like file paths (contain ``/`` or ``.``)
-    are treated as NEW outer file blocks, not inner fences — their
-    presence means the bare ````` was the outer closer.
+    Uses a blacklist of known binary extensions.  Files without an
+    extension are included (Makefile, Dockerfile, etc.).
     """
-    depth = 0
-    for k in range(start, len(lines)):
-        stripped = lines[k].strip()
-        if stripped.startswith("```") and len(stripped) > 3:
-            label = stripped[3:].strip()
-            # A filepath fence signals a new outer file block — stop here.
-            # The bare ``` that triggered this check was the outer closer.
-            if "/" in label or ("." in label and not label.split()[0].isalpha()):
-                return False
-            # Language label (```python, ```yaml …) — track as inner fence
-            depth += 1
-        elif stripped == "```":
-            if depth > 0:
-                depth -= 1  # closes a labeled inner fence
-            else:
-                return True  # matching close for the bare inner block
-    return False
+    return path.suffix.lower() not in BINARY_EXTENSIONS
+
 
 
 # ── Regex for markdown outer‐fence detection ──────────────────
@@ -448,7 +456,7 @@ class BasePhase(ABC):
     def _scan_project_tree(self) -> str:
         """Scan project directory and return file tree as text.
 
-        Skips .sgd, .git, __pycache__, node_modules, and other common junk dirs.
+        Skips .skaro, .git, __pycache__, node_modules, and other common junk dirs.
         Useful for giving LLM context about existing project structure.
         """
         root = self.artifacts.root
@@ -458,8 +466,6 @@ class BasePhase(ABC):
             parts = path.relative_to(root).parts
             # Skip dot-directories (.git, .venv) but NOT dot-files (.env, .eslintrc)
             if any(p in SKIP_DIRS or p.startswith(".") for p in parts[:-1]):
-                continue
-            if path.is_file() and path.suffix in SKIP_BINARY_EXTENSIONS:
                 continue
             if path.is_file():
                 lines.append(str(path.relative_to(root)))
@@ -474,25 +480,25 @@ class BasePhase(ABC):
         *,
         max_files: int = 30,
         max_file_size: int = 10_000,
-        extra_extensions: set[str] | None = None,
     ) -> dict[str, str]:
-        """Read existing source files from the project for LLM context.
+        """Read existing text files from the project for LLM context.
+
+        Uses a blacklist of binary extensions so that config files
+        (pyproject.toml, package.json, etc.) are included automatically.
 
         Args:
             max_files: Maximum number of files to collect.
             max_file_size: Truncate files larger than this (chars).
-            extra_extensions: Additional extensions beyond SOURCE_EXTENSIONS.
         """
         files: dict[str, str] = {}
         root = self.artifacts.root
-        extensions = SOURCE_EXTENSIONS | (extra_extensions or set())
 
         for path in sorted(root.rglob("*")):
             parts = path.relative_to(root).parts
             # Skip dot-directories (.git, .venv) but NOT dot-files (.env, .eslintrc)
             if any(p in SKIP_DIRS or p.startswith(".") for p in parts[:-1]):
                 continue
-            if path.is_file() and path.suffix in extensions:
+            if path.is_file() and is_text_file(path):
                 rel = str(path.relative_to(root))
                 try:
                     content = path.read_text(encoding="utf-8")
@@ -508,10 +514,10 @@ class BasePhase(ABC):
         return files
 
     def _format_source_files(self, source_files: dict[str, str]) -> str:
-        """Format collected source files into markdown blocks."""
+        """Format collected source files for LLM context."""
         parts = []
         for fpath, content in source_files.items():
-            parts.append(f"### {fpath}\n```\n{content}\n```")
+            parts.append(f"--- FILE: {fpath} ---\n{content}\n--- END FILE ---")
         return "\n\n".join(parts)
 
     def _append_source_context(
@@ -584,19 +590,11 @@ class BasePhase(ABC):
     def _parse_file_blocks(content: str) -> dict[str, str]:
         """Parse LLM output into {filepath: content} dict.
 
-        Primary format (preferred)::
+        Expected format::
 
             --- FILE: path/to/file.ext ---
             content here — any content is safe, no escaping needed
             --- END FILE ---
-
-        Legacy format (backward compatibility with old conversations)::
-
-            ```path/to/file.ext
-            content
-            ```
-
-        Both formats can coexist in a single response.
         """
         files: dict[str, str] = {}
         lines = content.splitlines()
@@ -604,7 +602,6 @@ class BasePhase(ABC):
         while i < len(lines):
             stripped = lines[i].strip()
 
-            # ── Primary format: --- FILE: path --- ──
             if stripped.startswith("--- FILE:") and stripped.endswith("---"):
                 filepath = stripped[9:-3].strip()
                 if filepath:
@@ -614,34 +611,6 @@ class BasePhase(ABC):
                         if lines[i].strip() == "--- END FILE ---":
                             break
                         file_lines.append(lines[i])
-                        i += 1
-                    files[filepath] = "\n".join(file_lines)
-
-            # ── Legacy format: ```path/to/file.ext ──
-            elif stripped.startswith("```") and stripped != "```":
-                fence = stripped[3:].strip()
-                if "/" in fence or "." in fence:
-                    filepath = fence
-                    file_lines = []
-                    i += 1
-                    inner_fence = False
-                    while i < len(lines):
-                        s = lines[i].strip()
-                        if inner_fence:
-                            file_lines.append(lines[i])
-                            if s == "```":
-                                inner_fence = False
-                        elif s.startswith("```") and len(s) > 3:
-                            label = s[3:].strip()
-                            if "/" in label or ("." in label and not label.split()[0].isalpha()):
-                                i -= 1
-                                break
-                            inner_fence = True
-                            file_lines.append(lines[i])
-                        elif s == "```":
-                            break
-                        else:
-                            file_lines.append(lines[i])
                         i += 1
                     files[filepath] = "\n".join(file_lines)
 
@@ -663,7 +632,7 @@ class BasePhase(ABC):
             stripped = line.strip()
             if stripped.startswith("--- FILE:") and stripped.endswith("---"):
                 # A new FILE block opened — if a previous one was still open,
-                # it was closed implicitly (not truncated, just legacy format).
+                # it was closed implicitly by this new block opening.
                 open_path = stripped[9:-3].strip()
             elif stripped == "--- END FILE ---":
                 open_path = None
@@ -695,14 +664,12 @@ class BasePhase(ABC):
         *,
         max_files: int = 30,
         max_file_size: int = 10_000,
-        extra_extensions: set[str] | None = None,
     ) -> dict[str, str]:
         """Async version of :meth:`_collect_project_sources`."""
         return await asyncio.to_thread(
             self._collect_project_sources,
             max_files=max_files,
             max_file_size=max_file_size,
-            extra_extensions=extra_extensions,
         )
 
     @abstractmethod

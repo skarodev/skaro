@@ -32,6 +32,9 @@ _OUTPUT_FORMAT = (
     "--- END FILE ---\n\n"
     "Output the COMPLETE file content, not just the diff. "
     "Include ALL changed files. Use relative paths from project root.\n\n"
+    "⚠️ You MUST use the --- FILE: / --- END FILE --- markers shown above. "
+    "Do NOT wrap code in ```python, ```javascript or any other markdown "
+    "code fences — those will NOT be parsed. Only the --- FILE: --- format works.\n\n"
     "CRITICAL: Only use Path B if the root cause is genuinely in the source code. "
     "If tests fail because of wrong commands, missing dependencies, wrong environment, "
     "or incorrect paths — that is Path A. Never rewrite source code to work around "
@@ -282,7 +285,7 @@ class ConversationalFixBase(BasePhase):
             return ""
         parts = []
         for fpath, content in collected.items():
-            parts.append(f"### {fpath}\n```\n{content}\n```")
+            parts.append(f"--- FILE: {fpath} ---\n{content}\n--- END FILE ---")
         return "\n\n".join(parts)
 
     @staticmethod
