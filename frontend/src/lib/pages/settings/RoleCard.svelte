@@ -2,6 +2,7 @@
 	import { t } from '$lib/i18n/index.js';
 	import { Eye, EyeOff } from 'lucide-svelte';
 	import ProviderSelect from '$lib/ui/ProviderSelect.svelte';
+	import ModelPicker from '$lib/ui/ModelPicker.svelte';
 
 	let {
 		role = {},
@@ -9,7 +10,6 @@
 		defaultProvider = '',
 		defaultModel = '',
 		providerNames = [],
-		modelsFor = (p) => [],
 		onProviderChange = () => {},
 	} = $props();
 
@@ -28,23 +28,6 @@
 	let baseUrlId = $derived(`role-${role.id}-base-url`);
 	let maxTokensId = $derived(`role-${role.id}-max-tokens`);
 	let tempId = $derived(`role-${role.id}-temperature`);
-
-	const OTHER = '__other__';
-	let models = $derived(modelsFor(override.provider));
-	let customMode = $state(false);
-	let showCustom = $derived(customMode || (override.model && !models.includes(override.model)));
-	let selectValue = $derived(showCustom ? OTHER : override.model);
-
-	function onSelectModel(e) {
-		const v = e.target.value;
-		if (v === OTHER) {
-			customMode = true;
-			override.model = '';
-		} else {
-			customMode = false;
-			override.model = v;
-		}
-	}
 </script>
 
 <div class="role-card">
@@ -69,18 +52,7 @@
 				</div>
 				<div class="form-field">
 					<label for={`role-${role.id}-model`}>{$t('settings.model')}</label>
-					<select id={`role-${role.id}-model`} value={selectValue} onchange={onSelectModel}>
-						{#each models as m}<option value={m}>{m}</option>{/each}
-						<option value={OTHER}>Other…</option>
-					</select>
-					{#if showCustom}
-						<input
-							type="text"
-							bind:value={override.model}
-							placeholder="model-name"
-							class="custom-model-input"
-						/>
-					{/if}
+					<ModelPicker id={`role-${role.id}-model`} bind:value={override.model} provider={override.provider} />
 				</div>
 			</div>
 			<div class="form-row">
@@ -244,7 +216,6 @@
 		font-weight: 600;
 	}
 
-	.form-field select,
 	.form-field input {
 		width: 100%;
 		padding: .7rem;
@@ -254,21 +225,12 @@
 		color: var(--tx);
 		font-size: 1rem;
 		font-family: var(--font-ui);
-		cursor: pointer;
-	}
-
-	.form-field input {
 		cursor: text;
 	}
 
-	.form-field select:focus,
 	.form-field input:focus {
 		outline: none;
 		border-color: var(--ac);
-	}
-
-	.custom-model-input {
-		margin-top: 0.375rem;
 	}
 
 	.input-with-icon {

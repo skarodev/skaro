@@ -10,7 +10,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, Query, Request
 
 from skaro_core.config import (
     ROLE_PHASES,
@@ -83,6 +83,91 @@ async def get_config(project_root: Path = Depends(get_project_root)):
     data["_provider_keys"] = get_provider_keys()
     data["_role_phases"] = ROLE_PHASES
     return data
+
+
+@router.get("/models/{provider}")
+async def get_models(
+    provider: str,
+    refresh: bool = Query(False, description="Force refresh from API"),
+    project_root: Path = Depends(get_project_root),
+):
+    """Fetch available models for a provider.
+
+    Returns a merged list: curated models from ``providers.yaml`` first,
+    then additional models from the provider API (cached with 24h TTL).
+
+    Query params:
+        ``refresh=true`` — force re-fetch from provider API.
+    """
+    from skaro_core.llm._model_listing import list_models_for_provider
+
+    # Resolve API key from config/secrets for this provider
+    config = load_config(project_root)
+    api_key: str | None = None
+    base_url: str | None = None
+
+    if config.llm.provider == provider:
+        api_key = config.llm.api_key
+        base_url = config.llm.base_url
+    else:
+        # Check role overrides for this provider
+        for rc in config.roles.values():
+            if rc.is_active and rc.provider == provider:
+                role_llm = config.llm_for_role(
+                    next(
+                        (r for r, c in config.roles.items() if c is rc),
+                        None,
+                    )
+                )
+                api_key = role_llm.api_key
+                base_url = role_llm.base_url
+                break
+
+    # If still no key, try env-var fallback from provider preset
+    if not api_key:
+        import os
+
+        from skaro_core.config._secrets import load_secrets
+
+        preset = PROVIDER_PRESETS.get(provider)
+        if preset and preset[1]:
+            api_key = os.environ.get(preset[1]) or load_secrets().get(preset[1])
+
+    result = await list_models_for_provider(
+        provider_key=provider,
+        project_root=project_root,
+        api_key=api_key,
+        base_url=base_url,
+        force_refresh=refresh,
+    )
+
+    # Separate curated (from providers.yaml) and extra (from API only)
+    from skaro_core.providers import get_provider as get_prov
+
+    prov_info = get_prov(provider)
+    curated_ids = {m.id for m in prov_info.models} if prov_info else set()
+
+    curated = []
+    extra = []
+    for m in result.models:
+        entry = {
+            "id": m.id,
+            "name": m.name,
+            "context_window": m.context_window,
+            "max_output": m.max_output,
+        }
+        if m.id in curated_ids:
+            curated.append(entry)
+        else:
+            extra.append(entry)
+
+    return {
+        "provider": result.provider,
+        "source": result.source,
+        "curated": curated,
+        "extra": extra,
+        "error": result.error,
+    }
 
 
 @router.put("")

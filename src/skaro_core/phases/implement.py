@@ -69,7 +69,10 @@ class ImplementPhase(BasePhase):
         # Use smart context: AST signatures for all files + full code for relevant ones
         from skaro_core.context import SmartContextBuilder
 
-        builder = SmartContextBuilder(self.artifacts.root)
+        builder = SmartContextBuilder(
+            self.artifacts.root,
+            always_include=self.config.context_always_include,
+        )
         smart = await asyncio.to_thread(
             builder.build,
             stage_section=stage_section,

@@ -2,6 +2,7 @@
 	import { t } from '$lib/i18n/index.js';
 	import { Eye, EyeOff } from 'lucide-svelte';
 	import ProviderSelect from '$lib/ui/ProviderSelect.svelte';
+	import ModelPicker from '$lib/ui/ModelPicker.svelte';
 
 	let {
 		provider = $bindable(''),
@@ -11,36 +12,12 @@
 		maxTokens = $bindable(16384),
 		temperature = $bindable(0.3),
 		providerNames = [],
-		modelsFor = (p) => [],
 		presets = {},
 		onProviderChange = () => {},
 	} = $props();
 
 	let needsKey = $derived(presets[provider]?.needs_key !== false);
 	let masked = $state(true);
-
-	const OTHER = '__other__';
-	let models = $derived(modelsFor(provider));
-	let customMode = $state(false);
-	let showCustom = $derived(customMode || (model && !models.includes(model)));
-	let selectValue = $derived(showCustom ? OTHER : model);
-
-	function onSelectModel(e) {
-		const v = e.target.value;
-		if (v === OTHER) {
-			customMode = true;
-			model = '';
-		} else {
-			customMode = false;
-			model = v;
-		}
-	}
-
-	// Reset custom mode when provider changes
-	$effect(() => {
-		provider;
-		customMode = false;
-	});
 </script>
 
 <div class="card">
@@ -54,19 +31,7 @@
 		</div>
 		<div class="form-field">
 			<label for="llm-model">{$t('settings.model')}</label>
-			<select id="llm-model" value={selectValue} onchange={onSelectModel}>
-				{#each models as m}<option value={m}>{m}</option>{/each}
-				<option value={OTHER}>Other…</option>
-			</select>
-			{#if showCustom}
-				<input
-					id="llm-model-custom"
-					type="text"
-					bind:value={model}
-					placeholder="model-name"
-					class="custom-model-input"
-				/>
-			{/if}
+			<ModelPicker id="llm-model" bind:value={model} {provider} />
 		</div>
 	</div>
 
@@ -155,8 +120,7 @@
 		font-weight: 600;
 	}
 
-	.form-field input,
-	.form-field select {
+	.form-field input {
 		width: 100%;
 		padding: .7rem;
 		background-color: var(--bg2);
@@ -167,18 +131,9 @@
 		font-family: var(--font-ui);
 	}
 
-	.form-field select {
-		cursor: pointer;
-	}
-
-	.form-field input:focus,
-	.form-field select:focus {
+	.form-field input:focus {
 		outline: none;
 		border-color: var(--ac);
-	}
-
-	.custom-model-input {
-		margin-top: 0.375rem;
 	}
 
 	.form-field input:disabled {

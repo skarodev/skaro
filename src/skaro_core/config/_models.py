@@ -252,6 +252,8 @@ class SkaroConfig:
     verify_commands: list[VerifyCommand] = field(default_factory=list)
     skills: SkillsConfig = field(default_factory=SkillsConfig)
     execution_env: ExecutionEnvConfig = field(default_factory=ExecutionEnvConfig)
+    context_always_include: list[str] = field(default_factory=list)
+    """Glob patterns for files that should always be sent as full code to LLM."""
 
     def llm_for_role(self, role: str | None) -> LLMConfig:
         """Return LLM config for a specific role, falling back to default."""
@@ -340,6 +342,9 @@ class SkaroConfig:
         ):
             d["execution_env"] = env_dict
 
+        if self.context_always_include:
+            d["context"] = {"always_include": self.context_always_include}
+
         return d
 
     @classmethod
@@ -401,4 +406,5 @@ class SkaroConfig:
             verify_commands=verify_commands,
             skills=SkillsConfig.from_dict(data.get("skills") or {}),
             execution_env=ExecutionEnvConfig.from_dict(data.get("execution_env") or {}),
+            context_always_include=data.get("context", {}).get("always_include", []),
         )

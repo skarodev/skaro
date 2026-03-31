@@ -54,7 +54,7 @@
 	let envWorkdir = $state('');
 	let envCommandPrefix = $state('');
 	let envShell = $state('');
-	// Provider names and models come from the backend (providers.yaml)
+	// Provider names come from the backend (providers.yaml)
 	let providerNames = $derived(config?._provider_keys || Object.keys(presets));
 
 	onMount(async () => {
@@ -91,14 +91,15 @@
 		} catch (e) { error = e.message; addError(e.message, 'settings'); }
 	});
 
-	function modelsFor(provider) { return presets[provider]?.models || []; }
-
 	function onProviderChange() {
-		llm.model = modelsFor(llm.provider)[0] || '';
+		// Reset model to provider default when switching providers
+		const preset = presets[llm.provider];
+		llm.model = preset?.model || '';
 	}
 
 	function onRoleProviderChange(rid) {
-		roleOverrides[rid].model = modelsFor(roleOverrides[rid].provider)[0] || '';
+		const preset = presets[roleOverrides[rid].provider];
+		roleOverrides[rid].model = preset?.model || '';
 	}
 
 	async function save() {
@@ -221,7 +222,7 @@
 						bind:baseUrl={llm.base_url}
 						bind:maxTokens={llm.max_tokens}
 						bind:temperature={llm.temperature}
-						{providerNames} {modelsFor} {presets}
+						{providerNames} {presets}
 						onProviderChange={onProviderChange}
 					/>
 				{:else if activeTab === 'roles'}
@@ -235,7 +236,7 @@
 									bind:override={roleOverrides[role.id]}
 									defaultProvider={llm.provider}
 									defaultModel={llm.model}
-									{providerNames} {modelsFor}
+									{providerNames}
 									onProviderChange={() => onRoleProviderChange(role.id)}
 								/>
 							{/each}

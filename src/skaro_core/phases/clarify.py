@@ -60,7 +60,10 @@ class ClarifyPhase(BasePhase):
         # AST index — so LLM sees what code already exists
         from skaro_core.context import SmartContextBuilder
 
-        builder = SmartContextBuilder(self.artifacts.root)
+        builder = SmartContextBuilder(
+            self.artifacts.root,
+            always_include=self.config.context_always_include,
+        )
         smart = await asyncio.to_thread(
             builder.build,
             stage_section=spec,
@@ -243,7 +246,10 @@ class ClarifyPhase(BasePhase):
 
         from skaro_core.context import SmartContextBuilder
 
-        builder = SmartContextBuilder(self.artifacts.root)
+        builder = SmartContextBuilder(
+            self.artifacts.root,
+            always_include=self.config.context_always_include,
+        )
         smart = await asyncio.to_thread(
             builder.build,
             stage_section=spec,

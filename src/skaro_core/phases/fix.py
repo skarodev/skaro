@@ -46,7 +46,10 @@ class FixPhase(ConversationalFixBase):
         # Build smart context: AST index (cacheable) + relevant files (dynamic)
         from skaro_core.context import SmartContextBuilder
 
-        builder = SmartContextBuilder(self.artifacts.root)
+        builder = SmartContextBuilder(
+            self.artifacts.root,
+            always_include=self.config.context_always_include,
+        )
         smart = await asyncio.to_thread(
             builder.build,
             stage_section=user_message,

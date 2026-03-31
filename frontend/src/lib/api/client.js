@@ -18,7 +18,7 @@ const WS_RECONNECT_DELAY = 3000;
  * @param {string} method
  * @param {string} path
  * @param {Response} res
- * @returns {Promise<Error>}
+ * @returns {Promise<e>}
  */
 async function apiError(method, path, res) {
 	let serverMessage = '';
@@ -239,6 +239,10 @@ export const api = {
 	getConfig: (signal) => get('/api/config', signal),
 	saveConfig: (/** @type {any} */ payload, signal) => put('/api/config', payload, signal),
 	detectEnv: (signal) => get('/api/config/detect-env', signal),
+
+	// Models (dynamic listing per provider)
+	getModels: (/** @type {string} */ provider, /** @type {boolean} */ refresh, signal) =>
+		get(`/api/config/models/${encodeURIComponent(provider)}${refresh ? '?refresh=true' : ''}`, signal),
 
 	// Skills
 	getSkills: (signal) => get('/api/skills', signal),
