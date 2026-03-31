@@ -71,7 +71,7 @@
 	.dash-grid {
 		display: grid;
 		grid-template-columns: repeat(8, 1fr);
-		gap: 1.5rem;
+		gap: 1rem;
 	}
 
 	.dash-grid > :global(.widget.lg) { grid-column: span 4; }

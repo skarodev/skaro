@@ -2,7 +2,8 @@
 	import { t } from '$lib/i18n/index.js';
 	import { page } from '$app/stores';
 	import { status } from '$lib/stores/statusStore.js';
-	import { Zap } from 'lucide-svelte';
+	import { chatPanelOpen, toggleChatPanel } from '$lib/stores/chatPanelStore.js';
+	import { Zap, MessageSquare, PanelRightClose, PanelRightOpen } from 'lucide-svelte';
 
 	function formatTokens(n) {
 		if (!n || n === 0) return '0';
@@ -25,6 +26,19 @@
 		settings: 'nav.settings',
 		about: 'nav.about',
 	};
+
+	/** Pages that have a chat context available. */
+	const CHAT_PAGES = new Set(['architecture', 'review']);
+
+	/** Check if current page supports chat panel. */
+	let hasChatContext = $derived.by(() => {
+		const parts = $page.url.pathname.split('/').filter(Boolean);
+		const section = parts[0];
+		if (CHAT_PAGES.has(section)) return true;
+		if (section === 'tasks' && parts[1]) return true;
+		if (section === 'features' && parts[1]) return true;
+		return false;
+	});
 
 	let projectName = $derived($status?.project_name || '');
 
@@ -82,6 +96,20 @@
 		<Zap size={11} />
 		<span>Tokens: {formatTokens($status?.tokens?.total_tokens)}</span>
 	</div>
+	{#if hasChatContext}
+		<button
+			class="chat-toggle"
+			class:active={$chatPanelOpen}
+			onclick={toggleChatPanel}
+			title={$t('chat_panel.toggle')}
+		>
+			{#if $chatPanelOpen}
+				<PanelRightClose size={16} strokeWidth={1.5} />
+			{:else}
+				<PanelRightOpen size={16} strokeWidth={1.5} />
+			{/if}
+		</button>
+	{/if}
 </div>
 
 <style>
@@ -134,5 +162,30 @@
 		color: var(--yl);
 		font-family: var(--font-ui);
 		font-size: 0.6875rem;
+	}
+
+	.chat-toggle {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 2rem;
+		height: 2rem;
+		border: none;
+		background: none;
+		color: var(--dm);
+		cursor: pointer;
+		border-radius: var(--r2);
+		flex-shrink: 0;
+		margin-left: 0.5rem;
+		transition: color .12s, background .12s;
+	}
+
+	.chat-toggle:hover {
+		color: var(--tx-bright);
+		background: var(--sf);
+	}
+
+	.chat-toggle.active {
+		color: var(--ac);
 	}
 </style>

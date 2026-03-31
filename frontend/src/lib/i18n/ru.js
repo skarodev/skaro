@@ -628,4 +628,14 @@ export default {
 	'autopilot.stopped_desc': 'Остановлен пользователем. Прогресс сохранён — можно перезапустить для продолжения.',
 	'autopilot.tokens_total': 'Токены за проект',
 	'autopilot.llm_thinking': 'LLM думает...',
+
+	// Chat panel (right sidebar)
+	'chat_panel.toggle': 'Панель AI-чата',
+	'chat_panel.close': 'Закрыть чат',
+	'chat_panel.open': 'Открыть AI-чат',
+	'chat_panel.ctx_architecture': 'Чат архитектуры',
+	'chat_panel.ctx_review': 'Фикс проекта',
+
+	// Feature
+	'feature.draft_hint': 'Используйте панель AI-чата, чтобы описать и спланировать эту фичу.',
 };

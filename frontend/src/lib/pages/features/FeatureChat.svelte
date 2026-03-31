@@ -7,10 +7,14 @@
 	import FixChat from '$lib/ui/FixChat.svelte';
 	import FeatureProposal from '$lib/pages/features/FeatureProposal.svelte';
 
-	let { slug = '', isDraft = false, onConfirmed = () => {} } = $props();
+	let { slug = '', isDraft: isDraftProp = null, onConfirmed = () => {} } = $props();
 
 	let proposal = $state(null);
 	let confirming = $state(false);
+	let autoDetectedDraft = $state(false);
+
+	// isDraft: use prop if explicitly provided, otherwise auto-detect
+	let isDraft = $derived(isDraftProp !== null ? isDraftProp : autoDetectedDraft);
 
 	let modelDisplay = $derived.by(() => {
 		const s = $status;
@@ -83,7 +87,18 @@
 	}
 
 	import { onMount } from 'svelte';
-	onMount(() => { if (isDraft) checkExistingProposal(); });
+	onMount(async () => {
+		if (isDraftProp === null) {
+			// Auto-detect draft status from API
+			try {
+				const data = await api.getFeature(slug);
+				autoDetectedDraft = data?.status === 'draft';
+				if (autoDetectedDraft) checkExistingProposal();
+			} catch { /* ignore */ }
+		} else if (isDraftProp) {
+			checkExistingProposal();
+		}
+	});
 
 	async function confirmProposal(editedProposal) {
 		confirming = true;

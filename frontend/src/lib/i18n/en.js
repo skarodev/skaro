@@ -628,4 +628,14 @@ export default {
 	'autopilot.stopped_desc': 'Stopped by user. Progress is saved — you can restart to continue from where it left off.',
 	'autopilot.tokens_total': 'Total project tokens',
 	'autopilot.llm_thinking': 'LLM thinking...',
+
+	// Chat panel (right sidebar)
+	'chat_panel.toggle': 'Toggle AI Chat',
+	'chat_panel.close': 'Close chat',
+	'chat_panel.open': 'Open AI Chat',
+	'chat_panel.ctx_architecture': 'Architecture Chat',
+	'chat_panel.ctx_review': 'Project Fix',
+
+	// Feature
+	'feature.draft_hint': 'Use the AI Chat panel to describe and plan this feature.',
 };

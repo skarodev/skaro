@@ -75,8 +75,8 @@
 
 	function scrollToEnd(behavior = 'instant') {
 		requestAnimationFrame(() => {
-			const main = document.querySelector('.main');
-			if (main) main.scrollTo({ top: main.scrollHeight, behavior });
+			const container = document.querySelector('.right-panel-body') || document.querySelector('.main');
+			if (container) container.scrollTo({ top: container.scrollHeight, behavior });
 		});
 	}
 
@@ -358,8 +358,9 @@
 	.fix-conversation { padding-bottom: 1rem; }
 
 	.fix-bar {
-		position: sticky; bottom: 0;
-		background: var(--bg);
+		position: absolute; bottom: 0;
+        width: calc(100% - 4rem);
+		background: linear-gradient(to bottom, transparent, var(--bg2));
 		padding: 0; z-index: 10;
 	}
 

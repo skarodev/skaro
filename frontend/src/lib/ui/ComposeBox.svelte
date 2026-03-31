@@ -114,9 +114,9 @@
 <style>
 	.composebox {
 		width: 100%;
-		border: 0.0625rem solid var(--bd);
-		border-radius: 1.5rem;
-		background: var(--bg3);
+		border: 1px solid var(--bd);
+		border-radius: .75rem;
+		background: var(--bg);
 		box-shadow: 0 .3rem .7rem rgba(0, 0, 0, .05);
 		transition: all .15s;
 		flex-shrink: 0;

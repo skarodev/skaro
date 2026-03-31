@@ -18,9 +18,9 @@
 	import TaskActions from './TaskActions.svelte';
 	import ClarifyForm from './ClarifyForm.svelte';
 	import ImplementReview from './ImplementReview.svelte';
-	import FixPanel from './FixPanel.svelte';
 	import TestsPanel from './TestsPanel.svelte';
 	import ConfirmModal from './ConfirmModal.svelte';
+	import { openChatPanel } from '$lib/stores/chatPanelStore.js';
 
 	let { taskName } = $props();
 
@@ -113,7 +113,6 @@
 		if (testsResults || phases.tests === 'in_progress' || phases.tests === 'complete') {
 			tabs.push({ id: 'tests', label: $t('tab.tests') });
 		}
-		if (currentStage > 0) tabs.push({ id: 'chat', label: $t('tab.chat') });
 		return tabs;
 	});
 
@@ -127,7 +126,6 @@
 	let activeContent = $derived.by(() => {
 		if (!detail) return '';
 		const id = activeFileTab || fileTabs[fileTabs.length - 1]?.id || '';
-		if (id === 'chat') return '';
 		if (id === 'tests') return '';
 		if (id.startsWith('stage-')) return detail.stages?.[id.replace('stage-', '')] || '';
 		return detail.files?.[id] || '';
@@ -248,8 +246,8 @@
 	}
 
 	async function fixFromIssues(issueIds) {
-		activeFileTab = 'chat';
-		// Small delay to ensure FixChat is mounted
+		openChatPanel();
+		// Small delay to ensure FixChat is mounted in RightPanel
 		await new Promise((r) => setTimeout(r, 150));
 		window.dispatchEvent(new CustomEvent('skaro:fix-from-issues', {
 			detail: { taskName, issueIds },
@@ -449,9 +447,6 @@
 					{/if}
 				</div>
 			{/if}
-		{/snippet}
-		{#snippet chatSlot()}
-			<FixPanel task={taskName} />
 		{/snippet}
 		{#snippet testsSlot()}
 			<TestsPanel

@@ -139,7 +139,6 @@
 	.turn-text {
 		font-size: 1rem;
 		line-height: 1.4rem;
-		color: var(--tx-bright);
 	}
 
     .turn-text :global(h1) {
@@ -164,13 +163,13 @@
     }
 
 	.turn-text :global(pre) {
-		background: var(--bg);
-		border: 0.0625rem solid var(--bd);
+		background: var(--bg0);
+		border: none;
 		border-radius: var(--r);
-		padding: 0.5rem 0.625rem;
+		padding: 0.75rem 1rem;
 		overflow-x: auto;
 		font-size: 0.75rem;
-		margin: 0.375rem 0;
+		margin: 0.5rem 0;
 	}
 
 	.turn-text :global(pre code) {

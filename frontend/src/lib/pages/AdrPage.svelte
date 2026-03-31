@@ -304,7 +304,7 @@
 	}
 
 	.adr-table thead {
-		background: var(--sf);
+		background: var(--bd);
 	}
 
 	.adr-table th {
@@ -312,15 +312,15 @@
 		text-align: left;
 		color: var(--dm);
 		font-weight: 600;
-		font-size: 0.75rem;
+		font-size: 0.85rem;
 		text-transform: uppercase;
 		letter-spacing: .03em;
-		border-bottom: 0.0625rem solid var(--bd);
+		border-bottom: 1px solid var(--bd);
 	}
 
 	.adr-table td {
 		padding: 0.625rem 0.75rem;
-		border-bottom: 0.0625rem solid var(--bd);
+		border-bottom: 1px solid var(--bd);
 	}
 
 	.adr-table tr:last-child td {

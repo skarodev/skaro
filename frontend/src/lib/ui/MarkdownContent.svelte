@@ -169,20 +169,20 @@
 		background: var(--bg2);
 		border-radius: var(--r);
 		overflow: hidden;
-		border: 0.0625rem solid var(--bd);
+		border: 1px solid var(--bd);
 	}
 
 	.md-content :global(thead) {
-		background: var(--sf);
+		background: var(--bd);
 	}
 
 	.md-content :global(th),
 	.md-content :global(td) {
 		border-bottom: 0.0625rem solid var(--bd);
 		border-right: 0.0625rem solid var(--bd);
-		padding: 0.25rem 0.5rem;
+		padding: 0.5rem 0.75rem;
 		text-align: left;
-		font-size: 0.8125rem;
+		font-size: 0.85rem;
 		word-wrap: break-word;
 		overflow-wrap: break-word;
 	}
@@ -199,14 +199,13 @@
 	}
 
 	.md-content :global(th) {
-		background: var(--sf);
 		color: var(--tx-bright);
 		font-weight: 600;
 	}
 
 	.md-content :global(hr) {
 		border: none;
-		border-top: 0.0625rem solid var(--bd);
+		border-top: 1px solid var(--bd);
 		margin: 0.625rem 0;
 	}
 

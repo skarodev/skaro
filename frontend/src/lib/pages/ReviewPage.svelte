@@ -6,11 +6,9 @@
 	import { addLog, addError } from '$lib/stores/logStore.js';
 	import { invalidate } from '$lib/api/cache.js';
 	import { ShieldCheck } from 'lucide-svelte';
-	import FileTabs from '$lib/ui/FileTabs.svelte';
 	import ProjectTestsPanel from './review/ProjectTestsPanel.svelte';
-	import ProjectFixPanel from './review/ProjectFixPanel.svelte';
+	import { openChatPanel } from '$lib/stores/chatPanelStore.js';
 
-	let activeTab = $state('tests');
 	let testsResults = $state(null);
 	let testsLoading = $state(false);
 
@@ -43,42 +41,23 @@
 	}
 
 	function sendErrorsToFix(errorSummary) {
-		activeTab = 'chat';
+		openChatPanel();
 		setTimeout(() => {
 			window.dispatchEvent(new CustomEvent('skaro:prefill-project-fix', {
 				detail: { message: errorSummary },
 			}));
-		}, 100);
+		}, 200);
 	}
-
-	let reviewTabs = $derived([
-		{ id: 'tests', label: $t('review.tab_tests') },
-		{ id: 'chat', label: $t('review.tab_fix') },
-	]);
 </script>
 
-<div class="page-with-tabs">
-	<div class="main-header">
-		<h2><ShieldCheck size={24} /> {$t('review.title')}</h2>
-		<p>{$t('review.subtitle')}</p>
-	</div>
-
-	<FileTabs
-		tabs={reviewTabs}
-		activeTab={activeTab}
-		content=""
-		onSelectTab={(id) => activeTab = id}
-	>
-		{#snippet testsSlot()}
-			<ProjectTestsPanel
-				results={testsResults}
-				loading={testsLoading}
-				onRunTests={runTests}
-				onSendToFix={sendErrorsToFix}
-			/>
-		{/snippet}
-		{#snippet chatSlot()}
-			<ProjectFixPanel />
-		{/snippet}
-	</FileTabs>
+<div class="main-header">
+	<h2><ShieldCheck size={24} /> {$t('review.title')}</h2>
+	<p>{$t('review.subtitle')}</p>
 </div>
+
+<ProjectTestsPanel
+	results={testsResults}
+	loading={testsLoading}
+	onRunTests={runTests}
+	onSendToFix={sendErrorsToFix}
+/>

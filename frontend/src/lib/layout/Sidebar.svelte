@@ -167,8 +167,8 @@
 <style>
 	.sidebar {
 		width: 18rem;
-		background: var(--bg);
-		border-right: 0.0625rem solid var(--bd);
+		background: var(--bg0);
+		border-right: 1px solid var(--bd);
 		display: flex;
 		flex-direction: column;
 		flex-shrink: 0;

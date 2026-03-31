@@ -37,6 +37,7 @@
    Skaro Theme — Global Variables
    ═══════════════════════════════════════════════ */
 :root {
+    --bg0: #1e1e1e;
 	--bg: #212121;
     --bg1: #111111;
 	--bg2: #1a1a1a;
@@ -47,7 +48,7 @@
 	--bd: #323232;
 	--bd2: #515151;
 	--bd-focus: #4b6eaf;
-	--tx: #cccccc;
+	--tx: #dddddd;
 	--tx-bright: #eeeeee;
 	--dm: #999999;
 	--dm2: #606060;
@@ -62,8 +63,8 @@
 	--rd-dim: #bc3f3c;
 	--or: #d05e52;
 	--purple: #9876aa;
-	--r: .6rem;
-	--r2: .4rem;
+	--r: .3rem;
+	--r2: .2rem;
 	--font-ui: 'JetBrains Mono', 'Consolas', 'Menlo', 'Monaco', monospace;
 	--font-sans: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
 }
@@ -72,6 +73,7 @@
    Light Theme
    ═══════════════════════════════════════════════ */
 [data-theme="light"] {
+    --bg0: #fefefe;
 	--bg: #f2f2f2;
     --bg1: #ffffff;
 	--bg2: #e8e8ea;
@@ -189,8 +191,8 @@ table td {
 
 /* Card */
 .card {
-    background: var(--bd);
-    border: none;
+    background: none;
+    border: solid 1px var(--bd);
     border-radius: var(--r);
     padding: 1.3rem 1.5rem;
     margin-bottom: .5rem;
@@ -209,14 +211,14 @@ table td {
 	gap: 0.4rem;
 	padding: 0.4rem 0.65rem;
 	border-radius: var(--r);
-	border: 0.0625rem solid var(--dm2);
+	border: 1px solid var(--bd);
     background: transparent;
 	color: var(--tx-bright);
 	cursor: pointer;
 	font-size: 0.9rem;
 	font-family: inherit;
-	transition: all 0.2s;
-	font-weight: 700;
+	transition: all 0.1s;
+	font-weight: 600;
 }
 
 .btn:hover {

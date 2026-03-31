@@ -12,6 +12,7 @@
 	import Toolbar from '$lib/layout/Toolbar.svelte';
 	import BottomPanel from '$lib/layout/BottomPanel.svelte';
 	import StatusBar from '$lib/layout/StatusBar.svelte';
+	import RightPanel from '$lib/layout/RightPanel.svelte';
 
 	let error = $state('');
 	let { children } = $props();
@@ -130,6 +131,7 @@
 		<BottomPanel />
 		<StatusBar />
 	</div>
+	<RightPanel />
 </div>
 
 <style>

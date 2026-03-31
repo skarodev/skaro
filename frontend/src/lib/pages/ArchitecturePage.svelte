@@ -1,5 +1,5 @@
 <script>
-	import { onMount } from 'svelte';
+	import { onMount, onDestroy } from 'svelte';
 	import { t } from '$lib/i18n/index.js';
 	import { api } from '$lib/api/client.js';
 	import { status } from '$lib/stores/statusStore.js';
@@ -10,7 +10,7 @@
 	import ArchActions from './architecture/ArchActions.svelte';
 	import ProposedArchitecture from './architecture/ProposedArchitecture.svelte';
 	import MdEditor from '$lib/ui/md-editor/MdEditor.svelte';
-	import FixChat from '$lib/ui/FixChat.svelte';
+	import { openChatPanel } from '$lib/stores/chatPanelStore.js';
 
 	let data = $state(null);
 	let error = $state('');
@@ -24,10 +24,17 @@
 	let proposedArchitecture = $state('');
 	let activeTab = $state('document');
 	let showEditor = $state(false);
-	let showChat = $state(false);
-	let chatHasMessages = $state(false);
 
-	onMount(() => { load(); });
+	onMount(() => {
+		load();
+		window.addEventListener('skaro:architecture-updated', handleArchUpdated);
+	});
+
+	onDestroy(() => {
+		window.removeEventListener('skaro:architecture-updated', handleArchUpdated);
+	});
+
+	function handleArchUpdated() { load(); }
 
 	async function load() {
 		try {
@@ -38,67 +45,8 @@
 		} catch (e) { error = e.message; addError(e.message, 'architecture'); }
 	}
 
-	// ── Model display for chat ──
-	let modelDisplay = $derived.by(() => {
-		const s = $status;
-		if (!s?.config) return '—';
-		const cfg = s.config;
-		if (cfg.roles?.architect) {
-			const r = cfg.roles.architect;
-			return `${r.provider} / ${r.model}`;
-		}
-		return `${cfg.llm_provider} / ${cfg.llm_model}`;
-	});
-
-	// ── Dynamic placeholder ──
-	let chatPlaceholder = $derived(
-		chatHasMessages ? $t('arch.chat_placeholder_reply') : $t('arch.chat_placeholder_start')
-	);
-
-	// ── Architecture chat callbacks ──
-	async function loadChatConversationFn() {
-		const result = await api.loadArchChatConversation();
-		if (result.conversation?.length > 0) {
-			chatHasMessages = true;
-		}
-		return result;
-	}
-
-	function sendChatMessageFn(text, history, signal) {
-		return api.sendArchChat(text, history, signal);
-	}
-
-	async function applyChatFileFn(filepath, content) {
-		try {
-			const result = await api.saveArchitecture(content);
-			if (result.success) {
-				addLog($t('log.arch_chat_accepted'));
-				invalidate('architecture', 'status');
-				status.set(await api.getStatus());
-				showChat = false;
-				chatHasMessages = false;
-				await load();
-			}
-			return result;
-		} catch (e) {
-			addError(e.message, 'archChat');
-			return { success: false, message: e.message };
-		}
-	}
-
-	async function clearChatConversationFn() {
-		chatHasMessages = false;
-		return api.clearArchChatConversation();
-	}
-
-	function onChatSendSuccess() {
-		chatHasMessages = true;
-		addLog($t('log.arch_chat_response'));
-	}
-
 	function openChat() {
-		showChat = true;
-		activeTab = 'chat';
+		openChatPanel();
 	}
 
 	async function review() {
@@ -214,9 +162,6 @@
 	// ── Tabs ──
 	let archTabs = $derived.by(() => {
 		const tabs = [];
-		if (showChat && !data?.has_architecture) {
-			tabs.push({ id: 'chat', label: $t('arch.chat_tab') });
-		}
 		if (data?.content) {
 			tabs.push({ id: 'document', label: $t('arch.document') });
 		}
@@ -230,7 +175,6 @@
 	});
 
 	let archTabContent = $derived.by(() => {
-		if (activeTab === 'chat') return '';
 		if (activeTab === 'review') return reviewResult || '';
 		if (activeTab === 'invariants') return data?.invariants || '';
 		return data?.content || '';
@@ -299,21 +243,7 @@
 			activeTab={activeTab}
 			content={archTabContent}
 			onSelectTab={(id) => activeTab = id}
-		>
-			{#snippet chatSlot()}
-				<FixChat
-					{modelDisplay}
-					errorSource="archChat"
-					autoLoad={true}
-					placeholder={chatPlaceholder}
-					loadConversationFn={loadChatConversationFn}
-					sendMessageFn={sendChatMessageFn}
-					applyFileFn={applyChatFileFn}
-					clearConversationFn={clearChatConversationFn}
-					onSendSuccess={onChatSendSuccess}
-				/>
-			{/snippet}
-		</FileTabs>
+		/>
 	{/if}
 
 	<!-- Review action buttons — shown below review content -->
