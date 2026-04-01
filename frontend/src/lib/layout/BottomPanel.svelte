@@ -2,8 +2,8 @@
 	import { t } from '$lib/i18n/index.js';
 	import { page } from '$app/stores';
 	import { logEntries, errorEntries, clearLog, clearErrors, llmActive } from '$lib/stores/logStore.js';
-	import { status, wsConnected } from '$lib/stores/statusStore.js';
-	import { Play, AlertTriangle, Trash2, ChevronUp, ChevronDown, Cpu } from 'lucide-svelte';
+	import { status, wsConnected, updateInfo } from '$lib/stores/statusStore.js';
+	import { Play, AlertTriangle, Trash2, ChevronUp, ChevronDown, Cpu, ArrowUpCircle } from 'lucide-svelte';
 	import LogPane from './LogPane.svelte';
 	import ErrorPane from './ErrorPane.svelte';
 
@@ -110,6 +110,11 @@
 	}
 
 	let prevTab = $state('');
+
+	let hasUpdate = $derived($updateInfo?.has_update === true);
+	let latestVersion = $derived($updateInfo?.latest_version ?? '');
+	let docsUrl = $derived($updateInfo?.docs_url ?? 'https://docs.skaro.dev/cli/update');
+
 	$effect(() => {
 		if (currentTab !== prevTab) {
 			dashboardOverride = null;
@@ -201,6 +206,18 @@
 				<Cpu size={11} />
 				<span>{getRoleInfo($status, currentTab)}</span>
 			</span>
+			{#if hasUpdate}
+				<a
+					class="update-badge"
+					href={docsUrl}
+					target="_blank"
+					rel="noopener noreferrer"
+					title={$t('status.update_tooltip', { version: latestVersion })}
+				>
+					<ArrowUpCircle size={11} />
+					<span>{$t('status.update_available', { version: latestVersion })}</span>
+				</a>
+			{/if}
 			<button class="icon-btn" onclick={toggle} title={$t('panel.minimize')}>
 				{#if collapsed}<ChevronUp size={14} />{:else}<ChevronDown size={14} />{/if}
 			</button>
@@ -378,6 +395,26 @@
 	@keyframes pulse-glow {
 		0%, 100% { opacity: 0.4; transform: scale(0.85); }
 		50%      { opacity: 1;   transform: scale(1.1);  }
+	}
+
+	.update-badge {
+		display: flex;
+		align-items: center;
+		gap: 0.25rem;
+		background: rgba(187, 181, 41, .15);
+		padding: 0 0.5rem;
+		border-radius: 0.25rem;
+		color: var(--yw, #c8a900);
+		text-decoration: none;
+		font-size: 0.75rem;
+		line-height: 1.25rem;
+		white-space: nowrap;
+		transition: background .15s;
+		cursor: pointer;
+	}
+
+	.update-badge:hover {
+		background: rgba(187, 181, 41, .3);
 	}
 
 	.panel-content {

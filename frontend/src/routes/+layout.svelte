@@ -11,7 +11,6 @@
 	import Sidebar from '$lib/layout/Sidebar.svelte';
 	import Toolbar from '$lib/layout/Toolbar.svelte';
 	import BottomPanel from '$lib/layout/BottomPanel.svelte';
-	import StatusBar from '$lib/layout/StatusBar.svelte';
 	import RightPanel from '$lib/layout/RightPanel.svelte';
 
 	let error = $state('');
@@ -129,7 +128,6 @@
 			{/if}
 		</main>
 		<BottomPanel />
-		<StatusBar />
 	</div>
 	<RightPanel />
 </div>
