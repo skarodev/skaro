@@ -278,7 +278,7 @@
 		padding: 0.4375rem 0.625rem;
 		border: 0.0625rem solid var(--bd);
 		border-radius: var(--r);
-		background: var(--bg2);
+		background: var(--bg-deep);
 		color: var(--tx);
 		font-size: 0.875rem;
 		font-family: inherit;
@@ -333,7 +333,7 @@
 	}
 
 	.adr-row:hover {
-		background: var(--bg2);
+		background: var(--bg-deep);
 	}
 
 	.col-num { width: 3.125rem; font-family: var(--font-ui); color: var(--dm); }
@@ -399,7 +399,7 @@
 		padding: 0.25rem 0.625rem;
 		border: 0.0625rem solid var(--bd);
 		border-radius: var(--r);
-		background: var(--bg2);
+		background: var(--bg-deep);
 		color: var(--tx);
 		cursor: pointer;
 		font-size: 0.75rem;

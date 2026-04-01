@@ -85,7 +85,7 @@
 	}
 
 	.feat-item {
-		background: var(--bg2);
+		background: var(--bg-deep);
 		border: none;
 		border-radius: var(--r2);
 		padding: 0.625rem 0.75rem;
@@ -169,7 +169,7 @@
 		width: 1.375rem;
 		height: 1.375rem;
 		border-radius: 50%;
-		background: var(--bg2);
+		background: var(--bg-deep);
 		border: 0.125rem solid var(--bd);
 		display: flex;
 		align-items: center;
@@ -189,6 +189,6 @@
 	.mp-dot.wip {
 		background: var(--yl);
 		border-color: var(--yl);
-		color: var(--bg2);
+		color: var(--bg-deep);
 	}
 </style>

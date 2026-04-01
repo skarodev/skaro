@@ -155,7 +155,7 @@
 		cursor: pointer; font-size: 0.8125rem; color: var(--tx);
 		transition: background 0.1s;
 	}
-	.scope-header:hover { background: var(--bg2); }
+	.scope-header:hover { background: var(--bg-deep); }
 	.scope-title { font-weight: 600; }
 
 	.scope-hint {

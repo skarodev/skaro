@@ -256,7 +256,7 @@
 	}
 
 	.bottom-panel {
-		background: var(--bg2);
+		background: var(--bg-deep);
 		border-top: 0.0625rem solid var(--bd);
 		display: flex;
 		flex-direction: column;
@@ -358,7 +358,7 @@
 	}
 
 	.count {
-		background: var(--bg2);
+		background: var(--bg-deep);
 		padding: 0 0.3125rem;
 		border-radius: 0.375rem;
 		font-size: 0.6875rem;

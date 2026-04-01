@@ -437,7 +437,7 @@
 
 	.branch-item {
 		padding: 0.25rem 0.5rem;
-		background: var(--bg2);
+		background: var(--bg-deep);
 		border: 0.0625rem solid var(--bd);
 		border-radius: var(--r2);
 		color: var(--tx);
@@ -498,7 +498,7 @@
 	}
 
 	.file-row:last-child { border-bottom: none; }
-	.file-row:hover { background: var(--bg2); }
+	.file-row:hover { background: var(--bg-deep); }
 	.file-row.staged { background: rgba(106, 135, 89, 0.06); }
 
 	.file-checkbox {
@@ -534,7 +534,7 @@
 	.file-status-badge {
 		font-size: 0.6875rem;
 		color: var(--dm);
-		background: var(--bg3);
+		background: var(--bg-high);
 		padding: 0 0.375rem;
 		border-radius: 0.25rem;
 		flex-shrink: 0;
@@ -554,11 +554,11 @@
 		flex-shrink: 0;
 	}
 
-	.btn-icon:hover { color: var(--tx-bright); background: var(--bg3); }
+	.btn-icon:hover { color: var(--tx-bright); background: var(--bg-high); }
 
 	/* ── Diff inline ── */
 	.diff-inline {
-		background: var(--bg2);
+		background: var(--bg-deep);
 		border-bottom: 0.0625rem solid var(--bd);
 		padding: 0.5rem;
 		max-height: 20rem;
@@ -653,7 +653,7 @@
 	}
 
 	.input {
-		background: var(--bg2);
+		background: var(--bg-deep);
 		border: 0.0625rem solid var(--bd);
 		border-radius: var(--r2);
 		color: var(--tx);

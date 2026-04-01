@@ -32,7 +32,7 @@
 	.guidance-input {
 		width: 100%;
 		padding: 0.5rem 0.75rem;
-		background: var(--bg2);
+		background: var(--bg-deep);
 		border: 0.0625rem solid var(--bd);
 		border-radius: var(--r);
 		color: var(--tx);

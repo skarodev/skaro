@@ -160,7 +160,7 @@
 		align-items: center;
 		gap: 0.5rem;
 		padding: 0.375rem 0.875rem;
-		border: solid 0.0625rem var(--bg3);
+		border: solid 0.0625rem var(--bg-high);
 		border-radius: var(--r);
 		background: transparent;
 		color: var(--dm);
@@ -210,7 +210,7 @@
 	.form-field select {
 		width: 100%;
 		padding: .7rem;
-		background-color: var(--bg2);
+		background-color: var(--bg-deep);
 		border: 0.0625rem solid var(--bg);
 		border-radius: var(--r2);
 		color: var(--tx);
@@ -247,7 +247,7 @@
 		align-items: center;
 		gap: 0.375rem;
 		background: transparent;
-		border: 0.0625rem solid var(--bg3);
+		border: 0.0625rem solid var(--bg-high);
 		border-radius: var(--r);
 		color: var(--dm);
 		cursor: pointer;

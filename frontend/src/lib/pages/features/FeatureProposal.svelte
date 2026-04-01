@@ -116,7 +116,7 @@
 	.proposal-card {
 		border: 0.0625rem solid var(--ac);
 		border-radius: var(--r);
-		background: var(--bg2);
+		background: var(--bg-deep);
 		margin-bottom: 1rem;
 		overflow: hidden;
 	}

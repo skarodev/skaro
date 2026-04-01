@@ -204,7 +204,7 @@
 	.qa-input {
 		width: 100%;
 		padding: 0.375rem 0.625rem;
-		background: var(--bg2);
+		background: var(--bg-deep);
 		border: 0.0625rem solid var(--bd);
 		border-radius: var(--r);
 		color: var(--tx);

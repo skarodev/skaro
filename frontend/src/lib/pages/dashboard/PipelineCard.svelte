@@ -104,7 +104,7 @@
 		gap: 0.375rem;
 		padding: 0.5rem 0.875rem;
 		border-radius: var(--r);
-		background: var(--bg2);
+		background: var(--bg-deep);
 		border: 0.0625rem solid var(--bd);
 		color: var(--dm);
 		font-size: 0.8125rem;

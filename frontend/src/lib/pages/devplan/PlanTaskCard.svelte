@@ -19,7 +19,7 @@
 		border-radius: var(--r);
 		padding: 0.625rem 0.875rem;
 		margin-bottom: 0.5rem;
-		background: var(--bg2);
+		background: var(--bg-deep);
 	}
 
 	.plan-task h4 {

@@ -184,7 +184,7 @@
 	}
 
 	.skill-item {
-		background: var(--bg2);
+		background: var(--bg-deep);
 		border-radius: var(--r2);
 		overflow: hidden;
 	}

@@ -87,7 +87,7 @@
 	/* ── Skeleton primitives ─────────── */
 
 	.skel-line {
-		background: var(--bg2);
+		background: var(--bg-deep);
 		border-radius: 0.25rem;
 		animation: skel-pulse 1.5s ease-in-out infinite;
 	}
@@ -112,7 +112,7 @@
 	.skel-step {
 		flex: 1;
 		height: 2.25rem;
-		background: var(--bg2);
+		background: var(--bg-deep);
 		border-radius: var(--r);
 		animation: skel-pulse 1.5s ease-in-out infinite;
 	}
@@ -147,7 +147,7 @@
 
 	.skel-feat {
 		height: 4.5rem;
-		background: var(--bg2);
+		background: var(--bg-deep);
 		border-radius: var(--r2);
 		animation: skel-pulse 1.5s ease-in-out infinite;
 	}
@@ -164,7 +164,7 @@
 		width: 10rem;
 		height: 10rem;
 		border-radius: 50%;
-		background: var(--bg2);
+		background: var(--bg-deep);
 		flex-shrink: 0;
 		animation: skel-pulse 1.5s ease-in-out infinite;
 	}
@@ -193,7 +193,7 @@
 	.skel-tag {
 		width: 8rem;
 		height: 2.5rem;
-		background: var(--bg2);
+		background: var(--bg-deep);
 		border-radius: var(--r2);
 		animation: skel-pulse 1.5s ease-in-out infinite;
 	}

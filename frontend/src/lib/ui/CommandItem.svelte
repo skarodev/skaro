@@ -34,7 +34,7 @@
 </div>
 
 <style>
-	.cmd-item { background: var(--bg2); border-radius: var(--r2); overflow: hidden; }
+	.cmd-item { background: var(--bg-deep); border-radius: var(--r2); overflow: hidden; }
 
 	.cmd-header {
 		display: flex; align-items: center; gap: 0.5rem;
@@ -45,7 +45,7 @@
 	.cmd-name { font-weight: 500; }
 
 	.cmd-code {
-		font-size: 0.6875rem; color: var(--dm); background: var(--bg3);
+		font-size: 0.6875rem; color: var(--dm); background: var(--bg-high);
 		padding: 0.0625rem 0.375rem; border-radius: 0.1875rem;
 		font-family: var(--font-mono, monospace);
 	}

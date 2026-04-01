@@ -338,12 +338,12 @@
 	}
 
 	.filter-btn:hover {
-		background: var(--bg2);
+		background: var(--bg-deep);
 		color: var(--tx-bright);
 	}
 
 	.filter-btn.active {
-		background: var(--bg2);
+		background: var(--bg-deep);
 		color: var(--tx-bright);
 		border-color: var(--ac);
 	}
@@ -388,11 +388,11 @@
 	}
 
 	.tab-item:hover {
-		background: var(--bg2);
+		background: var(--bg-deep);
 	}
 
 	.tab-item.active {
-		background: var(--bg2);
+		background: var(--bg-deep);
 		color: var(--tx-bright);
 	}
 

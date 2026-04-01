@@ -241,7 +241,7 @@
 		display: flex;
 		align-items: center;
 		gap: 0;
-		background-color: var(--bg2);
+		background-color: var(--bg-deep);
 		border: 0.0625rem solid var(--bg);
 		border-radius: var(--r2);
 		transition: border-color .15s;
@@ -328,7 +328,7 @@
 		left: 0;
 		right: 0;
 		z-index: 200;
-		background: var(--bg2);
+		background: var(--bg-deep);
 		border: 0.0625rem solid var(--bd);
 		border-radius: var(--r2);
 		box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, .35);

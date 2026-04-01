@@ -56,7 +56,7 @@
 		resize: none;
 		border: none;
 		outline: none;
-		background: var(--bg2);
+		background: var(--bg-deep);
 		color: var(--tx);
 		font-family: var(--font-ui);
 		font-size: 0.8125rem;

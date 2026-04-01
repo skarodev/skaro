@@ -124,7 +124,7 @@
 		primaryTextColor: '#d4d4d4',
 		primaryBorderColor: '#4b6eaf',
 		lineColor: '#515151',
-		sectionBkgColor: '#313335',
+		sectionBkgColor: '#313131',
 		altSectionBkgColor: '#2a2d2f',
 		gridColor: '#3c3f41',
 		doneTaskBkgColor: '#6a8759',
@@ -228,7 +228,7 @@
 	.gantt-wrapper {
 		border: 0.0625rem solid var(--bd);
 		border-radius: var(--r);
-		background: var(--bg2);
+		background: var(--bg-deep);
 		padding: 1rem;
 		margin-bottom: 1.25rem;
 	}

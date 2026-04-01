@@ -74,7 +74,7 @@
 		gap: 0.5rem;
 		width: 100%;
 		padding: .7rem;
-		background-color: var(--bg2);
+		background-color: var(--bg-deep);
 		border: 0.0625rem solid var(--bg);
 		border-radius: var(--r2);
 		color: var(--tx);
@@ -114,7 +114,7 @@
 		left: 0;
 		right: 0;
 		z-index: 100;
-		background: var(--bg2);
+		background: var(--bg-deep);
 		border: 0.0625rem solid var(--bd);
 		border-radius: var(--r2);
 		padding: 0.25rem;

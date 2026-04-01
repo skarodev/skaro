@@ -59,7 +59,7 @@
 		align-items: center;
 		gap: 0.5rem;
 		padding: 0.375rem 0.625rem;
-		background: var(--bg2);
+		background: var(--bg-deep);
 		border-radius: var(--r2);
 		cursor: pointer;
 		font-size: 0.8125rem;

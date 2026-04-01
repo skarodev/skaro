@@ -96,11 +96,11 @@
 	}
 
 	.tab-item:hover {
-		background: var(--bg2);
+		background: var(--bg-deep);
 	}
 
 	.tab-item.active {
-		background: var(--bg2);
+		background: var(--bg-deep);
 		color: var(--tx-bright);
 	}
 

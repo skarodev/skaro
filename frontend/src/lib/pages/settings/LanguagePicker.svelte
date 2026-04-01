@@ -45,7 +45,7 @@
 		align-items: center;
 		gap: 0.5rem;
 		padding: 0.375rem 0.875rem;
-		border: solid 0.0625rem var(--bg3);
+		border: solid 0.0625rem var(--bg-high);
 		border-radius: var(--r);
 		background: transparent;
 		color: var(--dm);

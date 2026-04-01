@@ -46,7 +46,7 @@
 	}
 
 	.llm-item {
-		background: var(--bg2);
+		background: var(--bg-deep);
 		border: none;
 		border-radius: var(--r2);
 		padding: 0.5rem 0.875rem;

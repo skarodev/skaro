@@ -37,15 +37,14 @@
    Skaro Theme — Global Variables
    ═══════════════════════════════════════════════ */
 :root {
-    --bg0: #1e1e1e;
+	--bg-deep: #1a1a1a;
+	--bg-soft: #1e1e1e;
 	--bg: #212121;
-    --bg1: #111111;
-	--bg2: #1a1a1a;
-	--bg3: #313335;
+	--bg-high: #313131;
 	--sf: #3c3f41;
 	--sf2: #45494a;
 	--sf-hover: rgba(75, 110, 175, 0.15);
-	--bd: #323232;
+	--bd: #313131;
 	--bd2: #515151;
 	--bd-focus: #4b6eaf;
 	--tx: #dddddd;
@@ -73,11 +72,10 @@
    Light Theme
    ═══════════════════════════════════════════════ */
 [data-theme="light"] {
-    --bg0: #fefefe;
+	--bg-deep: #e8e8ea;
+	--bg-soft: #fefefe;
 	--bg: #f2f2f2;
-    --bg1: #ffffff;
-	--bg2: #e8e8ea;
-	--bg3: #dcdcdc;
+	--bg-high: #dcdcdc;
 	--sf: #ffffff;
 	--sf2: #eaeaea;
 	--sf-hover: rgba(75, 110, 175, 0.08);
@@ -159,7 +157,7 @@ hr {
     margin: 2rem 0;
     height: 1px;
     border: none;
-    background: var(--bg2);
+    background: var(--bg-deep);
 }
 
 table td {
@@ -222,8 +220,8 @@ table td {
 }
 
 .btn:hover {
-    background: var(--bg1);
-    border-color: var(--bg1);
+    background: var(--bg-deep);
+    border-color: var(--bg-deep);
 }
 
 .btn:disabled {
@@ -233,7 +231,7 @@ table td {
 
 .btn-primary {
 	background: var(--tx);
-	color: var(--bg2);
+	color: var(--bg-deep);
 	border-color: var(--tx);
 }
 
@@ -307,7 +305,7 @@ table td {
 
 /* Instructions */
 .instructions {
-	background: var(--bg2);
+	background: var(--bg-deep);
 	border: 0.0625rem solid var(--bd);
 	border-radius: var(--r);
 	padding: 0.75rem 1rem;
@@ -512,7 +510,7 @@ table td {
 	padding: 0.1875rem 0.625rem;
 	font-size: 0.6875rem;
 	color: var(--dm);
-	background: var(--bg2);
+	background: var(--bg-deep);
 	border: 0.0625rem solid var(--bd);
 	border-radius: var(--r2);
 	text-decoration: none;

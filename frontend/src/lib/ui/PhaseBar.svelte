@@ -31,7 +31,7 @@
     function statusColor(status) {
         if (status === 'complete') return 'var(--gn-bright)';
         if (['in_progress', 'draft', 'awaiting_review'].includes(status)) return 'var(--yl)';
-        return 'var(--bg2)';
+        return 'var(--bg-deep)';
     }
 </script>
 
@@ -80,7 +80,7 @@
         left: 50%;
         right: -50%;
         height: 0.125rem;
-        background: var(--bg2);
+        background: var(--bg-deep);
         z-index: 0;
         transition: background .2s;
     }
@@ -93,7 +93,7 @@
         width: 1.5rem;
         height: 1.5rem;
         border-radius: 50%;
-        border: 0.125rem solid var(--bg2);
+        border: 0.125rem solid var(--bg-deep);
         flex-shrink: 0;
         position: relative;
         z-index: 1;
@@ -101,7 +101,7 @@
         align-items: center;
         justify-content: center;
         color: var(--tx);
-        background: var(--bg2);
+        background: var(--bg-deep);
         transition: all .2s;
     }
 
@@ -114,7 +114,7 @@
     .dot.wip {
         background: var(--yl);
         border-color: var(--yl);
-        color: var(--bg2);
+        color: var(--bg-deep);
     }
 
     .phase-lbl {

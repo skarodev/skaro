@@ -262,7 +262,7 @@
 
 	.cmd-input {
 		font-size: 0.8125rem; font-family: var(--font-mono, monospace);
-		background: var(--bg2); border: 1px solid var(--bd);
+		background: var(--bg-deep); border: 1px solid var(--bd);
 		border-radius: var(--r2); color: var(--tx); padding: 0.375rem 0.5rem;
 	}
 	.cmd-input:focus { outline: none; border-color: var(--ac); }
@@ -292,7 +292,7 @@
 	.issue-row {
 		display: flex; align-items: center; gap: 0.5rem;
 		padding: 0.375rem 0.625rem;
-		background: var(--bg2); border-radius: var(--r2);
+		background: var(--bg-deep); border-radius: var(--r2);
 		cursor: pointer; font-size: 0.8125rem; color: var(--tx);
 		transition: background .1s;
 	}

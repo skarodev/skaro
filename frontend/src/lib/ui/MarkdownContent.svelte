@@ -94,7 +94,7 @@
 
 	.md-content :global(pre) {
 		position: relative;
-		background: var(--bg2);
+		background: var(--bg-deep);
 		border-radius: var(--r);
 		padding: 1.2rem 1.5rem;
 		overflow-x: auto;
@@ -166,7 +166,7 @@
 		border-spacing: 0;
 		width: 100%;
 		margin: 0.375rem 0;
-		background: var(--bg2);
+		background: var(--bg-deep);
 		border-radius: var(--r);
 		overflow: hidden;
 		border: 1px solid var(--bd);

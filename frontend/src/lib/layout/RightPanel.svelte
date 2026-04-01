@@ -142,7 +142,7 @@
 		flex-direction: column;
 		flex-shrink: 0;
 		height: 100%;
-		background: var(--bg2);
+		background: var(--bg-deep);
 		border-left: 1px solid var(--bd);
 		position: relative;
 		min-width: 0;
@@ -182,7 +182,7 @@
 		padding: 0 0.75rem;
 		border-bottom: 1px solid var(--bd);
 		flex-shrink: 0;
-		background: var(--bg0);
+		background: var(--bg-soft);
 		user-select: none;
 	}
 

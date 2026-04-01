@@ -116,7 +116,7 @@
 		width: 100%;
 		border: 0.0625rem solid var(--bd);
 		border-radius: 1.5rem;
-		background: var(--bg3);
+		background: var(--bg-high);
 		box-shadow: 0 .3rem .7rem rgba(0, 0, 0, .05);
 		transition: all .15s;
 		flex-shrink: 0;

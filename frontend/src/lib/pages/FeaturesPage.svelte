@@ -170,7 +170,7 @@
 	.feature-table tr:last-child td { border-bottom: none; }
 
 	.feature-row { cursor: pointer; transition: background .1s; }
-	.feature-row:hover { background: var(--bg2); }
+	.feature-row:hover { background: var(--bg-deep); }
 
 	.col-slug { width: 5.5rem; font-family: var(--font-ui); color: var(--dm); }
 	.col-status { width: 7rem; }
@@ -203,5 +203,5 @@
 		border-radius: var(--r2);
 		transition: color .1s, background .1s;
 	}
-	.btn-icon:hover { color: var(--rd); background: var(--bg2); }
+	.btn-icon:hover { color: var(--rd); background: var(--bg-deep); }
 </style>

@@ -167,7 +167,7 @@
 <style>
 	.sidebar {
 		width: 18rem;
-		background: var(--bg0);
+		background: var(--bg-soft);
 		border-right: 1px solid var(--bd);
 		display: flex;
 		flex-direction: column;
@@ -288,7 +288,7 @@
 	}
 
 	.nav-item:hover {
-		background: var(--bg2);
+		background: var(--bg-deep);
 	}
 
 	.nav-separator {
@@ -296,7 +296,7 @@
 	}
 
 	.nav-item.active {
-		background: var(--bg2);
+		background: var(--bg-deep);
 		color: var(--tx-bright);
 	}
 

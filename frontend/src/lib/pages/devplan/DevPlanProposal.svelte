@@ -148,7 +148,7 @@
 		margin-bottom: 0.5rem;
 		padding: 0.5rem 0.75rem;
 		border-left: 3px solid var(--ac);
-		background: var(--bg2);
+		background: var(--bg-deep);
 		border-radius: 0 var(--r) var(--r) 0;
 	}
 
@@ -177,7 +177,7 @@
 	.milestone-count {
 		font-size: 0.6875rem;
 		color: var(--dm);
-		background: var(--bg3, var(--bg));
+		background: var(--bg-high, var(--bg));
 		padding: 0.125rem 0.5rem;
 		border-radius: 999px;
 		font-family: var(--font-ui);

@@ -360,7 +360,7 @@
 	.fix-bar {
 		position: absolute; bottom: 0;
         width: calc(100% - 4rem);
-		background: linear-gradient(to bottom, transparent, var(--bg2));
+		background: linear-gradient(to bottom, transparent, var(--bg-deep));
 		padding: 0; z-index: 10;
 	}
 
@@ -385,7 +385,7 @@
 	/* ── Skeleton ── */
 	.skel-turn { pointer-events: none; }
 	.skel-pulse {
-		background: var(--bg2); border-radius: var(--r);
+		background: var(--bg-deep); border-radius: var(--r);
 		animation: skel-shimmer 1.5s ease-in-out infinite;
 	}
 	@keyframes skel-shimmer { 0%, 100% { opacity: .4; } 50% { opacity: .15; } }
@@ -394,9 +394,9 @@
 
 	.skel-body-user {
 		max-width: 80%; margin-left: auto;
-		background: var(--bg2); border-radius: var(--r); padding: 1.2rem;
+		background: var(--bg-deep); border-radius: var(--r); padding: 1.2rem;
 	}
-	.skel-body-user .skel-line { background: var(--bg3); }
+	.skel-body-user .skel-line { background: var(--bg-high); }
 	.skel-body-assistant { padding: .25rem 0; }
 
 	.skel-file {

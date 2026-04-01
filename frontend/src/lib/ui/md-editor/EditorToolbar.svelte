@@ -144,7 +144,7 @@
 	}
 
 	.tb-btn:active {
-		background: var(--bg3);
+		background: var(--bg-high);
 	}
 
 	.tb-label {

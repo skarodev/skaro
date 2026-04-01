@@ -110,7 +110,7 @@
 	.turn-user {
 		max-width: 80%;
 		margin-left: auto;
-		background: var(--bg2);
+		background: var(--bg-deep);
 		border-radius: var(--r);
 		padding: 1.2rem;
 		position: relative;
@@ -163,7 +163,7 @@
     }
 
 	.turn-text :global(pre) {
-		background: var(--bg0);
+		background: var(--bg-soft);
 		border: none;
 		border-radius: var(--r);
 		padding: 0.75rem 1rem;
@@ -202,7 +202,7 @@
 	}
 
 	.user-overlay:not(.user-overlay-hidden) {
-		background: var(--bg2);
+		background: var(--bg-deep);
 		position: absolute;
 		bottom: 0;
 		left: 0;

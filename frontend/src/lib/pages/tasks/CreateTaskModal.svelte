@@ -103,7 +103,7 @@
 	}
 
 	.modal {
-		background: var(--bg2);
+		background: var(--bg-deep);
 		border: 0.0625rem solid var(--bd2);
 		border-radius: var(--r);
 		width: 28rem;

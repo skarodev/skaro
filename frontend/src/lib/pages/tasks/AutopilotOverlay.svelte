@@ -465,7 +465,7 @@
 		width: 96vw;
 		height: 92vh;
 		max-width: 1600px;
-		background: var(--bg2);
+		background: var(--bg-deep);
 		border: 1px solid var(--bd);
 		border-radius: 0.75rem;
 		display: flex;
@@ -480,7 +480,7 @@
 		justify-content: space-between;
 		align-items: center;
 		padding: 0.75rem 1.25rem;
-		background: var(--bg3);
+		background: var(--bg-high);
 		border-bottom: 1px solid var(--bd);
 		flex-shrink: 0;
 	}
