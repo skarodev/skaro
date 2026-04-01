@@ -3,7 +3,7 @@
 	import { page } from '$app/stores';
 	import { logEntries, errorEntries, clearLog, clearErrors, llmActive } from '$lib/stores/logStore.js';
 	import { status, wsConnected, updateInfo } from '$lib/stores/statusStore.js';
-	import { Play, AlertTriangle, Trash2, ChevronUp, ChevronDown, Cpu, ArrowUpCircle } from 'lucide-svelte';
+	import { Play, AlertTriangle, Trash2, ChevronUp, ChevronDown, Cpu, ArrowUpCircle, GitBranch } from 'lucide-svelte';
 	import LogPane from './LogPane.svelte';
 	import ErrorPane from './ErrorPane.svelte';
 
@@ -114,6 +114,7 @@
 	let hasUpdate = $derived($updateInfo?.has_update === true);
 	let latestVersion = $derived($updateInfo?.latest_version ?? '');
 	let docsUrl = $derived($updateInfo?.docs_url ?? 'https://docs.skaro.dev/cli/update');
+	let gitBranch = $derived($status?.git_branch ?? null);
 
 	$effect(() => {
 		if (currentTab !== prevTab) {
@@ -184,9 +185,14 @@
 	style="height: {collapsed ? '28px' : effectiveHeight + 'px'}"
 >
 	<div class="tabs-bar">
-		<span class="bp-info ws-status">
+		<span class="bp-info branch-info" title={gitBranch ?? ''}>
 			<span class="status-dot" class:off={!$wsConnected}></span>
-			<span>{$wsConnected ? $t('status.connected') : $t('status.disconnected')}</span>
+			{#if gitBranch}
+				<GitBranch size={11} />
+				<span class="branch-label">{gitBranch}</span>
+			{:else}
+				<span>{$wsConnected ? $t('status.connected') : $t('status.disconnected')}</span>
+			{/if}
 		</span>
 		<span class="bp-separator"></span>
 		<button class="bp-tab" class:active={activePane === 'run'} onclick={() => switchPane('run')}>
@@ -312,8 +318,16 @@
 		min-width: 0;
 	}
 
-	.ws-status {
-		flex-shrink: 0;
+	.branch-info {
+		flex-shrink: 1;
+		min-width: 0;
+	}
+
+	.branch-label {
+		overflow: hidden;
+		white-space: nowrap;
+		text-overflow: ellipsis;
+		min-width: 0;
 	}
 
 	.status-dot {

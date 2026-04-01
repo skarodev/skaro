@@ -21,15 +21,20 @@ STATIC_DIR = Path(__file__).parent.parent / "static"
 DASHBOARD_FILE = Path(__file__).parent.parent / "dashboard.html"
 
 
-def _git_staged_count(project_root: Path) -> int:
-    """Return number of staged files in git, 0 if not a repo."""
+def _git_info(project_root: Path) -> dict[str, Any]:
+    """Return git branch and staged file count, or defaults if not a repo."""
     try:
         from git import InvalidGitRepositoryError, Repo
 
         repo = Repo(project_root)
-        return len(list(repo.index.diff("HEAD")))
+        try:
+            branch = repo.active_branch.name
+        except TypeError:
+            branch = "(detached HEAD)"
+        staged_count = len(list(repo.index.diff("HEAD")))
+        return {"branch": branch, "staged_count": staged_count}
     except Exception:
-        return 0
+        return {"branch": None, "staged_count": 0}
 
 
 def _review_passed(am: ArtifactManager) -> bool | None:
@@ -66,6 +71,7 @@ def _build_status(am: ArtifactManager, project_root: Path) -> dict[str, Any]:
 
     config = load_config(project_root)
     tokens = load_token_usage(project_root)
+    git = _git_info(project_root)
 
     roles_info: dict[str, Any] = {}
     for rname, rc in config.roles.items():
@@ -95,7 +101,8 @@ def _build_status(am: ArtifactManager, project_root: Path) -> dict[str, Any]:
             "roles": roles_info,
         },
         "tokens": tokens,
-        "git_staged_count": _git_staged_count(project_root),
+        "git_branch": git["branch"],
+        "git_staged_count": git["staged_count"],
         "review_passed": _review_passed(am),
         "_provider_labels": {k: v.name for k, v in get_providers().items()},
     }
