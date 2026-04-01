@@ -131,7 +131,7 @@
 	.card.empty {
 		text-align: center;
 		padding: 2rem 1.25rem;
-		color: var(--dm);
+		color: var(--tx-dim);
 	}
 	.card.empty p { margin: 0.25rem 0; }
 	.card.empty .hint { font-size: 0.8125rem; }
@@ -154,7 +154,7 @@
 	.feature-table th {
 		padding: 0.5rem 0.75rem;
 		text-align: left;
-		color: var(--dm);
+		color: var(--tx-dim);
 		font-weight: 600;
 		font-size: 0.75rem;
 		text-transform: uppercase;
@@ -172,10 +172,10 @@
 	.feature-row { cursor: pointer; transition: background .1s; }
 	.feature-row:hover { background: var(--bg-deep); }
 
-	.col-slug { width: 5.5rem; font-family: var(--font-ui); color: var(--dm); }
+	.col-slug { width: 5.5rem; font-family: var(--font-ui); color: var(--tx-dim); }
 	.col-status { width: 7rem; }
-	.col-tasks { width: 4rem; text-align: center; font-family: var(--font-ui); color: var(--dm); }
-	.col-date { width: 6.875rem; font-family: var(--font-ui); color: var(--dm); font-size: 0.8125rem; }
+	.col-tasks { width: 4rem; text-align: center; font-family: var(--font-ui); color: var(--tx-dim); }
+	.col-date { width: 6.875rem; font-family: var(--font-ui); color: var(--tx-dim); font-size: 0.8125rem; }
 	.col-actions { width: 2.5rem; text-align: center; }
 
 	.badge {
@@ -188,20 +188,20 @@
 		white-space: nowrap;
 	}
 
-	.badge-draft { background: rgba(130, 130, 160, .12); color: var(--dm); }
-	.badge-planned { background: rgba(187, 181, 41, .12); color: var(--yl); }
+	.badge-draft { background: rgba(130, 130, 160, .12); color: var(--tx-dim); }
+	.badge-planned { background: rgba(187, 181, 41, .12); color: var(--warn); }
 	.badge-progress { background: rgba(26, 165, 194, .15); color: var(--ac); }
-	.badge-done { background: rgba(106, 135, 89, .15); color: var(--gn-bright); }
-	.badge-cancelled { background: rgba(180, 80, 80, .12); color: var(--rd); }
+	.badge-done { background: color-mix(in srgb, var(--ok) 15%, transparent); color: var(--ok); }
+	.badge-cancelled { background: rgba(180, 80, 80, .12); color: var(--err); }
 
 	.btn-icon {
 		background: none;
 		border: none;
-		color: var(--dm);
+		color: var(--tx-dim);
 		cursor: pointer;
 		padding: 0.25rem;
 		border-radius: var(--r2);
 		transition: color .1s, background .1s;
 	}
-	.btn-icon:hover { color: var(--rd); background: var(--bg-deep); }
+	.btn-icon:hover { color: var(--err); background: var(--bg-deep); }
 </style>

@@ -95,7 +95,7 @@
 <style>
 	.card-desc {
 		font-size: 0.8125rem;
-		color: var(--dm);
+		color: var(--tx-dim);
 		margin-bottom: 0.875rem;
 	}
 
@@ -113,7 +113,7 @@
 	.form-field label {
 		display: block;
 		font-size: 0.6875rem;
-		color: var(--dm);
+		color: var(--tx-dim);
 		text-transform: uppercase;
 		letter-spacing: 0.03rem;
 		margin-bottom: 0.25rem;
@@ -156,7 +156,7 @@
 		background: none;
 		border: none;
 		cursor: pointer;
-		color: var(--dm);
+		color: var(--tx-dim);
 		display: flex;
 		align-items: center;
 		padding: 0.25rem;
@@ -171,7 +171,7 @@
 	.field-hint {
 		display: block;
 		font-size: 0.625rem;
-		color: var(--dm);
+		color: var(--tx-dim);
 		margin-top: 0.1875rem;
 		opacity: .7;
 	}

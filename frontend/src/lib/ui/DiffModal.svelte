@@ -115,11 +115,11 @@
 		font-family: var(--font-ui);
 	}
 
-	.stat-add { color: var(--gn-bright); }
-	.stat-del { color: var(--rd); }
+	.stat-add { color: var(--ok); }
+	.stat-del { color: var(--err); }
 
 	.badge-new {
-		background: var(--gn);
+		background: var(--ok);
 		color: #fff;
 		padding: 0.0625rem 0.375rem;
 		border-radius: 0.1875rem;
@@ -129,7 +129,7 @@
 	.close-x {
 		background: none;
 		border: none;
-		color: var(--dm);
+		color: var(--tx-dim);
 		cursor: pointer;
 		padding: 0.25rem;
 	}
@@ -151,17 +151,17 @@
 
 	.diff-row { line-height: 1; }
 	.diff-ctx { background: transparent; }
-	.diff-add { background: rgba(106, 135, 89, .15); }
-	.diff-del { background: rgba(244, 71, 71, .12); }
+	.diff-add { background: color-mix(in srgb, var(--ok) 15%, transparent); }
+	.diff-del { background: color-mix(in srgb, var(--err) 12%, transparent); }
 	.diff-sep { background: var(--bg); }
-	.diff-sep .line-text pre { color: var(--dm2); font-style: italic; }
+	.diff-sep .line-text pre { color: var(--tx-dim); font-style: italic; }
 
 	.line-num {
 		width: 2.75rem;
 		min-width: 2.75rem;
 		text-align: right;
 		padding: 0 0.375rem;
-		color: var(--dm2);
+		color: var(--tx-dim);
 		font-size: 0.75rem;
 		user-select: none;
 		vertical-align: top;
@@ -174,15 +174,15 @@
 		width: 1.25rem;
 		min-width: 1.25rem;
 		text-align: center;
-		color: var(--dm);
+		color: var(--tx-dim);
 		font-weight: 600;
 		vertical-align: top;
 		border-right: 0.0625rem solid var(--bd);
 		user-select: none;
 	}
 
-	.diff-add .line-marker { color: var(--gn-bright); }
-	.diff-del .line-marker { color: var(--rd); }
+	.diff-add .line-marker { color: var(--ok); }
+	.diff-del .line-marker { color: var(--err); }
 
 	.line-text {
 		padding: 0 0.625rem;
@@ -210,9 +210,9 @@
 		display: inline-flex;
 		align-items: center;
 		gap: 0.25rem;
-		color: var(--gn-bright);
+		color: var(--ok);
 		font-size: 0.8125rem;
 	}
 
-	:global(.new-icon) { color: var(--gn-bright); }
+	:global(.new-icon) { color: var(--ok); }
 </style>

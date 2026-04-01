@@ -68,7 +68,7 @@
 	.close-x {
 		background: none;
 		border: none;
-		color: var(--dm);
+		color: var(--tx-dim);
 		cursor: pointer;
 		padding: 0.25rem;
 	}

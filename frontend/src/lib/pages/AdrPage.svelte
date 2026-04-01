@@ -260,7 +260,7 @@
 	.card.empty {
 		text-align: center;
 		padding: 2rem 1.25rem;
-		color: var(--dm);
+		color: var(--tx-dim);
 	}
 	.card.empty p { margin: 0.25rem 0; }
 	.card.empty .hint { font-size: 0.8125rem; }
@@ -310,7 +310,7 @@
 	.adr-table th {
 		padding: 0.5rem 0.75rem;
 		text-align: left;
-		color: var(--dm);
+		color: var(--tx-dim);
 		font-weight: 600;
 		font-size: 0.85rem;
 		text-transform: uppercase;
@@ -336,9 +336,9 @@
 		background: var(--bg-deep);
 	}
 
-	.col-num { width: 3.125rem; font-family: var(--font-ui); color: var(--dm); }
+	.col-num { width: 3.125rem; font-family: var(--font-ui); color: var(--tx-dim); }
 	.col-status { width: 6.875rem; }
-	.col-date { width: 6.875rem; font-family: var(--font-ui); color: var(--dm); font-size: 0.8125rem; }
+	.col-date { width: 6.875rem; font-family: var(--font-ui); color: var(--tx-dim); font-size: 0.8125rem; }
 
 	/* ── Status badges ── */
 	.badge {
@@ -351,10 +351,10 @@
 		white-space: nowrap;
 	}
 
-	.badge-proposed { background: rgba(187, 181, 41, .12); color: var(--yl); }
-	.badge-accepted { background: rgba(106, 135, 89, .15); color: var(--gn-bright); }
-	.badge-deprecated { background: rgba(180, 80, 80, .12); color: var(--rd); }
-	.badge-superseded { background: rgba(130, 130, 160, .12); color: var(--dm); }
+	.badge-proposed { background: rgba(187, 181, 41, .12); color: var(--warn); }
+	.badge-accepted { background: color-mix(in srgb, var(--ok) 15%, transparent); color: var(--ok); }
+	.badge-deprecated { background: rgba(180, 80, 80, .12); color: var(--err); }
+	.badge-superseded { background: rgba(130, 130, 160, .12); color: var(--tx-dim); }
 
 	/* ── Detail view ── */
 	.back-btn {

@@ -524,28 +524,28 @@
 	}
 
 	.mc-badge.done {
-		background: rgba(106, 135, 89, 0.2);
-		color: var(--gn-bright);
+		background: color-mix(in srgb, var(--ok) 20%, transparent);
+		color: var(--ok);
 	}
 
 	.mc-badge.error {
-		background: rgba(244, 71, 71, 0.15);
-		color: var(--rd);
+		background: color-mix(in srgb, var(--err) 15%, transparent);
+		color: var(--err);
 	}
 
 	.mc-badge.stopping {
 		background: rgba(255, 198, 109, 0.15);
-		color: var(--yl);
+		color: var(--warn);
 	}
 
 	.mc-badge.stopped {
 		background: rgba(255, 198, 109, 0.12);
-		color: var(--yl-dim);
+		color: var(--warn);
 	}
 
 	.mc-badge.model {
 		background: rgba(152, 118, 170, 0.12);
-		color: var(--purple);
+		color: var(--ac);
 		font-family: var(--font-ui);
 		font-size: 0.6875rem;
 	}
@@ -569,7 +569,7 @@
 		gap: 0.375rem;
 		font-family: var(--font-ui);
 		font-size: 0.8125rem;
-		color: var(--dm);
+		color: var(--tx-dim);
 	}
 
 	.mc-btn {
@@ -588,19 +588,19 @@
 	}
 
 	.mc-btn-stop {
-		border-color: var(--rd-dim);
-		color: var(--rd);
+		border-color: var(--err);
+		color: var(--err);
 	}
 
 	.mc-btn-stop:hover {
-		background: rgba(244, 71, 71, 0.1);
+		background: color-mix(in srgb, var(--err) 10%, transparent);
 	}
 
 	.mc-btn-stop:disabled {
 		opacity: 0.5;
 		cursor: not-allowed;
-		border-color: var(--dm2);
-		color: var(--yl);
+		border-color: var(--tx-dim);
+		color: var(--warn);
 	}
 
 	.mc-btn-stop:disabled:hover {
@@ -634,7 +634,7 @@
 		font-family: var(--font-ui);
 		text-transform: uppercase;
 		letter-spacing: 0.08em;
-		color: var(--dm);
+		color: var(--tx-dim);
 		border-bottom: 1px solid var(--bd);
 		flex-shrink: 0;
 	}
@@ -665,22 +665,22 @@
 	}
 
 	.mc-task-error {
-		background: rgba(244, 71, 71, 0.08);
+		background: color-mix(in srgb, var(--err) 8%, transparent);
 	}
 
 	.mc-task-status-icon {
 		flex-shrink: 0;
 		display: flex;
 		align-items: center;
-		color: var(--dm);
+		color: var(--tx-dim);
 	}
 
 	.mc-task-done .mc-task-status-icon {
-		color: var(--gn-bright);
+		color: var(--ok);
 	}
 
 	.mc-task-error .mc-task-status-icon {
-		color: var(--rd);
+		color: var(--err);
 	}
 
 	.mc-task-current .mc-task-status-icon {
@@ -691,7 +691,7 @@
 		width: 8px;
 		height: 8px;
 		border-radius: 50%;
-		background: var(--dm2);
+		background: var(--tx-dim);
 	}
 
 	.mc-task-info {
@@ -720,15 +720,15 @@
 		transition: all 0.3s;
 	}
 
-	.dot-pending { background: var(--dm2); }
+	.dot-pending { background: var(--tx-dim); }
 	.dot-active { background: var(--ac); animation: pulse 1.5s infinite; }
-	.dot-done { background: var(--gn-bright); }
-	.dot-error { background: var(--rd); }
+	.dot-done { background: var(--ok); }
+	.dot-error { background: var(--err); }
 
 	.mc-empty {
 		padding: 2rem 1rem;
 		text-align: center;
-		color: var(--dm);
+		color: var(--tx-dim);
 		font-size: 0.8125rem;
 	}
 
@@ -776,7 +776,7 @@
 	}
 
 	.mc-progress-complete {
-		background: var(--gn-bright);
+		background: var(--ok);
 	}
 
 	.mc-progress-complete::after {
@@ -876,8 +876,8 @@
 		align-items: center;
 		justify-content: center;
 		border-radius: 50%;
-		border: 2px solid var(--dm2);
-		color: var(--dm);
+		border: 2px solid var(--tx-dim);
+		color: var(--tx-dim);
 		transition: all 0.3s;
 	}
 
@@ -888,15 +888,15 @@
 	}
 
 	.mc-pipe-done .mc-pipe-icon {
-		border-color: var(--gn-bright);
-		color: var(--gn-bright);
-		background: rgba(106, 135, 89, 0.1);
+		border-color: var(--ok);
+		color: var(--ok);
+		background: color-mix(in srgb, var(--ok) 10%, transparent);
 	}
 
 	.mc-pipe-label {
 		font-size: 0.6875rem;
 		font-family: var(--font-ui);
-		color: var(--dm);
+		color: var(--tx-dim);
 		text-transform: uppercase;
 		letter-spacing: 0.05em;
 	}
@@ -906,20 +906,20 @@
 	}
 
 	.mc-pipe-done .mc-pipe-label {
-		color: var(--gn-bright);
+		color: var(--ok);
 	}
 
 	.mc-pipe-connector {
 		width: 40px;
 		height: 2px;
-		background: var(--dm2);
+		background: var(--tx-dim);
 		margin: 0 4px;
 		margin-bottom: 1.25rem;
 		transition: background 0.3s;
 	}
 
 	.mc-pipe-connector-done {
-		background: var(--gn-bright);
+		background: var(--ok);
 	}
 
 	/* Stage cells */
@@ -941,13 +941,13 @@
 		background: var(--sf);
 		font-size: 0.75rem;
 		font-family: var(--font-ui);
-		color: var(--dm);
+		color: var(--tx-dim);
 		transition: all 0.3s;
 	}
 
 	.mc-stage-done {
-		background: rgba(106, 135, 89, 0.25);
-		color: var(--gn-bright);
+		background: color-mix(in srgb, var(--ok) 25%, transparent);
+		color: var(--ok);
 	}
 
 	.mc-stage-active {
@@ -962,7 +962,7 @@
 		align-items: center;
 		gap: 0.5rem;
 		justify-content: center;
-		color: var(--dm);
+		color: var(--tx-dim);
 		font-size: 0.875rem;
 	}
 
@@ -988,26 +988,26 @@
 	}
 
 	.mc-result-card p {
-		color: var(--dm);
+		color: var(--tx-dim);
 		max-width: 400px;
 	}
 
 	.mc-result-success {
-		color: var(--gn-bright);
-		border-color: rgba(106, 135, 89, 0.3);
+		color: var(--ok);
+		border-color: color-mix(in srgb, var(--ok) 30%, transparent);
 	}
 
 	.mc-result-success h3 {
-		color: var(--gn-bright);
+		color: var(--ok);
 	}
 
 	.mc-result-error {
-		color: var(--rd);
-		border-color: rgba(244, 71, 71, 0.3);
+		color: var(--err);
+		border-color: color-mix(in srgb, var(--err) 30%, transparent);
 	}
 
 	.mc-result-error h3 {
-		color: var(--rd);
+		color: var(--err);
 	}
 
 	.mc-error-task {
@@ -1017,12 +1017,12 @@
 	}
 
 	.mc-error-message {
-		background: rgba(244, 71, 71, 0.08);
+		background: color-mix(in srgb, var(--err) 8%, transparent);
 		padding: 0.75rem 1rem;
 		border-radius: var(--r);
 		font-family: var(--font-ui);
 		font-size: 0.8125rem;
-		color: var(--rd);
+		color: var(--err);
 		max-width: 500px;
 		word-break: break-word;
 		margin-top: 0.5rem;
@@ -1049,7 +1049,7 @@
 		font-family: var(--font-ui);
 		text-transform: uppercase;
 		letter-spacing: 0.08em;
-		color: var(--dm);
+		color: var(--tx-dim);
 		border-bottom: 1px solid var(--bd);
 		flex-shrink: 0;
 		background: none;
@@ -1097,7 +1097,7 @@
 	}
 
 	.mc-log-time {
-		color: var(--dm2);
+		color: var(--tx-dim);
 		flex-shrink: 0;
 		font-size: 0.6875rem;
 	}
@@ -1116,14 +1116,14 @@
 		word-break: break-word;
 	}
 
-	.log-error .mc-log-msg { color: var(--rd); }
-	.log-system .mc-log-msg { color: var(--dm); font-style: italic; }
-	.log-task .mc-log-tag { color: var(--yl); }
+	.log-error .mc-log-msg { color: var(--err); }
+	.log-system .mc-log-msg { color: var(--tx-dim); font-style: italic; }
+	.log-task .mc-log-tag { color: var(--warn); }
 
 	.mc-log-empty {
 		padding: 2rem 1rem;
 		text-align: center;
-		color: var(--dm2);
+		color: var(--tx-dim);
 	}
 
 	/* ── Thinking block ── */
@@ -1143,7 +1143,7 @@
 		padding: 0.5rem 0.75rem;
 		background: none;
 		border: none;
-		color: var(--dm);
+		color: var(--tx-dim);
 		cursor: pointer;
 		font-family: var(--font-ui);
 		font-size: 0.75rem;
@@ -1203,12 +1203,12 @@
 
 	/* ── Stopped card ── */
 	.mc-result-stopped {
-		color: var(--yl);
+		color: var(--warn);
 		border-color: rgba(255, 198, 109, 0.2);
 	}
 
 	.mc-result-stopped h3 {
-		color: var(--yl);
+		color: var(--warn);
 	}
 
 	/* ── Responsive ── */

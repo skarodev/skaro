@@ -122,7 +122,7 @@
 	}
 
 	.turn-assistant .turn-label {
-		color: var(--or);
+		color: var(--ac);
 	}
 
 	.turn-label {
@@ -237,7 +237,7 @@
 
 	.file-list-header {
 		font-size: 0.75rem;
-		color: var(--dm);
+		color: var(--tx-dim);
 		margin-bottom: 0.5rem;
 	}
 
@@ -263,7 +263,7 @@
 	}
 
 	.file-applied {
-		border-color: var(--gn);
+		border-color: var(--ok);
 	}
 
 	.file-applied-readonly {
@@ -272,12 +272,12 @@
 	}
 
 	.file-applied-readonly:hover {
-		border-color: var(--gn);
+		border-color: var(--ok);
 		background: var(--bg);
 	}
 
 	.file-applied .file-name {
-		color: var(--gn-bright);
+		color: var(--ok);
 	}
 
 	.file-name {
@@ -288,7 +288,7 @@
 	}
 
 	.badge-new {
-		background: var(--gn);
+		background: var(--ok);
 		color: #fff;
 		padding: 0 0.3125rem;
 		border-radius: 0.1875rem;
@@ -296,6 +296,6 @@
 	}
 
 	:global(.applied-icon) {
-		color: var(--gn-bright);
+		color: var(--ok);
 	}
 </style>

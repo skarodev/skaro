@@ -80,7 +80,7 @@
 	}
 
 	.status-icon.complete {
-		color: var(--gn-bright);
+		color: var(--ok);
 	}
 
 	.status-icon.wip {
@@ -116,7 +116,7 @@
 
 	.progress-label {
 		font-size: 0.75rem;
-		color: var(--dm);
+		color: var(--tx-dim);
 		margin-top: 0.25rem;
 		font-family: var(--font-ui);
 	}

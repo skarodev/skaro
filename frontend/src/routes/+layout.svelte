@@ -168,6 +168,6 @@
 	.center-msg {
 		text-align: center;
 		padding: 3.75rem 1.25rem;
-		color: var(--dm);
+		color: var(--tx-dim);
 	}
 </style>

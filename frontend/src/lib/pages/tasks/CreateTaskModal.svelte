@@ -127,7 +127,7 @@
 	.close-x {
 		background: none;
 		border: none;
-		color: var(--dm);
+		color: var(--tx-dim);
 		cursor: pointer;
 		padding: 0.25rem;
 	}
@@ -148,7 +148,7 @@
 
 	.field-label {
 		font-size: 0.8125rem;
-		color: var(--dm);
+		color: var(--tx-dim);
 		font-weight: 500;
 	}
 
@@ -163,7 +163,7 @@
 	}
 	input:focus, select:focus {
 		outline: none;
-		border-color: var(--bd-focus);
+		border-color: var(--ac);
 	}
 
 	.link-btn {

@@ -45,14 +45,14 @@
 	.cmd-name { font-weight: 500; }
 
 	.cmd-code {
-		font-size: 0.6875rem; color: var(--dm); background: var(--bg-high);
+		font-size: 0.6875rem; color: var(--tx-dim); background: var(--bg-high);
 		padding: 0.0625rem 0.375rem; border-radius: 0.1875rem;
 		font-family: var(--font-mono, monospace);
 	}
 
 	.cmd-exit {
 		margin-left: auto; font-size: 0.6875rem;
-		color: var(--dm); font-family: var(--font-ui);
+		color: var(--tx-dim); font-family: var(--font-ui);
 	}
 
 	.cmd-output {
@@ -66,6 +66,6 @@
 		color: var(--tx); margin: 0; line-height: 1.5;
 	}
 
-	.cmd-stderr { color: var(--rd); }
-	.cmd-empty { font-size: 0.75rem; color: var(--dm); }
+	.cmd-stderr { color: var(--err); }
+	.cmd-empty { font-size: 0.75rem; color: var(--tx-dim); }
 </style>

@@ -66,9 +66,9 @@
 	}
 	.hint-link:hover { text-decoration: underline; }
 	.btn-success {
-		background: var(--gn-bright);
+		background: var(--ok);
 		color: #fff;
-		border-color: var(--gn-bright);
+		border-color: var(--ok);
 	}
 	.btn-success:hover:not(:disabled) { filter: brightness(1.1); }
 </style>

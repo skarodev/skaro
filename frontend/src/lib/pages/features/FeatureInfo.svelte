@@ -77,7 +77,7 @@
 
 	.section-label {
 		font-size: 0.8125rem;
-		color: var(--dm);
+		color: var(--tx-dim);
 		font-weight: 600;
 		text-transform: uppercase;
 		letter-spacing: .03em;
@@ -93,7 +93,7 @@
 
 	.meta-line {
 		font-size: 0.8125rem;
-		color: var(--dm);
+		color: var(--tx-dim);
 		font-family: var(--font-ui);
 	}
 
@@ -132,7 +132,7 @@
 	}
 
 	.status-icon { display: flex; align-items: center; flex-shrink: 0; }
-	.status-icon.complete { color: var(--gn-bright); }
+	.status-icon.complete { color: var(--ok); }
 	.status-icon.wip { color: var(--tx-bright); }
 
 	.milestone-badge {
@@ -152,7 +152,7 @@
 		gap: 0.75rem;
 		margin-top: 0.375rem;
 		font-size: 0.75rem;
-		color: var(--dm);
+		color: var(--tx-dim);
 		font-family: var(--font-ui);
 	}
 
@@ -192,11 +192,11 @@
 		line-height: 1.125rem;
 		white-space: nowrap;
 	}
-	.badge-proposed { background: rgba(187, 181, 41, .12); color: var(--yl); }
-	.badge-accepted { background: rgba(106, 135, 89, .15); color: var(--gn-bright); }
+	.badge-proposed { background: rgba(187, 181, 41, .12); color: var(--warn); }
+	.badge-accepted { background: color-mix(in srgb, var(--ok) 15%, transparent); color: var(--ok); }
 
 	.empty-hint {
-		color: var(--dm);
+		color: var(--tx-dim);
 		font-size: 0.8125rem;
 	}
 </style>

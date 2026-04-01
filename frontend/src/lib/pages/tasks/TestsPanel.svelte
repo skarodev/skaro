@@ -254,7 +254,7 @@
 
 	.section-header .section-title { margin-bottom: 0; }
 
-	.hint { font-size: 0.8125rem; color: var(--dm); padding: 0.375rem 0; }
+	.hint { font-size: 0.8125rem; color: var(--tx-dim); padding: 0.375rem 0; }
 
 	/* ── Inline editor ── */
 	.cmd-editor { display: flex; flex-direction: column; gap: 0.375rem; margin-top: 0.5rem; }
@@ -275,13 +275,13 @@
 	/* ── Actions ── */
 	.tests-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
 
-	.tests-empty { color: var(--dm); font-size: 0.875rem; }
+	.tests-empty { color: var(--tx-dim); font-size: 0.875rem; }
 
 	/* ── Issues list ── */
 	.issues-section { margin-top: 0.5rem; }
 
 	.issues-count {
-		font-size: 0.6875rem; color: var(--dm); font-family: var(--font-ui);
+		font-size: 0.6875rem; color: var(--tx-dim); font-family: var(--font-ui);
 	}
 
 	.issues-list {
@@ -302,18 +302,18 @@
 	.issue-select-all {
 		font-weight: 600; font-size: 0.75rem;
 		text-transform: uppercase; letter-spacing: 0.03em;
-		color: var(--dm); padding: 0.25rem 0.625rem;
+		color: var(--tx-dim); padding: 0.25rem 0.625rem;
 	}
 
 	.issue-icon { flex-shrink: 0; width: 1rem; text-align: center; }
-	.issue-error .issue-icon { color: var(--rd); }
-	.issue-warning .issue-icon { color: var(--yl); }
+	.issue-error .issue-icon { color: var(--err); }
+	.issue-warning .issue-icon { color: var(--warn); }
 
 	.issue-label { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 	.issue-cmd {
 		font-size: 0.6875rem; font-family: var(--font-ui);
-		color: var(--dm); background: var(--bg);
+		color: var(--tx-dim); background: var(--bg);
 		padding: 0.0625rem 0.375rem; border-radius: 0.1875rem;
 		flex-shrink: 0; max-width: 16rem;
 		overflow: hidden; text-overflow: ellipsis; white-space: nowrap;

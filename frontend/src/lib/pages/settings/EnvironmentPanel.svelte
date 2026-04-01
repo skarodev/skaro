@@ -128,7 +128,7 @@
 
 	.card-desc {
 		font-size: 0.8125rem;
-		color: var(--dm);
+		color: var(--tx-dim);
 		margin-bottom: 0.875rem;
 	}
 
@@ -163,7 +163,7 @@
 		border: solid 0.0625rem var(--bg-high);
 		border-radius: var(--r);
 		background: transparent;
-		color: var(--dm);
+		color: var(--tx-dim);
 		cursor: pointer;
 		font-size: 0.8125rem;
 		font-family: inherit;
@@ -199,7 +199,7 @@
 	.form-field .field-label {
 		display: block;
 		font-size: 0.6875rem;
-		color: var(--dm);
+		color: var(--tx-dim);
 		text-transform: uppercase;
 		letter-spacing: 0.03rem;
 		margin-bottom: 0.25rem;
@@ -227,13 +227,13 @@
 	.field-hint {
 		display: block;
 		font-size: 0.75rem;
-		color: var(--dm);
+		color: var(--tx-dim);
 		margin-top: 0.25rem;
 	}
 
 	.mode-desc {
 		font-size: 0.8125rem;
-		color: var(--dm);
+		color: var(--tx-dim);
 		margin-top: 0.5rem;
 	}
 
@@ -249,7 +249,7 @@
 		background: transparent;
 		border: 0.0625rem solid var(--bg-high);
 		border-radius: var(--r);
-		color: var(--dm);
+		color: var(--tx-dim);
 		cursor: pointer;
 		font-family: inherit;
 		transition: .12s;

@@ -499,7 +499,7 @@
 
 	.file-row:last-child { border-bottom: none; }
 	.file-row:hover { background: var(--bg-deep); }
-	.file-row.staged { background: rgba(106, 135, 89, 0.06); }
+	.file-row.staged { background: color-mix(in srgb, var(--ok) 6%, transparent); }
 
 	.file-checkbox {
 		display: flex;
@@ -517,9 +517,9 @@
 		flex-shrink: 0;
 	}
 
-	.change-add { color: var(--gn-bright); }
-	.change-del { color: var(--rd); }
-	.change-mod { color: var(--yl); }
+	.change-add { color: var(--ok); }
+	.change-del { color: var(--err); }
+	.change-mod { color: var(--warn); }
 
 	.file-path {
 		flex: 1;
@@ -533,7 +533,7 @@
 
 	.file-status-badge {
 		font-size: 0.6875rem;
-		color: var(--dm);
+		color: var(--tx-dim);
 		background: var(--bg-high);
 		padding: 0 0.375rem;
 		border-radius: 0.25rem;
@@ -548,7 +548,7 @@
 		height: 1.5rem;
 		border: none;
 		background: none;
-		color: var(--dm);
+		color: var(--tx-dim);
 		cursor: pointer;
 		border-radius: var(--r2);
 		flex-shrink: 0;
@@ -626,7 +626,7 @@
 	}
 
 	.push-toggle input { accent-color: var(--ac); }
-	.push-toggle .hint { color: var(--dm); font-size: 0.75rem; }
+	.push-toggle .hint { color: var(--tx-dim); font-size: 0.75rem; }
 
 	.commit-buttons {
 		display: flex;
@@ -636,13 +636,13 @@
 	.commit-hint {
 		margin-top: 0.375rem;
 		font-size: 0.75rem;
-		color: var(--dm);
+		color: var(--tx-dim);
 	}
 
 	/* ── Misc ── */
 	.empty-hint {
 		padding: 0.75rem;
-		color: var(--dm);
+		color: var(--tx-dim);
 		font-size: 0.8125rem;
 		text-align: center;
 	}
@@ -663,7 +663,7 @@
 	}
 
 	.input:focus {
-		border-color: var(--bd-focus);
+		border-color: var(--ac);
 		outline: none;
 	}
 </style>

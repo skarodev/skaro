@@ -66,7 +66,7 @@
         margin: 1.5rem 0 0;
         padding: 1rem .9rem;
         font-size: .9rem;
-        color: var(--dm);
+        color: var(--tx-dim);
         background: var(--bg-deep);
         line-height: 1.5;
         border: .0625rem solid var(--bd);

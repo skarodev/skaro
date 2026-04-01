@@ -42,7 +42,7 @@
 <style>
 	.back {
 		display: inline-flex; align-items: center; gap: 0.25rem;
-		color: var(--dm); font-size: 0.8125rem; cursor: pointer; margin-bottom: 0.75rem;
+		color: var(--tx-dim); font-size: 0.8125rem; cursor: pointer; margin-bottom: 0.75rem;
 		background: none; border: none; padding: 0; font-family: inherit;
 	}
 	.back:hover { color: var(--ac); }
@@ -55,7 +55,7 @@
 	}
 
 	.status-icon { display: inline-flex; align-items: center; flex-shrink: 0; }
-	.status-icon.complete { color: var(--gn-bright); }
+	.status-icon.complete { color: var(--ok); }
 	.status-icon.wip { color: var(--tx-bright); }
 
 	.delete-task-btn {
@@ -66,7 +66,7 @@
 		border: 0.0625rem solid var(--bd2);
 		border-radius: var(--r2);
 		background: none;
-		color: var(--dm);
+		color: var(--tx-dim);
 		font-size: 0.8125rem;
 		font-family: inherit;
 		cursor: pointer;
@@ -74,13 +74,13 @@
 		transition: color .15s, border-color .15s, background .15s;
 	}
 	.delete-task-btn:hover {
-		color: var(--rd);
-		border-color: var(--rd-dim);
-		background: rgba(244, 71, 71, .08);
+		color: var(--err);
+		border-color: var(--err);
+		background: color-mix(in srgb, var(--err) 8%, transparent);
 	}
 
 	.progress-bar { height: 0.1875rem; background: var(--bd); border-radius: 0.125rem; margin-top: 0.25rem; overflow: hidden; }
 	.progress-fill { height: 100%; background: var(--ac); border-radius: 0.125rem; transition: width .3s; }
-	.progress-label { font-size: 0.75rem; color: var(--dm); margin-top: 0.375rem; font-family: var(--font-ui); }
+	.progress-label { font-size: 0.75rem; color: var(--tx-dim); margin-top: 0.375rem; font-family: var(--font-ui); }
 	.progress-label.progress-complete { color: var(--ac); font-weight: 600; }
 </style>

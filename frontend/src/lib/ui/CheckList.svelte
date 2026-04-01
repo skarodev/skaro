@@ -31,9 +31,9 @@
 
 	.check-detail {
 		margin-left: auto; font-size: 0.75rem;
-		color: var(--dm); font-family: var(--font-ui);
+		color: var(--tx-dim); font-family: var(--font-ui);
 	}
 
-	:global(.icon-pass) { color: var(--gn-bright); flex-shrink: 0; }
-	:global(.icon-fail) { color: var(--rd); flex-shrink: 0; }
+	:global(.icon-pass) { color: var(--ok); flex-shrink: 0; }
+	:global(.icon-fail) { color: var(--err); flex-shrink: 0; }
 </style>

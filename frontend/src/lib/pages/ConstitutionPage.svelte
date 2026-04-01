@@ -109,7 +109,7 @@
 		<ul class="check-list">
 			{#each Object.entries(validation.checks) as [section, ok]}
 				<li>
-					{#if ok}<CheckCircle size={14} color="var(--gn-bright)" />{:else}<XCircle size={14} color="var(--rd)" />{/if}
+					{#if ok}<CheckCircle size={14} color="var(--ok)" />{:else}<XCircle size={14} color="var(--err)" />{/if}
 					{section.replace(/_/g, ' ')}
 				</li>
 			{/each}

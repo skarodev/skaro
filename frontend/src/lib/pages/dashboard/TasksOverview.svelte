@@ -94,12 +94,12 @@
 		cursor: pointer;
 	}
 
-	.feat-item:hover { background: rgba(75, 110, 175, .1); }
+	.feat-item:hover { background: color-mix(in srgb, var(--ac) 10%, transparent); }
 
 	.tasks-stats {
 		font-size: 0.6875rem;
 		font-weight: 400;
-		color: var(--dm);
+		color: var(--tx-dim);
 		margin-left: 0.5rem;
 	}
 
@@ -121,7 +121,7 @@
 
 	.feat-phase {
 		font-size: 0.625rem;
-		color: var(--dm);
+		color: var(--tx-dim);
 		text-transform: uppercase;
 		letter-spacing: 0.025rem;
 		background: var(--sf);
@@ -158,9 +158,9 @@
 		transition: background .2s;
 	}
 
-	.mp-line.mp-line-ok { background: var(--gn-bright); }
+	.mp-line.mp-line-ok { background: var(--ok); }
 	.mp-line.mp-line-half {
-		background: linear-gradient(to right, var(--gn-bright), var(--bd));
+		background: linear-gradient(to right, var(--ok), var(--bd));
 	}
 
 	.mp-cell:last-child .mp-line { display: none; }
@@ -176,19 +176,19 @@
 		justify-content: center;
 		position: relative;
 		z-index: 1;
-		color: var(--dm);
+		color: var(--tx-dim);
 		transition: all .2s;
 	}
 
 	.mp-dot.ok {
-		background: var(--gn-bright);
-		border-color: var(--gn-bright);
+		background: var(--ok);
+		border-color: var(--ok);
 		color: #fff;
 	}
 
 	.mp-dot.wip {
-		background: var(--yl);
-		border-color: var(--yl);
+		background: var(--warn);
+		border-color: var(--warn);
 		color: var(--bg-deep);
 	}
 </style>

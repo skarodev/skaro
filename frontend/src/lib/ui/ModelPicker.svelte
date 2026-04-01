@@ -281,12 +281,12 @@
 	}
 
 	.trigger-value.placeholder {
-		color: var(--dm);
+		color: var(--tx-dim);
 	}
 
 	.chevron {
 		display: flex;
-		color: var(--dm);
+		color: var(--tx-dim);
 		transition: transform .15s;
 		flex-shrink: 0;
 	}
@@ -301,7 +301,7 @@
 		justify-content: center;
 		background: none;
 		border: none;
-		color: var(--dm);
+		color: var(--tx-dim);
 		cursor: pointer;
 		padding: 0.5rem;
 		border-radius: var(--r2);
@@ -341,7 +341,7 @@
 		gap: 0.5rem;
 		padding: 0.5rem 0.625rem;
 		border-bottom: 0.0625rem solid var(--bd);
-		color: var(--dm);
+		color: var(--tx-dim);
 	}
 
 	.search-input {
@@ -356,7 +356,7 @@
 	}
 
 	.search-input::placeholder {
-		color: var(--dm);
+		color: var(--tx-dim);
 		opacity: 0.6;
 	}
 
@@ -373,7 +373,7 @@
 		padding: 0.375rem 0.625rem 0.25rem;
 		font-size: 0.6875rem;
 		font-weight: 600;
-		color: var(--dm);
+		color: var(--tx-dim);
 		text-transform: uppercase;
 		letter-spacing: 0.03rem;
 	}
@@ -423,26 +423,26 @@
 
 	.option-meta {
 		font-size: 0.6875rem;
-		color: var(--dm);
+		color: var(--tx-dim);
 		flex-shrink: 0;
 	}
 
 	.custom-option .option-name {
 		font-style: italic;
-		color: var(--dm);
+		color: var(--tx-dim);
 	}
 
 	.empty {
 		padding: 0.75rem 0.625rem;
 		font-size: 0.8125rem;
-		color: var(--dm);
+		color: var(--tx-dim);
 		text-align: center;
 	}
 
 	.fetch-error {
 		padding: 0.375rem 0.625rem;
 		font-size: 0.6875rem;
-		color: var(--yl);
+		color: var(--warn);
 		border-top: 0.0625rem solid var(--bd);
 	}
 </style>

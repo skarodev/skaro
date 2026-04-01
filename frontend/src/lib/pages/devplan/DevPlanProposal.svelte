@@ -176,7 +176,7 @@
 
 	.milestone-count {
 		font-size: 0.6875rem;
-		color: var(--dm);
+		color: var(--tx-dim);
 		background: var(--bg-high, var(--bg));
 		padding: 0.125rem 0.5rem;
 		border-radius: 999px;

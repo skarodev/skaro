@@ -27,7 +27,7 @@
 
 	.empty {
 		padding: 0.75rem;
-		color: var(--dm);
+		color: var(--tx-dim);
 	}
 
 	.error-entry {
@@ -39,22 +39,22 @@
 	}
 
 	.error-entry:hover {
-		background: rgba(244, 71, 71, .06);
+		background: color-mix(in srgb, var(--err) 6%, transparent);
 	}
 
 	.err-time {
-		color: var(--dm2);
+		color: var(--tx-dim);
 		flex-shrink: 0;
 		font-variant-numeric: tabular-nums;
 		min-width: 4.375rem;
 	}
 
 	.err-text {
-		color: var(--rd);
+		color: var(--err);
 	}
 
 	.err-ctx {
-		color: var(--dm);
+		color: var(--tx-dim);
 		margin-left: 0.5rem;
 	}
 </style>

@@ -29,8 +29,8 @@
     }
 
     function statusColor(status) {
-        if (status === 'complete') return 'var(--gn-bright)';
-        if (['in_progress', 'draft', 'awaiting_review'].includes(status)) return 'var(--yl)';
+        if (status === 'complete') return 'var(--ok)';
+        if (['in_progress', 'draft', 'awaiting_review'].includes(status)) return 'var(--warn)';
         return 'var(--bg-deep)';
     }
 </script>
@@ -106,14 +106,14 @@
     }
 
     .dot.ok {
-        background: var(--gn-bright);
-        border-color: var(--gn-bright);
+        background: var(--ok);
+        border-color: var(--ok);
         color: #fff;
     }
 
     .dot.wip {
-        background: var(--yl);
-        border-color: var(--yl);
+        background: var(--warn);
+        border-color: var(--warn);
         color: var(--bg-deep);
     }
 
@@ -127,6 +127,6 @@
         transition: color .2s;
     }
 
-    .phase-lbl.lbl-ok { color: var(--gn-bright); }
-    .phase-lbl.lbl-wip { color: var(--yl); }
+    .phase-lbl.lbl-ok { color: var(--ok); }
+    .phase-lbl.lbl-wip { color: var(--warn); }
 </style>

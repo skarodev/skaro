@@ -96,11 +96,11 @@
 							title={skill.status === 'active' ? $t('settings.skills_disable') : $t('settings.skills_enable')}
 						>
 							{#if skill.status === 'active'}
-								<CheckCircle size={16} color="var(--gn-bright)" />
+								<CheckCircle size={16} color="var(--ok)" />
 							{:else if skill.status === 'disabled'}
-								<XCircle size={16} color="var(--dm)" />
+								<XCircle size={16} color="var(--tx-dim)" />
 							{:else}
-								<Circle size={16} color="var(--dm)" />
+								<Circle size={16} color="var(--tx-dim)" />
 							{/if}
 						</button>
 
@@ -124,9 +124,9 @@
 								{/if}
 							</span>
 							{#if expanded === skill.name}
-								<ChevronUp size={14} color="var(--dm)" />
+								<ChevronUp size={14} color="var(--tx-dim)" />
 							{:else}
-								<ChevronDown size={14} color="var(--dm)" />
+								<ChevronDown size={14} color="var(--tx-dim)" />
 							{/if}
 						</button>
 					</div>
@@ -173,7 +173,7 @@
 
 	.skills-empty {
 		font-size: .8125rem;
-		color: var(--dm);
+		color: var(--tx-dim);
 		margin-bottom: .75rem;
 	}
 
@@ -250,7 +250,7 @@
 	}
 
 	.skill-name.dimmed {
-		color: var(--dm);
+		color: var(--tx-dim);
 	}
 
 	.skill-meta {
@@ -278,24 +278,24 @@
 	}
 
 	.badge-global {
-		background: color-mix(in srgb, var(--yl) 15%, transparent);
-		color: var(--yl);
+		background: color-mix(in srgb, var(--warn) 15%, transparent);
+		color: var(--warn);
 	}
 
 	.badge-user {
-		background: color-mix(in srgb, var(--gn-bright) 15%, transparent);
-		color: var(--gn-bright);
+		background: color-mix(in srgb, var(--ok) 15%, transparent);
+		color: var(--ok);
 	}
 
 	.badge-ref {
-		background: color-mix(in srgb, var(--dm) 15%, transparent);
-		color: var(--dm);
+		background: color-mix(in srgb, var(--tx-dim) 15%, transparent);
+		color: var(--tx-dim);
 		font-weight: 500;
 	}
 
 	.skill-phases {
 		font-size: .7rem;
-		color: var(--dm);
+		color: var(--tx-dim);
 	}
 
 	.skill-detail {
@@ -304,7 +304,7 @@
 
 	.skill-desc {
 		font-size: .8125rem;
-		color: var(--dm);
+		color: var(--tx-dim);
 		margin-bottom: .5rem;
 	}
 
@@ -331,7 +331,7 @@
 		font-size: .7rem;
 		font-weight: 600;
 		text-transform: uppercase;
-		color: var(--dm);
+		color: var(--tx-dim);
 		margin-bottom: .25rem;
 	}
 </style>

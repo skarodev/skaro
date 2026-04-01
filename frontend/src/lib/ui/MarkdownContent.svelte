@@ -70,7 +70,7 @@
 	.md-content :global(h2) {
 		font-size: 1.5rem;
 		margin: 1.3rem 0 .7rem;
-		color: var(--or);
+		color: var(--ac);
 	}
 
 	.md-content :global(h3) {
@@ -104,12 +104,12 @@
 	}
 
 	.md-content :global(code) {
-        background: rgb(from var(--or) r g b / 0.05);
+        background: rgb(from var(--ac) r g b / 0.05);
         border-radius: var(--r2);
         padding: .08rem .2rem .1rem .2rem;
-        color: var(--or);
+        color: var(--ac);
         font-size: 1rem;
-        border: solid 1px rgb(from var(--or) r g b / 0.25);
+        border: solid 1px rgb(from var(--ac) r g b / 0.25);
 	}
 
     .md-content :global(pre > code) {
@@ -133,7 +133,7 @@
 		background: transparent;
 		border: 0.0625rem solid var(--bd);
 		border-radius: var(--r);
-		color: var(--dm);
+		color: var(--tx-dim);
 		cursor: pointer;
 		opacity: 0;
 		transition: opacity 0.15s, color 0.15s, border-color 0.15s;
@@ -149,15 +149,15 @@
 	}
 
 	.md-content :global(.copy-btn.copied) {
-		color: var(--gn-bright);
-		border-color: var(--gn-bright);
+		color: var(--ok);
+		border-color: var(--ok);
 		opacity: 1;
 	}
 
 	.md-content :global(blockquote) {
-		border-left: 0.1875rem solid var(--ac2);
+		border-left: 0.1875rem solid var(--ac);
 		padding-left: 0.625rem;
-		color: var(--dm);
+		color: var(--tx-dim);
 		margin: 0.375rem 0;
 	}
 

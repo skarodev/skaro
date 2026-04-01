@@ -66,7 +66,7 @@
 		margin-top: .5rem;
 	}
 	.preset-hint {
-		color: var(--dm);
+		color: var(--tx-dim);
 		font-size: .85rem;
 		margin-bottom: 1rem;
 	}

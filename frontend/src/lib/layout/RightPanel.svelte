@@ -189,7 +189,7 @@
 	.ctx-icon {
 		display: flex;
 		align-items: center;
-		color: var(--dm);
+		color: var(--tx-dim);
 		flex-shrink: 0;
 	}
 
@@ -212,7 +212,7 @@
 		height: 1.75rem;
 		border: none;
 		background: none;
-		color: var(--dm);
+		color: var(--tx-dim);
 		cursor: pointer;
 		border-radius: var(--r2);
 		flex-shrink: 0;

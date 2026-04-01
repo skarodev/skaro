@@ -290,7 +290,7 @@
 		padding: 0 0.75rem;
 		height: 1.75rem;
 		font-size: 0.8125rem;
-		color: var(--dm);
+		color: var(--tx-dim);
 		cursor: pointer;
 		border: none;
 		border-bottom: 0.125rem solid transparent;
@@ -367,7 +367,7 @@
 	}
 
 	.count.has-errors {
-		background: var(--rd-dim);
+		background: var(--err);
 		color: #fff;
 	}
 
@@ -387,7 +387,7 @@
 		justify-content: center;
 		background: none;
 		border: none;
-		color: var(--dm);
+		color: var(--tx-dim);
 		cursor: pointer;
 		border-radius: 0.125rem;
 	}
@@ -401,7 +401,7 @@
 		width: 0.5rem;
 		height: 0.5rem;
 		border-radius: 50%;
-		background: var(--ac2);
+		background: var(--ac);
 		flex-shrink: 0;
 		animation: pulse-glow 1.5s ease-in-out infinite;
 	}
@@ -418,7 +418,7 @@
 		background: rgba(187, 181, 41, .15);
 		padding: 0 0.5rem;
 		border-radius: 0.25rem;
-		color: var(--yw, #c8a900);
+		color: var(--warn);
 		text-decoration: none;
 		font-size: 0.75rem;
 		line-height: 1.25rem;

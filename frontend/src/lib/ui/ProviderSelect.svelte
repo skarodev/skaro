@@ -96,7 +96,7 @@
 	}
 
 	.trigger :global(svg:last-child) {
-		color: var(--dm);
+		color: var(--tx-dim);
 		flex-shrink: 0;
 		transition: transform .15s;
 	}

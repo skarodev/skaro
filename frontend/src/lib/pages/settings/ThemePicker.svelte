@@ -33,7 +33,7 @@
 		border: solid 0.0625rem var(--bg-high);
 		border-radius: var(--r);
 		background: transparent;
-		color: var(--dm);
+		color: var(--tx-dim);
 		cursor: pointer;
 		font-size: 0.8125rem;
 		font-family: inherit;

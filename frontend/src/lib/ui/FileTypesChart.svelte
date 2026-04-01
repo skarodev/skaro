@@ -301,7 +301,7 @@
 	.donut-svg { width: 100%; height: 100%; overflow: visible; }
 
 	.c-num { font-size: 1.625rem; font-weight: 800; fill: var(--tx-bright); font-family: var(--font-ui); }
-	.c-lbl { font-size: 0.6875rem; fill: var(--dm); text-transform: uppercase; letter-spacing: 0.0625rem; font-family: var(--font-ui); }
+	.c-lbl { font-size: 0.6875rem; fill: var(--tx-dim); text-transform: uppercase; letter-spacing: 0.0625rem; font-family: var(--font-ui); }
 
 	.tip {
 		position: absolute; bottom: -1.75rem; left: 50%; transform: translateX(-50%);
@@ -311,7 +311,7 @@
 	}
 	.tip-dot { width: 0.5rem; height: 0.5rem; border-radius: 50%; flex-shrink: 0; }
 	.tip b { color: var(--tx-bright); font-weight: 600; }
-	.tip-v { color: var(--dm); }
+	.tip-v { color: var(--tx-dim); }
 
 	.legend { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 0.125rem; }
 

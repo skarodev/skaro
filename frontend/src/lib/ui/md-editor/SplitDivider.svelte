@@ -63,7 +63,7 @@
 		width: 0.5rem;
 		height: 2.5rem;
 		border-radius: var(--r2);
-		background: var(--dm2);
+		background: var(--tx-dim);
 		transition: background 0.1s;
 	}
 

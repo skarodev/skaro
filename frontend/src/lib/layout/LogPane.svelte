@@ -21,7 +21,7 @@
 					<span class="llm-label">{$llmPhase}</span>
 				{/if}
 				{#if $llmActive}
-					<KittIndicator cells={14} speed={1100} color="var(--or)" />
+					<KittIndicator cells={14} speed={1100} color="var(--ac)" />
 				{/if}
 			</div>
 			<div class="llm-body" bind:this={streamEl}>
@@ -54,7 +54,7 @@
 
 	.empty {
 		padding: 0.75rem;
-		color: var(--dm);
+		color: var(--tx-dim);
 	}
 
 	/* ── LLM Stream — fills all available space ── */
@@ -65,7 +65,7 @@
 		display: flex;
 		flex-direction: column;
 		border-bottom: 0.0625rem solid var(--bd);
-		background: rgb(from var(--or) r g b / 0.025);
+		background: rgb(from var(--ac) r g b / 0.025);
 		transition: opacity 0.3s;
 	}
 
@@ -84,7 +84,7 @@
 	.llm-label {
 		font-size: 0.6875rem;
 		font-weight: 600;
-		color: var(--or);
+		color: var(--ac);
 		text-transform: uppercase;
 		letter-spacing: 0.06em;
 		white-space: nowrap;
@@ -103,7 +103,7 @@
 		font-family: var(--font-ui);
 		font-size: 0.75rem;
 		line-height: 1.6;
-		color: var(--or);
+		color: var(--ac);
 		white-space: pre-wrap;
 		word-break: break-word;
 		padding: 0.25rem 0;
@@ -111,7 +111,7 @@
 
 	/* Light theme override */
 	:global([data-theme="light"]) .llm-body pre.hacker-text {
-		color: var(--or);
+		color: var(--ac);
 	}
 
 	/* ── Log entries — shrinks to min 1 row when LLM active ── */
@@ -141,7 +141,7 @@
 	}
 
 	.log-time {
-		color: var(--dm2);
+		color: var(--tx-dim);
 		flex-shrink: 0;
 		font-variant-numeric: tabular-nums;
 		min-width: 4.375rem;

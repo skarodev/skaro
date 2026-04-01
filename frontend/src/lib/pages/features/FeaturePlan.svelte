@@ -48,5 +48,5 @@
 		gap: 0.5rem;
 		margin-bottom: 0.75rem;
 	}
-	.empty-hint { color: var(--dm); font-size: 0.8125rem; }
+	.empty-hint { color: var(--tx-dim); font-size: 0.8125rem; }
 </style>

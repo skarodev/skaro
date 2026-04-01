@@ -120,17 +120,17 @@
 	/* ── Dark / Light palettes matching Skaro ── */
 
 	const DARK_VARS = {
-		primaryColor: '#589df6',
+		primaryColor: '#d05e52',
 		primaryTextColor: '#d4d4d4',
-		primaryBorderColor: '#4b6eaf',
+		primaryBorderColor: '#a84a42',
 		lineColor: '#515151',
 		sectionBkgColor: '#313131',
 		altSectionBkgColor: '#2a2d2f',
 		gridColor: '#3c3f41',
-		doneTaskBkgColor: '#6a8759',
-		doneTaskBorderColor: '#4a6b3f',
-		activeTaskBkgColor: '#589df6',
-		activeTaskBorderColor: '#4b6eaf',
+		doneTaskBkgColor: '#1a8a5a',
+		doneTaskBorderColor: '#147048',
+		activeTaskBkgColor: '#d05e52',
+		activeTaskBorderColor: '#a84a42',
 		taskBkgColor: '#45494a',
 		taskBorderColor: '#515151',
 		taskTextColor: '#d4d4d4',
@@ -139,17 +139,17 @@
 	};
 
 	const LIGHT_VARS = {
-		primaryColor: '#4a78c2',
+		primaryColor: '#c04a3e',
 		primaryTextColor: '#2b2b2b',
-		primaryBorderColor: '#3d6098',
+		primaryBorderColor: '#a03830',
 		lineColor: '#d0d0d0',
 		sectionBkgColor: '#f0f0f2',
 		altSectionBkgColor: '#e4e4e8',
 		gridColor: '#d0d0d0',
-		doneTaskBkgColor: '#4a8c3f',
-		doneTaskBorderColor: '#3b7a2c',
-		activeTaskBkgColor: '#4a78c2',
-		activeTaskBorderColor: '#3d6098',
+		doneTaskBkgColor: '#1a8a5a',
+		doneTaskBorderColor: '#157848',
+		activeTaskBkgColor: '#c04a3e',
+		activeTaskBorderColor: '#a03830',
 		taskBkgColor: '#dcdcdc',
 		taskBorderColor: '#b8b8b8',
 		taskTextColor: '#2b2b2b',
@@ -274,7 +274,7 @@
 	}
 
 	.legend-item.done::before {
-		background: var(--gn);
+		background: var(--ok);
 	}
 
 	.legend-item.active::before {
@@ -300,14 +300,14 @@
 	.gantt-loading,
 	.gantt-empty {
 		font-size: 0.8125rem;
-		color: var(--dm);
+		color: var(--tx-dim);
 		padding: 1rem;
 		text-align: center;
 	}
 
 	.gantt-error {
 		font-size: 0.8125rem;
-		color: var(--rd);
+		color: var(--err);
 		padding: 0.75rem;
 		display: flex;
 		align-items: center;

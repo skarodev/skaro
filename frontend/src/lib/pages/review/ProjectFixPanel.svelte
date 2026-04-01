@@ -160,7 +160,7 @@
 
 	.scope-hint {
 		margin-left: auto; font-size: 0.75rem;
-		color: var(--dm); font-family: var(--font-ui);
+		color: var(--tx-dim); font-family: var(--font-ui);
 	}
 
 	.scope-body {
@@ -188,7 +188,7 @@
 
 	.scope-task-label {
 		display: flex; align-items: center; gap: 0.375rem;
-		font-size: 0.8125rem; color: var(--dm); cursor: pointer;
+		font-size: 0.8125rem; color: var(--tx-dim); cursor: pointer;
 	}
 	.scope-task-label:hover { color: var(--tx); }
 </style>

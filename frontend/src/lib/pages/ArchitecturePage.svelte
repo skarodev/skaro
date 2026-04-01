@@ -295,7 +295,7 @@
 	}
 
 	.arch-hint {
-		color: var(--dm);
+		color: var(--tx-dim);
 		font-size: 0.875rem;
 		margin-bottom: 0.75rem;
 	}

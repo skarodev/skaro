@@ -160,7 +160,7 @@
 
 	.role-desc {
 		font-size: 0.75rem;
-		color: var(--dm);
+		color: var(--tx-dim);
 		margin-top: 0.0625rem;
 	}
 
@@ -175,7 +175,7 @@
 	}
 
 	.role-toggle.on {
-		background: var(--ac2);
+		background: var(--ac);
 	}
 
 	.toggle-thumb {
@@ -209,7 +209,7 @@
 	.form-field label {
 		display: block;
 		font-size: 0.6875rem;
-		color: var(--dm);
+		color: var(--tx-dim);
 		text-transform: uppercase;
 		letter-spacing: 0.03rem;
 		margin-bottom: 0.25rem;
@@ -249,7 +249,7 @@
 		background: none;
 		border: none;
 		cursor: pointer;
-		color: var(--dm);
+		color: var(--tx-dim);
 		display: flex;
 		align-items: center;
 		padding: 0.25rem;
@@ -264,7 +264,7 @@
 	.role-default {
 		padding: 0 0.75rem 0.625rem;
 		font-size: 0.75rem;
-		color: var(--dm);
+		color: var(--tx-dim);
 		font-family: var(--font-ui);
 	}
 </style>

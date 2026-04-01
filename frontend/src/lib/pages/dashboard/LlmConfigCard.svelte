@@ -59,7 +59,7 @@
 		font-size: 0.625rem;
 		text-transform: uppercase;
 		letter-spacing: 0.03rem;
-		color: var(--dm);
+		color: var(--tx-dim);
 	}
 
 	.llm-val {
@@ -78,5 +78,5 @@
 		flex-shrink: 0;
 	}
 
-	.llm-item.hint .llm-label { color: var(--dm2); font-style: italic; text-transform: none; }
+	.llm-item.hint .llm-label { color: var(--tx-dim); font-style: italic; text-transform: none; }
 </style>

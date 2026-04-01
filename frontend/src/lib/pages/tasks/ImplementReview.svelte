@@ -85,15 +85,15 @@
 		font-size: 0.625rem;
 		padding: 0.0625rem 0.3125rem;
 		border-radius: 0.1875rem;
-		background: rgba(106, 135, 89, .2);
-		color: var(--gn-bright);
+		background: color-mix(in srgb, var(--ok) 20%, transparent);
+		color: var(--ok);
 		font-family: var(--font-ui);
 		text-transform: uppercase;
 		letter-spacing: 0.019rem;
 	}
 
 	:global(.impl-applied-icon) {
-		color: var(--gn-bright);
+		color: var(--ok);
 		flex-shrink: 0;
 	}
 </style>

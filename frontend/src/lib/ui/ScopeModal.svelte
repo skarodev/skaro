@@ -258,7 +258,7 @@
 	.close-x {
 		background: none;
 		border: none;
-		color: var(--dm);
+		color: var(--tx-dim);
 		cursor: pointer;
 		padding: 0.25rem;
 	}
@@ -270,7 +270,7 @@
 		gap: 0.5rem;
 		padding: 0.5rem 1rem;
 		border-bottom: 0.0625rem solid var(--bd);
-		color: var(--dm);
+		color: var(--tx-dim);
 		flex-shrink: 0;
 	}
 
@@ -283,7 +283,7 @@
 		font-size: 0.8125rem;
 		font-family: var(--font-ui);
 	}
-	.search-input::placeholder { color: var(--dm2); }
+	.search-input::placeholder { color: var(--tx-dim); }
 
 	.tree-scroll {
 		overflow-y: auto;
@@ -308,7 +308,7 @@
 	.expand-btn {
 		background: none;
 		border: none;
-		color: var(--dm);
+		color: var(--tx-dim);
 		cursor: pointer;
 		padding: 0;
 		display: flex;
@@ -327,12 +327,12 @@
 	}
 
 	.tree-icon {
-		color: var(--dm);
+		color: var(--tx-dim);
 		display: flex;
 		align-items: center;
 		flex-shrink: 0;
 	}
-	.tree-dir .tree-icon { color: var(--yl); }
+	.tree-dir .tree-icon { color: var(--warn); }
 
 	.tree-name {
 		flex: 1;
@@ -347,7 +347,7 @@
 
 	.tree-size {
 		font-size: 0.6875rem;
-		color: var(--dm2);
+		color: var(--tx-dim);
 		font-family: var(--font-ui);
 		flex-shrink: 0;
 		margin-left: auto;
@@ -356,7 +356,7 @@
 	.empty {
 		padding: 2rem;
 		text-align: center;
-		color: var(--dm);
+		color: var(--tx-dim);
 		font-size: 0.8125rem;
 	}
 
@@ -383,7 +383,7 @@
 
 	.tokens {
 		font-size: 0.6875rem;
-		color: var(--dm);
+		color: var(--tx-dim);
 		font-family: var(--font-ui);
 	}
 
@@ -406,5 +406,5 @@
 		color: #fff;
 		border-color: var(--ac);
 	}
-	.btn-primary:hover { background: var(--ac2); }
+	.btn-primary:hover { background: color-mix(in srgb, var(--ac) 85%, black); }
 </style>

@@ -89,7 +89,7 @@
 	.about-tagline {
 		margin: 0.25rem 0 0;
 		font-size: 0.9375rem;
-		color: var(--dm);
+		color: var(--tx-dim);
 	}
 
 	.about-section {
@@ -104,7 +104,7 @@
 		font-weight: 600;
 		text-transform: uppercase;
 		letter-spacing: 0.06em;
-		color: var(--dm);
+		color: var(--tx-dim);
 	}
 
 	.about-text {
@@ -137,7 +137,7 @@
 
 	.meta-label {
 		font-size: 0.875rem;
-		color: var(--dm);
+		color: var(--tx-dim);
 		min-width: 5rem;
 		flex-shrink: 0;
 	}
@@ -156,7 +156,7 @@
 		border-radius: 0.5rem;
 		font-size: 0.8125rem;
 		font-family: var(--font-ui);
-		color: var(--dm);
+		color: var(--tx-dim);
 	}
 
 	.about-link {

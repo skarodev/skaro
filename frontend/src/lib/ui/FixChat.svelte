@@ -366,13 +366,13 @@
 
 	.thinking {
 		display: flex; align-items: center; gap: 0.375rem;
-		color: var(--dm); font-size: 0.8125rem;
+		color: var(--tx-dim); font-size: 0.8125rem;
 	}
 
 	.turn-label {
 		font-size: 0.6875rem; font-weight: 700;
 		text-transform: uppercase; letter-spacing: .05em;
-		margin-bottom: 0.25rem; color: var(--or);
+		margin-bottom: 0.25rem; color: var(--ac);
 	}
 
 	.clear-row {

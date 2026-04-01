@@ -184,7 +184,7 @@
 
 	.back {
 		display: inline-flex; align-items: center; gap: 0.25rem;
-		color: var(--dm); font-size: 0.8125rem; cursor: pointer; margin-bottom: 0.75rem;
+		color: var(--tx-dim); font-size: 0.8125rem; cursor: pointer; margin-bottom: 0.75rem;
 		background: none; border: none; padding: 0; font-family: inherit;
 	}
 	.back:hover { color: var(--ac); }
@@ -216,11 +216,11 @@
 		flex-shrink: 0;
 	}
 
-	.badge-draft { background: rgba(130, 130, 160, .12); color: var(--dm); }
-	.badge-planned { background: rgba(187, 181, 41, .12); color: var(--yl); }
+	.badge-draft { background: rgba(130, 130, 160, .12); color: var(--tx-dim); }
+	.badge-planned { background: rgba(187, 181, 41, .12); color: var(--warn); }
 	.badge-progress { background: rgba(26, 165, 194, .15); color: var(--ac); }
-	.badge-done { background: rgba(106, 135, 89, .15); color: var(--gn-bright); }
-	.badge-cancelled { background: rgba(180, 80, 80, .12); color: var(--rd); }
+	.badge-done { background: color-mix(in srgb, var(--ok) 15%, transparent); color: var(--ok); }
+	.badge-cancelled { background: rgba(180, 80, 80, .12); color: var(--err); }
 
 	.content-actions {
 		display: flex;
@@ -232,7 +232,7 @@
 	.draft-hint {
 		text-align: center;
 		padding: 2rem 1rem;
-		color: var(--dm);
+		color: var(--tx-dim);
 		font-size: 0.875rem;
 	}
 

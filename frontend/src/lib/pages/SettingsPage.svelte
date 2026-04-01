@@ -24,8 +24,8 @@
 
 	const roles = [
 		{ id: 'architect', icon: Compass, labelKey: 'settings.role_architect', descKey: 'settings.role_architect_desc', color: 'var(--ac)' },
-		{ id: 'coder', icon: Code, labelKey: 'settings.role_coder', descKey: 'settings.role_coder_desc', color: 'var(--gn-bright)' },
-		{ id: 'reviewer', icon: Search, labelKey: 'settings.role_reviewer', descKey: 'settings.role_reviewer_desc', color: 'var(--yl)' },
+		{ id: 'coder', icon: Code, labelKey: 'settings.role_coder', descKey: 'settings.role_coder_desc', color: 'var(--ok)' },
+		{ id: 'reviewer', icon: Search, labelKey: 'settings.role_reviewer', descKey: 'settings.role_reviewer_desc', color: 'var(--warn)' },
 	];
 
 	let tabs = $derived([
@@ -333,7 +333,7 @@
 
 	.card-desc {
 		font-size: 0.8125rem;
-		color: var(--dm);
+		color: var(--tx-dim);
 		margin-bottom: 0.875rem;
 	}
 
@@ -346,7 +346,7 @@
 	.form-field label {
 		display: block;
 		font-size: 0.6875rem;
-		color: var(--dm);
+		color: var(--tx-dim);
 		text-transform: uppercase;
 		letter-spacing: 0.03rem;
 		margin-bottom: 0.25rem;
@@ -410,12 +410,12 @@
 	}
 
 	.save-ok {
-		color: var(--gn-bright);
+		color: var(--ok);
 		font-size: 0.8125rem;
 	}
 
 	.save-err {
-		color: var(--rd);
+		color: var(--err);
 		font-size: 0.8125rem;
 	}
 </style>

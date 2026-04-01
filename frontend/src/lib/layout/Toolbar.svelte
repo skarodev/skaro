@@ -119,7 +119,7 @@
 		align-items: center;
 		padding: 0 1rem;
 		font-size: 0.9375rem;
-		color: var(--dm);
+		color: var(--tx-dim);
 		gap: 0.25rem;
 		flex-shrink: 0;
 	}
@@ -137,11 +137,11 @@
 	}
 
 	.sep {
-		color: var(--dm2);
+		color: var(--tx-dim);
 	}
 
 	a.crumb {
-		color: var(--dm);
+		color: var(--tx-dim);
 		text-decoration: none;
 		transition: color 0.12s;
 	}
@@ -159,7 +159,7 @@
 		display: flex;
 		align-items: center;
 		gap: 0.1875rem;
-		color: var(--yl);
+		color: var(--warn);
 		font-family: var(--font-ui);
 		font-size: 0.6875rem;
 	}
@@ -172,7 +172,7 @@
 		height: 2rem;
 		border: none;
 		background: none;
-		color: var(--dm);
+		color: var(--tx-dim);
 		cursor: pointer;
 		border-radius: var(--r2);
 		flex-shrink: 0;

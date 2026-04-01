@@ -150,7 +150,7 @@
 
 	.question-context {
 		font-size: 0.75rem;
-		color: var(--dm);
+		color: var(--tx-dim);
 		font-style: italic;
 		margin-bottom: 0.5rem;
 	}
@@ -218,6 +218,6 @@
 	.qa-input:focus {
 		outline: none;
 		border-color: var(--ac);
-		box-shadow: 0 0 0 0.0625rem var(--ac2);
+		box-shadow: 0 0 0 0.0625rem var(--ac);
 	}
 </style>

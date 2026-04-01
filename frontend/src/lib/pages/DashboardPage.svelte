@@ -40,7 +40,7 @@
 {#if loading}
 	<DashboardSkeleton />
 {:else if error}
-	<div class="card"><p style="color:var(--rd)">{error}</p></div>
+	<div class="card"><p style="color:var(--err)">{error}</p></div>
 {:else if data}
 	<div class="dash-grid">
 

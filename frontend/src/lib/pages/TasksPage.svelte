@@ -329,7 +329,7 @@
 		border: 0.0625rem solid var(--bd);
 		border-radius: var(--r);
 		background: none;
-		color: var(--dm);
+		color: var(--tx-dim);
 		font-size: 0.8125rem;
 		font-family: inherit;
 		cursor: pointer;
@@ -411,7 +411,7 @@
 		padding: 0 0.375rem;
 		border-radius: 0.5rem;
 		background: var(--sf);
-		color: var(--dm);
+		color: var(--tx-dim);
 		font-size: 0.75rem;
 		font-family: var(--font-ui);
 		line-height: 1.25rem;
@@ -454,7 +454,7 @@
 		justify-content: center;
 		width: 1.75rem;
 		flex-shrink: 0;
-		color: var(--dm2);
+		color: var(--tx-dim);
 		cursor: grab;
 		opacity: 0;
 		transition: opacity .15s;
@@ -488,7 +488,7 @@
 	/* Autopilot button */
 	.btn-autopilot {
 		background: linear-gradient(135deg, rgba(88, 157, 246, 0.12), rgba(152, 118, 170, 0.12));
-		border: 1px solid var(--ac-dim);
+		border: 1px solid var(--ac);
 		color: var(--ac);
 		transition: all 0.2s;
 	}

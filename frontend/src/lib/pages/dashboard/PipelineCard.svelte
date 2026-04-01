@@ -106,7 +106,7 @@
 		border-radius: var(--r);
 		background: var(--bg-deep);
 		border: 0.0625rem solid var(--bd);
-		color: var(--dm);
+		color: var(--tx-dim);
 		font-size: 0.8125rem;
 		font-weight: 500;
 		text-decoration: none;
@@ -120,19 +120,19 @@
 	.pipe-step:hover { background: var(--sf2); border-color: var(--bd2); }
 
 	.pipe-step.done {
-		color: var(--gn-bright);
-		border-color: rgba(106, 135, 89, .35);
-		background: rgba(106, 135, 89, .08);
+		color: var(--ok);
+		border-color: color-mix(in srgb, var(--ok) 35%, transparent);
+		background: color-mix(in srgb, var(--ok) 8%, transparent);
 	}
 
 	.pipe-step.active {
-		color: var(--yl);
+		color: var(--warn);
 		border-color: rgba(255, 198, 109, .35);
 		background: rgba(255, 198, 109, .08);
 	}
 
 	.pipe-icon { display: flex; align-items: center; flex-shrink: 0; }
-	.pipe-arrow { color: var(--dm2); display: flex; align-items: center; flex-shrink: 0; }
+	.pipe-arrow { color: var(--tx-dim); display: flex; align-items: center; flex-shrink: 0; }
 
 	@media (max-width: 768px) {
 		.pipeline {

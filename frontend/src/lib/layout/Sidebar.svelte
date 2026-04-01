@@ -212,7 +212,7 @@
 		height: 2rem;
 		border: none;
 		background: none;
-		color: var(--dm);
+		color: var(--tx-dim);
 		cursor: pointer;
 		border-radius: var(--r2);
 		flex-shrink: 0;
@@ -321,7 +321,7 @@
 		padding: 0 0.375rem;
 		border-radius: 0.5rem;
 		font-size: 0.75rem;
-		color: var(--dm);
+		color: var(--tx-dim);
 		font-family: var(--font-ui);
 		line-height: 1.125rem;
 		flex-shrink: 0;
@@ -329,11 +329,11 @@
 
 	.badge.ok {
 		color: #fff;
-		background:  var(--gn);
+		background:  var(--ok);
 	}
 
 	.badge.warn {
-		color: var(--yl);
+		color: var(--warn);
 		background: rgba(187, 181, 41, .1);
 	}
 	/* ── Nav aux: About + Docs ── */
@@ -357,7 +357,7 @@
 		margin-left: auto;
 		display: flex;
 		align-items: center;
-		color: var(--dm);
+		color: var(--tx-dim);
 		flex-shrink: 0;
 		opacity: 0.7;
 	}
