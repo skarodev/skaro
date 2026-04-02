@@ -33,3 +33,6 @@ htmlcov/
 
 pack.bat
 *.zip
+
+# Skaro project data (secrets, state, etc)
+.skaro/
