@@ -191,25 +191,29 @@
 <div class="page-with-tabs">
 	<div class="main-header">
 		<div class="header-left">
-			<h2><Package size={24} /> {$t('task.title')}</h2>
-			<p>{$t('task.subtitle')}</p>
+			<h2>{$t('task.title')}</h2>
 		</div>
 		<div class="header-right">
-			{#if $status?.tasks?.length}
-				<BtnGroup items={statusFilterItems} bind:value={statusFilter} />
-			{/if}
-			{#if hasActiveTasks}
-				<button
-					class="btn btn-autopilot"
-					disabled={$autopilotRunning}
-					onclick={startAutopilot}
-				>
-					<Rocket size={14} /> {$t('autopilot.run_all')}
-				</button>
-			{/if}
-			<button class="btn btn-primary" onclick={() => showCreateModal = true}>
-				<Plus size={14} /> {$t('task.create')}
-			</button>
+            <div class="header-right-group">
+                {#if $status?.tasks?.length}
+                    <BtnGroup items={statusFilterItems} bind:value={statusFilter} />
+                {/if}
+
+                <div class="task-actions">
+                    {#if hasActiveTasks}
+                        <button
+                                class="btn btn-autopilot"
+                                disabled={$autopilotRunning}
+                                onclick={startAutopilot}
+                        >
+                            <Rocket size={14} /> {$t('autopilot.run_all')}
+                        </button>
+                    {/if}
+                    <button class="btn btn-primary" onclick={() => showCreateModal = true}>
+                        <Plus size={14} /> {$t('task.create')}
+                    </button>
+                </div>
+            </div>
 		</div>
 	</div>
 
@@ -291,13 +295,11 @@
 <style>
 	.main-header {
 		display: flex;
-		align-items: flex-start;
-		justify-content: space-between;
 		gap: 1rem;
 	}
 
 	.header-left {
-		min-width: 0;
+		width: 12rem;
 	}
 
 	.header-right {
@@ -305,14 +307,28 @@
 		align-items: center;
 		gap: 0.75rem;
 		flex-shrink: 0;
-		padding-top: 0.25rem;
+        padding-left: 2.2rem;
+        flex: 1 1 0;
+        min-width: 0;
 	}
+
+    .header-right-group {
+        display: flex;
+        justify-content: space-between;
+        width: 100%;
+    }
+
+    .task-actions {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
 
 	/* Layout */
 	.milestone-tabs-layout {
 		display: flex;
 		gap: 1.5rem;
-		margin-top: 1.5rem;
+		margin-top: 1rem;
 	}
 
 	.milestone-tabs-nav {
@@ -325,7 +341,6 @@
 		flex-direction: column;
 		gap: .1rem;
 		padding: 0;
-		padding-top: 1rem;
 	}
 
 	/* Tab items */

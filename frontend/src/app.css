@@ -40,7 +40,7 @@
 	/* Backgrounds (dark → light) */
 	--bg-deep: #1a1a1a;
 	--bg-soft: #1e1e1e;
-	--bg: #212121;
+	--bg: #242424;
 	--bg-high: #313131;
 	/* Surfaces */
 	--sf: #3c3f41;
@@ -251,7 +251,7 @@ table td {
 }
 
 .btn-sm {
-	padding: 0.25rem 0.5rem;
+	padding: 0.345rem 0.5rem;
 	font-size: 0.8rem;
 }
 
@@ -355,7 +355,7 @@ table td {
 }
 
 .main-header h2 {
-	font-weight: 600;
+	font-weight: 700;
 	color: var(--tx-bright);
 	display: flex;
 	align-items: center;

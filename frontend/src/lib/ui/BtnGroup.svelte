@@ -37,7 +37,7 @@
 		align-items: center;
 		gap: 1px;
 		padding: 2px;
-		background: var(--bg-high);
+		background: var(--bg-deep);
 		border-radius: var(--r);
 	}
 
