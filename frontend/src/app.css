@@ -3,7 +3,7 @@
    ═══════════════════════════════════════════════ */
 @font-face {
 	font-family: 'Manrope';
-	src: url('/fonts/Manrope-Regular.ttf') format('truetype');
+	src: url('/fonts/NunitoSans.ttf') format('truetype');
 	font-weight: 400;
 	font-style: normal;
 	font-display: swap;
@@ -11,7 +11,7 @@
 
 @font-face {
 	font-family: 'Manrope';
-	src: url('/fonts/Manrope-Medium.ttf') format('truetype');
+	src: url('/fonts/NunitoSans.ttf') format('truetype');
 	font-weight: 500;
 	font-style: normal;
 	font-display: swap;
@@ -19,7 +19,7 @@
 
 @font-face {
 	font-family: 'Manrope';
-	src: url('/fonts/Manrope-SemiBold.ttf') format('truetype');
+	src: url('/fonts/NunitoSans.ttf') format('truetype');
 	font-weight: 600;
 	font-style: normal;
 	font-display: swap;
@@ -27,7 +27,7 @@
 
 @font-face {
 	font-family: 'Manrope';
-	src: url('/fonts/Manrope-Bold.ttf') format('truetype');
+	src: url('/fonts/NunitoSans.ttf') format('truetype');
 	font-weight: 700;
 	font-style: normal;
 	font-display: swap;
@@ -39,7 +39,7 @@
 :root {
 	/* Backgrounds (dark → light) */
 	--bg-deep: #1a1a1a;
-	--bg-soft: #1e1e1e;
+	--bg-soft: #212121;
 	--bg: #242424;
 	--bg-high: #313131;
 	/* Surfaces */
@@ -345,7 +345,7 @@ table td {
    ═══════════════════════════════════════════════ */
 
 .main {
-    padding: 1rem 2rem;
+    padding: 1.5rem;
 }
 
 

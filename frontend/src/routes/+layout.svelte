@@ -150,7 +150,7 @@
 	.main {
 		flex: 1;
 		overflow-y: auto;
-		padding: 0 1.5rem;
+		padding: 1.5rem;
 		background: var(--bg);
 		min-height: 0;
 	}

@@ -111,6 +111,7 @@
 		color: var(--tx-dim);
 		gap: 0.25rem;
 		flex-shrink: 0;
+        border-bottom: solid 1px var(--bd);
 	}
 
 	.breadcrumb {

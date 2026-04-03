@@ -61,21 +61,21 @@
 	}
 
 	.md-content :global(h1) {
-		font-size: 1.0625rem;
-		margin: 0.875rem 0 0.375rem;
+		font-size: 1.3rem;
+		margin: 1rem 0 0.5rem;
 		padding-bottom: 0.25rem;
 		color: var(--tx-bright);
 	}
 
 	.md-content :global(h2) {
-		font-size: 1.5rem;
-		margin: 1.3rem 0 .7rem;
+		font-size: 1.2rem;
+		margin: 1rem 0 .5rem;
 		color: var(--ac);
 	}
 
 	.md-content :global(h3) {
-		font-size: 1.2rem;
-		margin: 1.2rem 0 .7rem;
+		font-size: 1.1rem;
+		margin: 1rem 0 .5rem;
 		color: var(--tx-bright);
 	}
 

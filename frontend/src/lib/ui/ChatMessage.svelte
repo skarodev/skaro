@@ -105,7 +105,7 @@
 	}
 
 	.turn-user {
-		max-width: 90%;
+		max-width: 92%;
 		margin-left: auto;
 		background: var(--bg-high);
 		border-radius: var(--r);
@@ -136,26 +136,26 @@
 	/* ── Turn text (assistant markdown) ── */
 
 	.turn-text {
-		font-size: 0.9375rem;
+		font-size: 1rem;
 		line-height: 1.65;
 		color: var(--tx);
 	}
 
 	.turn-text :global(h1) {
-		font-size: 1.0625rem;
-		margin: 0.875rem 0 0.375rem;
+		font-size: 1.3rem;
+		margin: 1rem 0 0.5rem;
 		color: var(--tx-bright);
 	}
 
 	.turn-text :global(h2) {
-		font-size: 1.25rem;
-		margin: 1.3rem 0 0.7rem;
+		font-size: 1.2rem;
+		margin: 1rem 0 0.5rem;
 		color: var(--ac);
 	}
 
 	.turn-text :global(h3) {
-		font-size: 1.0625rem;
-		margin: 1.2rem 0 0.5rem;
+		font-size: 1.1rem;
+		margin: 1rem 0 0.5rem;
 		color: var(--tx-bright);
 	}
 
@@ -181,7 +181,7 @@
 		border-radius: var(--r2);
 		padding: 0.08rem 0.25rem 0.1rem;
 		color: var(--ac);
-		font-size: 0.875rem;
+		font-size: 1rem;
 		border: solid 1px rgb(from var(--ac) r g b / 0.25);
 	}
 
@@ -192,7 +192,7 @@
 		border-radius: var(--r);
 		padding: 0.75rem 1rem;
 		overflow-x: auto;
-		font-size: 0.75rem;
+		font-size: 1rem;
 		margin: 0.5rem 0;
 	}
 
@@ -233,7 +233,7 @@
 		border-right: 0.0625rem solid var(--bd);
 		padding: 0.4375rem 0.625rem;
 		text-align: left;
-		font-size: 0.8125rem;
+		font-size: 0.9rem;
 		word-wrap: break-word;
 		overflow-wrap: break-word;
 	}

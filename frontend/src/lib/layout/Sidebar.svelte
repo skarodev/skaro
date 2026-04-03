@@ -263,10 +263,10 @@
 		border-radius: var(--r);
 		align-items: center;
 		gap: 0.5rem;
-		padding: 0.4375rem;
+		padding: 0.5rem;
 		cursor: pointer;
 		color: var(--tx-bright);
-		font-size: 0.9375rem;
+		font-size: 1rem;
 		width: 100%;
 		border: none;
 		background: none;
