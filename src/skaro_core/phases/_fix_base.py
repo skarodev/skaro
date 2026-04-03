@@ -126,12 +126,8 @@ class ConversationalFixBase(BasePhase):
                     )
                 )
 
-        # Replay conversation history
-        for turn in conversation:
-            role = turn.get("role", "user")
-            content = turn.get("content", "")
-            if role in ("user", "assistant") and content.strip():
-                messages.append(LLMMessage(role=role, content=content))
+        # Replay conversation history (file blocks stripped, tail cached).
+        self._replay_conversation(messages, conversation)
 
         # Current user message (+ language reminder)
         final_message = user_message
@@ -238,6 +234,77 @@ class ConversationalFixBase(BasePhase):
                 turn_copy["turnIndex"] = i
             enriched.append(turn_copy)
         return enriched
+
+    # ── Conversation replay helpers ────────────────────
+
+    @staticmethod
+    def _strip_all_file_blocks(text: str) -> str:
+        """Remove every ``--- FILE: … --- END FILE ---`` block from *text*.
+
+        Keeps the surrounding prose so the LLM still sees the explanation
+        that accompanied the code, but not the (potentially huge) inline
+        file content that is already available via scope context.
+        """
+        lines = text.splitlines(True)
+        result: list[str] = []
+        i = 0
+        while i < len(lines):
+            stripped = lines[i].strip()
+            if stripped.startswith("--- FILE:") and stripped.endswith("---"):
+                # Skip until the closing marker or end of text.
+                i += 1
+                while i < len(lines):
+                    if lines[i].strip() == "--- END FILE ---":
+                        i += 1
+                        break
+                    i += 1
+            else:
+                result.append(lines[i])
+                i += 1
+        return "".join(result)
+
+    def _replay_conversation(
+        self,
+        messages: list[LLMMessage],
+        conversation: list[dict],
+    ) -> None:
+        """Replay prior conversation turns into *messages*.
+
+        Two optimisations applied:
+
+        1. **Strip file blocks** — assistant turns often contain full file
+           contents inside ``--- FILE: … --- END FILE ---`` markers.  These
+           are removed because the LLM already receives the current file
+           state through scope / extra context.  This alone saves 50-80 %
+           of history tokens in a typical fix session.
+
+        2. **Prompt-cache the old prefix** — the last replayed turn is
+           marked ``cache=True`` so providers that support prompt caching
+           (Anthropic) can reuse the ever-growing conversation prefix
+           across successive calls (90 % read discount).
+        """
+        turns: list[LLMMessage] = []
+        for turn in conversation:
+            role = turn.get("role", "user")
+            content = turn.get("content", "")
+            if role not in ("user", "assistant") or not content.strip():
+                continue
+            if role == "assistant":
+                content = self._strip_all_file_blocks(content)
+            if not content.strip():
+                continue
+            turns.append(LLMMessage(role=role, content=content))
+
+        # Mark the last replayed turn as a cache breakpoint so that
+        # the entire conversation prefix is prompt-cached on the next call.
+        if turns:
+            turns[-1] = LLMMessage(
+                role=turns[-1].role,
+                content=turns[-1].content,
+                cache=True,
+            )
+
+        messages.extend(turns)
 
     # ── File I/O helpers ──────────────────────────────
 

@@ -131,12 +131,8 @@ class ProjectChatPhase(ConversationalFixBase):
                     content="I've reviewed the selected source files.",
                 ))
 
-        # Replay conversation history.
-        for turn in conversation:
-            role = turn.get("role", "user")
-            content = turn.get("content", "")
-            if role in ("user", "assistant") and content.strip():
-                messages.append(LLMMessage(role=role, content=content))
+        # Replay conversation history (file blocks stripped, tail cached).
+        self._replay_conversation(messages, conversation)
 
         # Current user message (+ language reminder).
         final_message = message
