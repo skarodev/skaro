@@ -63,7 +63,7 @@
     .phase-bar {
         display: flex;
         align-items: flex-start;
-        margin: 2.5rem 0;
+        margin: 1.2rem 0;
     }
 
     .phase-cell {
@@ -93,7 +93,7 @@
         width: 1.5rem;
         height: 1.5rem;
         border-radius: 50%;
-        border: 0.125rem solid var(--bg-deep);
+        border: 0.125rem solid var(--bg-high);
         flex-shrink: 0;
         position: relative;
         z-index: 1;
@@ -101,7 +101,7 @@
         align-items: center;
         justify-content: center;
         color: var(--tx);
-        background: var(--bg-deep);
+        background: var(--bg-high);
         transition: all .2s;
     }
 

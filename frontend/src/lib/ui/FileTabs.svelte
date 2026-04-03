@@ -59,14 +59,14 @@
 <style>
 	.file-tabs-layout {
 		display: flex;
-		gap: 1.5rem;
-		margin-top: 1.5rem;
+		gap: 1.2rem;
+		margin-top: 1rem;
 	}
 
 	.file-tabs-nav {
 		position: sticky;
 		top: 0;
-		width: 14rem;
+		width: 12rem;
 		flex-shrink: 0;
 		align-self: flex-start;
 		display: flex;
@@ -80,7 +80,7 @@
 		display: flex;
 		align-items: center;
 		width: 100%;
-		padding: .75rem;
+		padding: .5rem;
 		border: none;
 		border-radius: var(--r);
 		background: none;

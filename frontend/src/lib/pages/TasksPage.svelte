@@ -358,12 +358,12 @@
 	.milestone-tabs-nav {
 		position: sticky;
 		top: 0;
-		width: 14rem;
+		width: 12rem;
 		flex-shrink: 0;
 		align-self: flex-start;
 		display: flex;
 		flex-direction: column;
-		gap: .2rem;
+		gap: .1rem;
 		padding: 0;
 		padding-top: 1rem;
 	}
@@ -375,7 +375,7 @@
 		justify-content: space-between;
 		gap: 0.5rem;
 		width: 100%;
-		padding: .75rem;
+		padding: .5rem;
 		border: none;
 		border-radius: var(--r);
 		background: none;
