@@ -3,6 +3,7 @@
 	import { api } from '$lib/api/client.js';
 	import { addError } from '$lib/stores/logStore.js';
 	import { Container, Monitor, Terminal, Loader, Info, RefreshCw } from 'lucide-svelte';
+	import BtnGroup from '$lib/ui/BtnGroup.svelte';
 
 	let {
 		mode = $bindable('host'),
@@ -15,6 +16,12 @@
 
 	let detecting = $state(false);
 	let detected = $state(null);
+
+	let modeItems = $derived([
+		{ value: 'host', label: $t('settings.env_mode_host'), icon: Monitor },
+		{ value: 'docker', label: $t('settings.env_mode_docker'), icon: Container },
+		{ value: 'custom', label: $t('settings.env_mode_custom'), icon: Terminal },
+	]);
 
 	async function detect() {
 		detecting = true;
@@ -54,23 +61,9 @@
 		</div>
 	{/if}
 
-	<!-- Mode selector -->
 	<div class="form-field">
 		<span class="field-label">{$t('settings.env_mode')}</span>
-		<div class="mode-tabs">
-			<button class="tab" class:active={mode === 'host'} onclick={() => mode = 'host'}>
-				<Monitor size={14} />
-				{$t('settings.env_mode_host')}
-			</button>
-			<button class="tab" class:active={mode === 'docker'} onclick={() => mode = 'docker'}>
-				<Container size={14} />
-				{$t('settings.env_mode_docker')}
-			</button>
-			<button class="tab" class:active={mode === 'custom'} onclick={() => mode = 'custom'}>
-				<Terminal size={14} />
-				{$t('settings.env_mode_custom')}
-			</button>
-		</div>
+		<BtnGroup items={modeItems} bind:value={mode} />
 	</div>
 
 	{#if mode === 'docker'}
@@ -148,36 +141,6 @@
 	.hint :global(svg) {
 		color: var(--ac);
 		flex-shrink: 0;
-	}
-
-	.mode-tabs {
-		display: flex;
-		gap: .5rem;
-	}
-
-	.tab {
-		display: flex;
-		align-items: center;
-		gap: 0.5rem;
-		padding: 0.375rem 0.875rem;
-		border: solid 0.0625rem var(--bg-high);
-		border-radius: var(--r);
-		background: transparent;
-		color: var(--tx-dim);
-		cursor: pointer;
-		font-size: 0.8125rem;
-		font-family: inherit;
-		transition: .12s;
-	}
-
-	.tab:hover {
-		color: var(--tx);
-	}
-
-	.tab.active {
-		color: var(--ac);
-		border: solid 0.0625rem var(--ac);
-		font-weight: 600;
 	}
 
 	.form-grid-2 {

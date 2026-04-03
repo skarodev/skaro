@@ -8,10 +8,17 @@
 	import TaskCard from '$lib/pages/tasks/TaskCard.svelte';
 	import CreateTaskModal from '$lib/pages/tasks/CreateTaskModal.svelte';
 	import AutopilotOverlay from '$lib/pages/tasks/AutopilotOverlay.svelte';
+	import BtnGroup from '$lib/ui/BtnGroup.svelte';
 	import { startAutopilot, autopilotRunning } from '$lib/stores/autopilotStore.js';
 
 	let activeTab = $state('__all__');
 	let statusFilter = $state('all');
+
+	let statusFilterItems = $derived([
+		{ value: 'all', label: $t('task.filter_all') },
+		{ value: 'active', label: $t('task.filter_active') },
+		{ value: 'done', label: $t('task.filter_done') },
+	]);
 
 	// ── Create modal ──
 	let showCreateModal = $state(false);
@@ -189,23 +196,7 @@
 		</div>
 		<div class="header-right">
 			{#if $status?.tasks?.length}
-				<div class="status-filters">
-					<button
-						class="filter-btn"
-						class:active={statusFilter === 'all'}
-						onclick={() => statusFilter = 'all'}
-					>{$t('task.filter_all')}</button>
-					<button
-						class="filter-btn"
-						class:active={statusFilter === 'active'}
-						onclick={() => statusFilter = 'active'}
-					>{$t('task.filter_active')}</button>
-					<button
-						class="filter-btn"
-						class:active={statusFilter === 'done'}
-						onclick={() => statusFilter = 'done'}
-					>{$t('task.filter_done')}</button>
-				</div>
+				<BtnGroup items={statusFilterItems} bind:value={statusFilter} />
 			{/if}
 			{#if hasActiveTasks}
 				<button
@@ -315,37 +306,6 @@
 		gap: 0.75rem;
 		flex-shrink: 0;
 		padding-top: 0.25rem;
-	}
-
-	/* Status filter buttons */
-	.status-filters {
-		display: flex;
-		gap: 0.25rem;
-		align-items: center;
-	}
-
-	.filter-btn {
-		padding: 0.3125rem 0.75rem;
-		border: 0.0625rem solid var(--bd);
-		border-radius: var(--r);
-		background: none;
-		color: var(--tx-dim);
-		font-size: 0.8125rem;
-		font-family: inherit;
-		cursor: pointer;
-		transition: background .1s, color .1s, border-color .1s;
-		white-space: nowrap;
-	}
-
-	.filter-btn:hover {
-		background: var(--bg-deep);
-		color: var(--tx-bright);
-	}
-
-	.filter-btn.active {
-		background: var(--bg-deep);
-		color: var(--tx-bright);
-		border-color: var(--ac);
 	}
 
 	/* Layout */
