@@ -528,6 +528,8 @@ async def fix_from_issues(
     all_scope = list(dict.fromkeys(list(payload.scope_paths) + auto_paths))
 
     phase = FixPhase(project_root=project_root)
+    if payload.provider_override and payload.model_override:
+        phase.set_model_override(payload.provider_override, payload.model_override)
     try:
         async with llm_phase(ws, "fix", phase, request=request):
             result = await phase.run(
@@ -563,6 +565,8 @@ async def run_fix(
     from skaro_core.phases.base import CancelledByClientError
 
     phase = FixPhase(project_root=project_root)
+    if payload.provider_override and payload.model_override:
+        phase.set_model_override(payload.provider_override, payload.model_override)
     try:
         async with llm_phase(ws, "fix", phase, request=request):
             result = await phase.run(task=name, message=payload.message, conversation=payload.conversation, scope_paths=payload.scope_paths)

@@ -103,6 +103,19 @@ async function patch(path, body = {}, signal) {
 	return res.json();
 }
 
+// ── Model override helper ─────────────────────
+
+/** Parse "provider/model" override string into body fields. */
+function _overrideFields(override) {
+	if (!override) return {};
+	const idx = override.indexOf('/');
+	if (idx < 1) return {};
+	return {
+		provider_override: override.substring(0, idx),
+		model_override: override.substring(idx + 1),
+	};
+}
+
 // ── Public API ────────────────────────────────
 
 export const api = {
@@ -139,8 +152,8 @@ export const api = {
 	applyArchReview: (signal) => post('/api/architecture/apply-review', {}, signal),
 
 	// Architecture chat (generation)
-	sendArchChat: (/** @type {string} */ message, /** @type {any[]} */ conversation, signal) =>
-		post('/api/architecture/chat', { message, conversation }, signal),
+	sendArchChat: (/** @type {string} */ message, /** @type {any[]} */ conversation, signal, /** @type {string} */ override) =>
+		post('/api/architecture/chat', { message, conversation, ..._overrideFields(override) }, signal),
 	loadArchChatConversation: (signal) => get('/api/architecture/chat/conversation', signal),
 	clearArchChatConversation: (signal) => del('/api/architecture/chat/conversation', signal),
 
@@ -193,10 +206,10 @@ export const api = {
 		get(`/api/tasks/${name}/tests/issues`, signal),
 
 	// Fix (conversational bug fixing)
-	sendFix: (/** @type {string} */ name, /** @type {string} */ message, /** @type {any[]} */ conversation, /** @type {string[]} */ scope_paths, signal) =>
-		post(`/api/tasks/${name}/fix`, { message, conversation, scope_paths: scope_paths || [] }, signal),
-	fixFromIssues: (/** @type {string} */ name, /** @type {string[]} */ issue_ids, /** @type {any[]} */ conversation, /** @type {string[]} */ scope_paths, signal) =>
-		post(`/api/tasks/${name}/fix/from-issues`, { issue_ids, conversation, scope_paths: scope_paths || [] }, signal),
+	sendFix: (/** @type {string} */ name, /** @type {string} */ message, /** @type {any[]} */ conversation, /** @type {string[]} */ scope_paths, signal, /** @type {string} */ override) =>
+		post(`/api/tasks/${name}/fix`, { message, conversation, scope_paths: scope_paths || [], ..._overrideFields(override) }, signal),
+	fixFromIssues: (/** @type {string} */ name, /** @type {string[]} */ issue_ids, /** @type {any[]} */ conversation, /** @type {string[]} */ scope_paths, signal, /** @type {string} */ override) =>
+		post(`/api/tasks/${name}/fix/from-issues`, { issue_ids, conversation, scope_paths: scope_paths || [], ..._overrideFields(override) }, signal),
 	applyFixFile: (/** @type {string} */ name, /** @type {string} */ filepath, /** @type {string} */ content, signal) =>
 		post(`/api/tasks/${name}/fix/apply`, { filepath, content }, signal),
 	getFixLog: (/** @type {string} */ name, signal) => get(`/api/tasks/${name}/fix/log`, signal),
@@ -207,8 +220,8 @@ export const api = {
 	runReviewTests: (signal) => post('/api/review/tests', {}, signal),
 	getReviewResults: (signal) => get('/api/review/results', signal),
 	getReviewScope: (signal) => get('/api/review/scope', signal),
-	sendProjectFix: (/** @type {string} */ message, /** @type {any[]} */ conversation, /** @type {string[]} */ scope_tasks, /** @type {string[]} */ scope_paths, signal) =>
-		post('/api/review/fix', { message, conversation, scope_tasks, scope_paths: scope_paths || [] }, signal),
+	sendProjectFix: (/** @type {string} */ message, /** @type {any[]} */ conversation, /** @type {string[]} */ scope_tasks, /** @type {string[]} */ scope_paths, signal, /** @type {string} */ override) =>
+		post('/api/review/fix', { message, conversation, scope_tasks, scope_paths: scope_paths || [], ..._overrideFields(override) }, signal),
 	applyProjectFixFile: (/** @type {string} */ filepath, /** @type {string} */ content, signal) =>
 		post('/api/review/fix/apply', { filepath, content }, signal),
 	loadProjectFixConversation: (signal) => get('/api/review/fix/conversation', signal),
@@ -224,8 +237,8 @@ export const api = {
 	updateFeature: (/** @type {string} */ slug, /** @type {any} */ payload, signal) =>
 		patch(`/api/features/${slug}`, payload, signal),
 	deleteFeature: (/** @type {string} */ slug, signal) => del(`/api/features/${slug}`, signal),
-	sendFeatureChat: (/** @type {string} */ slug, /** @type {string} */ message, /** @type {any[]} */ conversation, /** @type {string[]} */ scope_paths, signal) =>
-		post(`/api/features/${slug}/chat`, { message, conversation, scope_paths: scope_paths || [] }, signal),
+	sendFeatureChat: (/** @type {string} */ slug, /** @type {string} */ message, /** @type {any[]} */ conversation, /** @type {string[]} */ scope_paths, signal, /** @type {string} */ override) =>
+		post(`/api/features/${slug}/chat`, { message, conversation, scope_paths: scope_paths || [], ..._overrideFields(override) }, signal),
 	getFeatureConversation: (/** @type {string} */ slug, signal) =>
 		get(`/api/features/${slug}/conversation`, signal),
 	clearFeatureConversation: (/** @type {string} */ slug, signal) =>
@@ -234,6 +247,16 @@ export const api = {
 		post(`/api/features/${slug}/confirm`, payload, signal),
 	saveFeaturePlan: (/** @type {string} */ slug, /** @type {string} */ content, signal) =>
 		put(`/api/features/${slug}/plan`, { content }, signal),
+
+	// Universal Project Chat
+	sendChat: (/** @type {string} */ contextType, /** @type {string} */ message, /** @type {any[]} */ conversation, /** @type {string} */ contextId, /** @type {string[]} */ scope_paths, signal, /** @type {string} */ override) =>
+		post(`/api/chat/${contextType}`, { message, conversation, context_id: contextId || '', scope_paths: scope_paths || [], ..._overrideFields(override) }, signal),
+	loadChatConversation: (/** @type {string} */ contextType, /** @type {string} */ queryParams, signal) =>
+		get(`/api/chat/${contextType}/conversation${queryParams || ''}`, signal),
+	clearChatConversation: (/** @type {string} */ contextType, /** @type {string} */ queryParams, signal) =>
+		del(`/api/chat/${contextType}/conversation${queryParams || ''}`, signal),
+	applyChatFile: (/** @type {string} */ contextType, /** @type {string} */ filepath, /** @type {string} */ content, signal) =>
+		post(`/api/chat/${contextType}/apply`, { filepath, content }, signal),
 
 	// Config
 	getConfig: (signal) => get('/api/config', signal),

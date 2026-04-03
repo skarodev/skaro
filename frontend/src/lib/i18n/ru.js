@@ -635,6 +635,33 @@ export default {
 	'chat_panel.open': 'Открыть AI-чат',
 	'chat_panel.ctx_architecture': 'Чат архитектуры',
 	'chat_panel.ctx_review': 'Фикс проекта',
+	'chat_panel.ctx_constitution': 'Чат конституции',
+	'chat_panel.ctx_adr': 'Чат ADR',
+	'chat_panel.ctx_adr_detail': 'ADR-{n}',
+	'chat_panel.ctx_devplan': 'Чат плана',
+	'chat_panel.ctx_features': 'Чат фичей',
+	'chat_panel.ctx_tasks': 'Чат задач',
+	'chat_panel.response_received': 'Ответ ИИ получен',
+	'chat_panel.placeholder_default': 'Спросите о проекте...',
+	'chat_panel.placeholder_constitution': 'Обсудите или предложите изменения конституции...',
+	'chat_panel.placeholder_adr': 'Обсудите ADR или предложите новое решение...',
+	'chat_panel.placeholder_adr_detail': 'Задайте вопрос об этом ADR...',
+	'chat_panel.placeholder_devplan': 'Обсудите план или предложите корректировки...',
+	'chat_panel.placeholder_features': 'Обсудите или предложите новые фичи...',
+	'chat_panel.placeholder_tasks': 'Обсудите задачи или создайте новую...',
+
+	// Attach menu (compose box)
+	'attach.title': 'Прикрепить контекст',
+	'attach.from_disk': 'Добавить файлы',
+	'attach.from_repo': 'Файлы репозитория',
+
+	// Chat model picker
+	'chat_panel.label': 'Чат',
+	'chat_model.default': 'По умолчанию',
+	'chat_model.role_architect': 'Архитектор',
+	'chat_model.role_coder': 'Разработчик',
+	'chat_model.role_reviewer': 'Ревьюер',
+	'chat_model.select': 'Выбрать модель',
 
 	// Feature
 	'feature.draft_hint': 'Используйте панель AI-чата, чтобы описать и спланировать эту фичу.',

@@ -67,4 +67,21 @@ export function closeChatPanel() {
 	chatPanelOpen.set(false);
 }
 
+/**
+ * Extra metadata for the current chat context.
+ * Pages can write here to pass additional info (e.g. selected ADR number).
+ * @type {import('svelte/store').Writable<Record<string, any>>}
+ */
+export const chatContextMeta = writable({});
+
+/** Update context metadata (merges with existing). */
+export function setChatContextMeta(meta) {
+	chatContextMeta.update((prev) => ({ ...prev, ...meta }));
+}
+
+/** Clear context metadata. */
+export function clearChatContextMeta() {
+	chatContextMeta.set({});
+}
+
 export { MIN_WIDTH, MAX_WIDTH_VW, DEFAULT_WIDTH };

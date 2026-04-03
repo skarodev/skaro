@@ -235,12 +235,33 @@ class BasePhase(ABC):
         self.on_stream_chunk: Callable[[str], Any] | None = None
         self._cancel_event: asyncio.Event | None = None
         self._last_stop_reason: str | None = None
+        self._provider_override: str = ""
+        self._model_override: str = ""
+
+    def set_model_override(self, provider: str, model: str) -> None:
+        """Override the LLM provider/model for this phase instance.
+
+        Resets cached LLM adapter so the next call picks up the override.
+        """
+        self._provider_override = provider
+        self._model_override = model
+        self._llm = None  # Force re-creation on next _get_llm call
 
     def _get_llm(self, task: str = "") -> BaseLLMAdapter:
         """Get or create LLM adapter, updating task context."""
         if self._llm is None or self._current_task != task:
             self._current_task = task
             llm_config = self.config.llm_for_phase(self.phase_name)
+
+            # Apply model override if set.
+            if self._provider_override and self._model_override:
+                from dataclasses import replace
+                llm_config = replace(
+                    llm_config,
+                    provider=self._provider_override,
+                    model=self._model_override,
+                )
+
             inner = create_llm_adapter(llm_config)
             self._llm = _TrackingLLMAdapter(
                 inner, self.project_root,

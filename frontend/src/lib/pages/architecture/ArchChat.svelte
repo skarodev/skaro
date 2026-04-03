@@ -8,6 +8,8 @@
 
 	let chatHasMessages = $state(false);
 
+	let { modelOverride = '' } = $props();
+
 	let modelDisplay = $derived.by(() => {
 		const s = $status;
 		if (!s?.config) return '';
@@ -31,8 +33,8 @@
 		return result;
 	}
 
-	function sendChatMessageFn(text, history, signal) {
-		return api.sendArchChat(text, history, signal);
+	function sendChatMessageFn(text, history, signal, _scopePaths, override) {
+		return api.sendArchChat(text, history, signal, override);
 	}
 
 	async function applyChatFileFn(filepath, content) {
@@ -66,6 +68,7 @@
 
 <FixChat
 	{modelDisplay}
+	{modelOverride}
 	errorSource="archChat"
 	autoLoad={true}
 	placeholder={chatPlaceholder}

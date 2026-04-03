@@ -66,6 +66,8 @@ async def run_project_fix(
     from skaro_core.phases.base import CancelledByClientError
 
     phase = ProjectFixPhase(project_root=project_root)
+    if payload.provider_override and payload.model_override:
+        phase.set_model_override(payload.provider_override, payload.model_override)
     try:
         async with llm_phase(ws, "project_fix", phase, request=request):
             result = await phase.run(

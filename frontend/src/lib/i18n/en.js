@@ -635,6 +635,33 @@ export default {
 	'chat_panel.open': 'Open AI Chat',
 	'chat_panel.ctx_architecture': 'Architecture Chat',
 	'chat_panel.ctx_review': 'Project Fix',
+	'chat_panel.ctx_constitution': 'Constitution Chat',
+	'chat_panel.ctx_adr': 'ADR Chat',
+	'chat_panel.ctx_adr_detail': 'ADR-{n} Chat',
+	'chat_panel.ctx_devplan': 'Plan Chat',
+	'chat_panel.ctx_features': 'Features Chat',
+	'chat_panel.ctx_tasks': 'Tasks Chat',
+	'chat_panel.response_received': 'AI response received',
+	'chat_panel.placeholder_default': 'Ask about the project...',
+	'chat_panel.placeholder_constitution': 'Discuss or suggest changes to the constitution...',
+	'chat_panel.placeholder_adr': 'Discuss ADRs or propose a new decision...',
+	'chat_panel.placeholder_adr_detail': 'Ask about this ADR...',
+	'chat_panel.placeholder_devplan': 'Discuss the plan or suggest adjustments...',
+	'chat_panel.placeholder_features': 'Discuss or propose new features...',
+	'chat_panel.placeholder_tasks': 'Discuss tasks or create a new one...',
+
+	// Attach menu (compose box)
+	'attach.title': 'Attach context',
+	'attach.from_disk': 'Add files',
+	'attach.from_repo': 'Repository files',
+
+	// Chat model picker
+	'chat_panel.label': 'Chat',
+	'chat_model.default': 'Default',
+	'chat_model.role_architect': 'Architect',
+	'chat_model.role_coder': 'Coder',
+	'chat_model.role_reviewer': 'Reviewer',
+	'chat_model.select': 'Select model',
 
 	// Feature
 	'feature.draft_hint': 'Use the AI Chat panel to describe and plan this feature.',

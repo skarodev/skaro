@@ -1,7 +1,7 @@
 <script>
 	import { t } from '$lib/i18n/index.js';
 	import { renderMarkdown, stripFilePathBlocks, stripFileMarkers } from '$lib/utils/markdown.js';
-	import { FileCode, Check, Bot } from 'lucide-svelte';
+	import { FileCode, Check, Bot, ChevronDown, ChevronUp } from 'lucide-svelte';
 
 	let {
 		turn = {},
@@ -76,24 +76,21 @@
 		<div class="turn-label">{$t('fix.you')}</div>
 		<div
 			class="turn-body-user"
-			style={expanded ? 'max-height: none' : ''}
+			class:turn-body-expanded={expanded}
 			bind:this={userBodyEl}
 		>
 			<div class="turn-text user-text">{turn.content}</div>
-			{#if isOverflowing && !expanded}
-				<div class="user-overlay">
-					<button class="expand-btn" onclick={() => expanded = true}>
-						{$t('fix.expand')}
-					</button>
-				</div>
-			{/if}
 		</div>
-		{#if expanded}
-			<div class="user-overlay user-overlay-hidden">
-				<button class="expand-btn" onclick={() => expanded = false}>
+		{#if isOverflowing}
+			<button class="expand-btn" onclick={() => expanded = !expanded}>
+				{#if expanded}
+					<ChevronUp size={14} />
 					{$t('fix.collapse')}
-				</button>
-			</div>
+				{:else}
+					<ChevronDown size={14} />
+					{$t('fix.expand')}
+				{/if}
+			</button>
 		{/if}
 	{/if}
 </div>
@@ -108,9 +105,9 @@
 	}
 
 	.turn-user {
-		max-width: 80%;
+		max-width: 90%;
 		margin-left: auto;
-		background: var(--bg-deep);
+		background: var(--bg-high);
 		border-radius: var(--r);
 		padding: 1.2rem;
 		position: relative;
@@ -130,39 +127,66 @@
 		font-weight: 700;
 		text-transform: uppercase;
 		letter-spacing: .05em;
-		margin-bottom: 1rem;
+		margin-bottom: 0.5rem;
 		display: flex;
 		align-items: center;
 		gap: 0.25rem;
 	}
 
+	/* ── Turn text (assistant markdown) ── */
+
 	.turn-text {
-		font-size: 1rem;
-		line-height: 1.4rem;
+		font-size: 0.9375rem;
+		line-height: 1.65;
+		color: var(--tx);
 	}
 
-    .turn-text :global(h1) {
-        font-size: 1.2rem;
-    }
-
-	.turn-text :global(ul) {
-	    margin-left: 2rem;
+	.turn-text :global(h1) {
+		font-size: 1.0625rem;
+		margin: 0.875rem 0 0.375rem;
+		color: var(--tx-bright);
 	}
 
 	.turn-text :global(h2) {
-		font-size: 1.3rem;
-		margin-bottom: 1.2rem;
+		font-size: 1.25rem;
+		margin: 1.3rem 0 0.7rem;
+		color: var(--ac);
+	}
+
+	.turn-text :global(h3) {
+		font-size: 1.0625rem;
+		margin: 1.2rem 0 0.5rem;
+		color: var(--tx-bright);
 	}
 
 	.turn-text :global(p) {
-		margin: 1rem 0;
+		margin: 0.75rem 0;
 	}
 
-    .turn-text :global(table) {
-        margin: 2rem 0;
-    }
+	.turn-text :global(ul),
+	.turn-text :global(ol) {
+		margin: 0.25rem 0 0.25rem 1.25rem;
+	}
+
+	.turn-text :global(li) {
+		margin: 0.125rem 0;
+	}
+
+	.turn-text :global(strong) {
+		color: var(--tx-bright);
+	}
+
+	.turn-text :global(code) {
+		background: rgb(from var(--ac) r g b / 0.05);
+		border-radius: var(--r2);
+		padding: 0.08rem 0.25rem 0.1rem;
+		color: var(--ac);
+		font-size: 0.875rem;
+		border: solid 1px rgb(from var(--ac) r g b / 0.25);
+	}
 
 	.turn-text :global(pre) {
+		position: relative;
 		background: var(--bg-soft);
 		border: none;
 		border-radius: var(--r);
@@ -178,51 +202,94 @@
 		border-radius: 0;
 		color: inherit;
 		font-size: inherit;
+		border: none;
 	}
+
+	.turn-text :global(blockquote) {
+		border-left: 0.1875rem solid var(--ac);
+		padding-left: 0.625rem;
+		color: var(--tx-dim);
+		margin: 0.375rem 0;
+	}
+
+	.turn-text :global(table) {
+		border-collapse: separate;
+		border-spacing: 0;
+		width: 100%;
+		margin: 0.75rem 0;
+		background: var(--bg-deep);
+		border-radius: var(--r);
+		overflow: hidden;
+		border: 1px solid var(--bd);
+	}
+
+	.turn-text :global(thead) {
+		background: var(--bd);
+	}
+
+	.turn-text :global(th),
+	.turn-text :global(td) {
+		border-bottom: 0.0625rem solid var(--bd);
+		border-right: 0.0625rem solid var(--bd);
+		padding: 0.4375rem 0.625rem;
+		text-align: left;
+		font-size: 0.8125rem;
+		word-wrap: break-word;
+		overflow-wrap: break-word;
+	}
+
+	.turn-text :global(th:last-child),
+	.turn-text :global(td:last-child) {
+		border-right: none;
+	}
+
+	.turn-text :global(tr:last-child td) {
+		border-bottom: none;
+	}
+
+	.turn-text :global(th) {
+		color: var(--tx-bright);
+		font-weight: 600;
+	}
+
+	.turn-text :global(hr) {
+		border: none;
+		border-top: 1px solid var(--bd);
+		margin: 0.625rem 0;
+	}
+
+	/* ── User message text ── */
 
 	.user-text {
 		color: var(--tx-bright);
 		white-space: pre-wrap;
-		font-size: 1.1rem;
+		font-size: 1rem;
+		line-height: 1.5;
 	}
 
-	/* ── Collapsible user message ── */
+	/* ── Collapsible user message (7 lines) ── */
 	.turn-body-user {
-		max-height: 18rem;
+		max-height: calc(1.5em * 7);
 		overflow: hidden;
 		position: relative;
 	}
 
-	.user-overlay {
-		position: relative;
-		height: 2rem;
-		width: 100%;
-		display: flex;
-		align-items: center;
-	}
-
-	.user-overlay:not(.user-overlay-hidden) {
-		background: var(--bg-deep);
-		position: absolute;
-		bottom: 0;
-		left: 0;
-		padding: .5rem 0rem;
-	}
-
-	.user-overlay-hidden {
-		margin-top: 1rem;
-		height: auto;
+	.turn-body-user.turn-body-expanded {
+		max-height: none;
 	}
 
 	.expand-btn {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.25rem;
 		background: none;
 		border: none;
-		color: var(--tx);
-		font-size: 0.8125rem;
+		color: var(--tx-dim);
+		font-size: 0.75rem;
 		font-family: inherit;
 		cursor: pointer;
-		padding: 0 0.25rem;
-		transition: color .1s;
+		padding: 0.375rem 0;
+		transition: color 0.1s;
 	}
 
 	.expand-btn:hover {

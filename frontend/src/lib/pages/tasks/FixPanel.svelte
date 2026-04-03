@@ -6,7 +6,7 @@
 	import { addLog } from '$lib/stores/logStore.js';
 	import FixChat from '$lib/ui/FixChat.svelte';
 
-	let { task = '' } = $props();
+	let { task = '', modelOverride = '' } = $props();
 
 	const TAB_ROLES = {
 		constitution: null,
@@ -40,8 +40,8 @@
 		return api.loadFixConversation(task);
 	}
 
-	function sendMessageFn(text, history, signal, scopePaths) {
-		return api.sendFix(task, text, history, scopePaths, signal);
+	function sendMessageFn(text, history, signal, scopePaths, override) {
+		return api.sendFix(task, text, history, scopePaths, signal, override);
 	}
 
 	function applyFileFn(filepath, content) {
@@ -52,8 +52,8 @@
 		return api.clearFixConversation(task);
 	}
 
-	function fixFromIssuesFn(issueIds, conversation, signal, scopePaths) {
-		return api.fixFromIssues(task, issueIds, conversation, scopePaths, signal);
+	function fixFromIssuesFn(issueIds, conversation, signal, scopePaths, override) {
+		return api.fixFromIssues(task, issueIds, conversation, scopePaths, signal, override);
 	}
 
 	function onSendSuccess() {
@@ -63,6 +63,7 @@
 
 <FixChat
 	{modelDisplay}
+	{modelOverride}
 	prefillEvent="skaro:prefill-fix"
 	fixFromIssuesEvent="skaro:fix-from-issues"
 	errorSource="fix"

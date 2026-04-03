@@ -2,6 +2,7 @@
 
 from skaro_web.api.architecture import router as architecture_router
 from skaro_web.api.autopilot import router as autopilot_router
+from skaro_web.api.chat import router as chat_router
 from skaro_web.api.config import router as config_router
 from skaro_web.api.constitution import router as constitution_router
 from skaro_web.api.devplan import router as devplan_router
@@ -23,6 +24,7 @@ all_routers = [
     tasks_router,
     feature_router,
     review_router,
+    chat_router,
     config_router,
     git_router,
     autopilot_router,

@@ -5,6 +5,7 @@
 	import { status } from '$lib/stores/statusStore.js';
 	import { addLog, addError } from '$lib/stores/logStore.js';
 	import { cachedFetch, invalidate } from '$lib/api/cache.js';
+	import { setChatContextMeta, clearChatContextMeta } from '$lib/stores/chatPanelStore.js';
 	import { FolderOpen, AlertTriangle, Loader2, Plus, ChevronLeft, Pencil, Sparkles, ClipboardList } from 'lucide-svelte';
 	import MarkdownContent from '$lib/ui/MarkdownContent.svelte';
 	import MdEditor from '$lib/ui/md-editor/MdEditor.svelte';
@@ -32,6 +33,15 @@
 	let changingStatus = $state(null);
 
 	let hasArchitecture = $derived($status?.has_architecture && $status?.architecture_reviewed);
+
+	// Sync selected ADR with chat panel context.
+	$effect(() => {
+		if (selectedAdr?.number) {
+			setChatContextMeta({ adrNumber: selectedAdr.number });
+		} else {
+			clearChatContextMeta();
+		}
+	});
 
 	onMount(() => { load(); });
 

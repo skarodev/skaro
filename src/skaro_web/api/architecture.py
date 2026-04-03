@@ -88,6 +88,8 @@ async def arch_chat(
     from skaro_core.phases.base import CancelledByClientError
 
     phase = ArchitecturePhase(project_root=project_root)
+    if payload.provider_override and payload.model_override:
+        phase.set_model_override(payload.provider_override, payload.model_override)
     try:
         async with llm_phase(ws, "architecture-chat", phase, request=request):
             result = await phase.chat(

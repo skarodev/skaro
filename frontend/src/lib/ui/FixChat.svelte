@@ -39,7 +39,15 @@
 		onSendSuccess = () => {},
 		errorSource = 'fix',
 		autoLoad = true,
+		modelOverride = '',
 	} = $props();
+
+	const ALLOWED_EXTENSIONS = new Set([
+		'.py','.js','.ts','.jsx','.tsx','.go','.rs','.java','.rb','.c','.cpp','.h','.hpp',
+		'.cs','.swift','.kt','.php','.lua','.r','.html','.css','.scss','.less','.vue',
+		'.svelte','.json','.yaml','.yml','.toml','.ini','.xml','.env','.conf','.md','.txt',
+		'.rst','.csv','.sql','.sh','.bat','.ps1','.dockerfile','.tf','.proto',
+	]);
 
 	let message = $state('');
 	let loading = $state(false);
@@ -55,6 +63,49 @@
 	let fileTree = $state([]);
 	let showScopeModal = $state(false);
 	let treeLoaded = $state(false);
+
+	// Attached files from disk
+	let attachedFiles = $state([]);
+	/** @type {HTMLInputElement | null} */
+	let fileInputEl = $state(null);
+
+	function handleAttachFromDisk() {
+		fileInputEl?.click();
+	}
+
+	function handleAttachFromRepo() {
+		openScopeModal();
+	}
+
+	async function handleFileInputChange(e) {
+		const files = e.target?.files;
+		if (!files?.length) return;
+
+		for (const file of files) {
+			const ext = '.' + file.name.split('.').pop()?.toLowerCase();
+			if (!ALLOWED_EXTENSIONS.has(ext)) {
+				addError(`Unsupported file type: ${file.name}`, errorSource);
+				continue;
+			}
+			try {
+				const content = await readFileAsText(file);
+				attachedFiles = [...attachedFiles, { name: file.name, content }];
+			} catch {
+				addError(`Failed to read: ${file.name}`, errorSource);
+			}
+		}
+		// Reset input so the same file can be re-selected.
+		if (fileInputEl) fileInputEl.value = '';
+	}
+
+	function readFileAsText(file) {
+		return new Promise((resolve, reject) => {
+			const reader = new FileReader();
+			reader.onload = () => resolve(reader.result);
+			reader.onerror = () => reject(new Error('Read failed'));
+			reader.readAsText(file);
+		});
+	}
 
 	/** @type {AbortController | null} */
 	let abortController = $state(null);
@@ -115,7 +166,7 @@
 			const history = conversation.slice(0, -1).map((turn) => ({
 				role: turn.role, content: turn.content,
 			}));
-			const result = await fixFromIssuesFn(issueIds, history, controller.signal, scopePaths);
+			const result = await fixFromIssuesFn(issueIds, history, controller.signal, scopePaths, modelOverride);
 			if (result.success) {
 				conversation = [...conversation, {
 					role: 'assistant', content: result.message,
@@ -207,6 +258,18 @@
 		const text = message.trim();
 		if (!text || loading) return;
 		loading = true;
+
+		// Build message with attached files prepended.
+		let fullMessage = text;
+		if (attachedFiles.length > 0) {
+			const fileParts = attachedFiles.map(f =>
+				`--- ATTACHED FILE: ${f.name} ---\n${f.content}\n--- END ATTACHED FILE ---`
+			);
+			fullMessage = fileParts.join('\n\n') + '\n\n' + text;
+			// Clear attached files after sending.
+			attachedFiles = [];
+		}
+
 		message = '';
 		conversation = [...conversation, { role: 'user', content: text }];
 
@@ -215,7 +278,7 @@
 
 		try {
 			const history = conversation.slice(0, -1).map((turn) => ({ role: turn.role, content: turn.content }));
-			const result = await sendMessageFn(text, history, controller.signal, scopePaths);
+			const result = await sendMessageFn(fullMessage, history, controller.signal, scopePaths, modelOverride);
 			if (result.success) {
 				conversation = [...conversation, {
 					role: 'assistant', content: result.message,
@@ -344,15 +407,26 @@
 		bind:message
 		{loading}
 		{tokenDisplay}
-		{modelDisplay}
 		{placeholder}
-		showScope={scopeEnabled}
+		showAttach={scopeEnabled}
 		scopeCount={scopePaths.length}
+		attachedFileCount={attachedFiles.length}
 		onSend={sendMessage}
 		onCancel={cancelRequest}
-		onScopeClick={openScopeModal}
+		onAttachFromDisk={handleAttachFromDisk}
+		onAttachFromRepo={handleAttachFromRepo}
 	/>
 </div>
+
+<!-- Hidden file input for disk file selection -->
+<input
+	type="file"
+	multiple
+	accept=".py,.js,.ts,.jsx,.tsx,.go,.rs,.java,.rb,.c,.cpp,.h,.hpp,.cs,.swift,.kt,.php,.lua,.r,.html,.css,.scss,.less,.vue,.svelte,.json,.yaml,.yml,.toml,.ini,.xml,.env,.conf,.md,.txt,.rst,.csv,.sql,.sh,.bat,.ps1,.dockerfile,.tf,.proto"
+	bind:this={fileInputEl}
+	onchange={handleFileInputChange}
+	style="display: none;"
+/>
 
 <style>
 	.fix-conversation { padding-bottom: 1rem; }

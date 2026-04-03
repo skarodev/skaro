@@ -3,14 +3,7 @@
 	import { page } from '$app/stores';
 	import { status } from '$lib/stores/statusStore.js';
 	import { chatPanelOpen, toggleChatPanel } from '$lib/stores/chatPanelStore.js';
-	import { Zap, MessageSquare, PanelRightClose, PanelRightOpen } from 'lucide-svelte';
-
-	function formatTokens(n) {
-		if (!n || n === 0) return '0';
-		if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + 'M';
-		if (n >= 1_000) return Math.round(n / 1_000) + 'k';
-		return String(n);
-	}
+	import { MessageSquare, PanelRightClose, PanelRightOpen } from 'lucide-svelte';
 
 	/** Map of route segment → i18n key. Covers every sidebar entry. */
 	const NAV_KEYS = {
@@ -28,16 +21,13 @@
 	};
 
 	/** Pages that have a chat context available. */
-	const CHAT_PAGES = new Set(['architecture', 'review']);
+	const NO_CHAT_PAGES = new Set(['dashboard', 'git', 'settings', 'about']);
 
 	/** Check if current page supports chat panel. */
 	let hasChatContext = $derived.by(() => {
 		const parts = $page.url.pathname.split('/').filter(Boolean);
-		const section = parts[0];
-		if (CHAT_PAGES.has(section)) return true;
-		if (section === 'tasks' && parts[1]) return true;
-		if (section === 'features' && parts[1]) return true;
-		return false;
+		const section = parts[0] || 'dashboard';
+		return !NO_CHAT_PAGES.has(section);
 	});
 
 	let projectName = $derived($status?.project_name || '');
@@ -92,23 +82,22 @@
 		{/each}
 	</nav>
 	{/if}
-	<div class="tokens">
-		<Zap size={11} />
-		<span>Tokens: {formatTokens($status?.tokens?.total_tokens)}</span>
-	</div>
 	{#if hasChatContext}
-		<button
-			class="chat-toggle"
-			class:active={$chatPanelOpen}
-			onclick={toggleChatPanel}
-			title={$t('chat_panel.toggle')}
-		>
-			{#if $chatPanelOpen}
-				<PanelRightClose size={16} strokeWidth={1.5} />
-			{:else}
-				<PanelRightOpen size={16} strokeWidth={1.5} />
-			{/if}
-		</button>
+		<div class="chat-area">
+			<span class="chat-label">{$t('chat_panel.label')}</span>
+			<button
+				class="chat-toggle"
+				class:active={$chatPanelOpen}
+				onclick={toggleChatPanel}
+				title={$t('chat_panel.toggle')}
+			>
+				{#if $chatPanelOpen}
+					<PanelRightClose size={16} strokeWidth={1.5} />
+				{:else}
+					<PanelRightOpen size={16} strokeWidth={1.5} />
+				{/if}
+			</button>
+		</div>
 	{/if}
 </div>
 
@@ -154,14 +143,19 @@
 		color: var(--tx);
 	}
 
-	.tokens {
+	.chat-area {
 		margin-left: auto;
 		display: flex;
 		align-items: center;
-		gap: 0.1875rem;
-		color: var(--warn);
+		gap: 0.25rem;
+		flex-shrink: 0;
+	}
+
+	.chat-label {
+		font-size: 0.8125rem;
+		color: var(--tx-dim);
 		font-family: var(--font-ui);
-		font-size: 0.6875rem;
+		white-space: nowrap;
 	}
 
 	.chat-toggle {
@@ -176,7 +170,6 @@
 		cursor: pointer;
 		border-radius: var(--r2);
 		flex-shrink: 0;
-		margin-left: 0.5rem;
 		transition: color .12s, background .12s;
 	}
 

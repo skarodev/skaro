@@ -7,7 +7,7 @@
 	import FixChat from '$lib/ui/FixChat.svelte';
 	import FeatureProposal from '$lib/pages/features/FeatureProposal.svelte';
 
-	let { slug = '', isDraft: isDraftProp = null, onConfirmed = () => {} } = $props();
+	let { slug = '', isDraft: isDraftProp = null, onConfirmed = () => {}, modelOverride = '' } = $props();
 
 	let proposal = $state(null);
 	let confirming = $state(false);
@@ -28,8 +28,8 @@
 		return api.getFeatureConversation(slug);
 	}
 
-	function sendMessageFn(text, history, signal, scopePaths) {
-		return api.sendFeatureChat(slug, text, history, scopePaths, signal);
+	function sendMessageFn(text, history, signal, scopePaths, override) {
+		return api.sendFeatureChat(slug, text, history, scopePaths, signal, override);
 	}
 
 	function applyFileFn() {
@@ -122,6 +122,7 @@
 
 <FixChat
 	{modelDisplay}
+	{modelOverride}
 	placeholder={isDraft ? $t('feature.chat_placeholder_draft') : $t('feature.chat_placeholder')}
 	errorSource="feature"
 	scopeEnabled={true}
