@@ -79,16 +79,6 @@
 	/** DnD is available when status filter is "all" (so ordering is unambiguous). */
 	let canReorder = $derived(statusFilter === 'all');
 
-	/** Simplified status of a task for connector line colours. */
-	function getItemStatus(task) {
-		if (isTaskDone(task)) return 'done';
-		const ph = task.phases || {};
-		const hasProgress = Object.values(ph).some(
-			(s) => s === 'complete' || s === 'in_progress' || s === 'draft' || s === 'awaiting_review'
-		);
-		return hasProgress ? 'active' : 'pending';
-	}
-
 	function formatMilestone(slug) {
 		return (slug || '')
 			.replace(/^\d+-/, '')
@@ -257,8 +247,6 @@
 					{@const isDragging = dragIndex === i}
 					{@const isOver = overIndex === i && dragIndex !== i}
 					{@const sameMilestone = dragMilestone === '' || task.milestone === dragMilestone}
-					{@const prevSt = i > 0 ? getItemStatus(filteredTasks[i - 1]) : 'pending'}
-					{@const nextSt = i < filteredTasks.length - 1 ? getItemStatus(filteredTasks[i + 1]) : 'pending'}
 					<div
 						class="drag-wrapper"
 						class:drag-active={isDragging}
@@ -282,8 +270,6 @@
 								href="/tasks/{encodeURIComponent(task.name)}"
 								isFirst={i === 0}
 								isLast={i === filteredTasks.length - 1}
-								prevStatus={prevSt}
-								nextStatus={nextSt}
 							/>
 						</div>
 					</div>

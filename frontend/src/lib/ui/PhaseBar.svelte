@@ -43,7 +43,7 @@
         {@const Icon = phase.icon}
         <div class="phase-cell">
             {#if i < phaseKeys.length - 1}
-                <div class="phase-line" style="background: linear-gradient(to right, {statusColor(status)}, {statusColor(nextStatus)})"></div>
+                <div class="phase-line" style="background: linear-gradient(to right, {statusColor(status)} 50%, {statusColor(nextStatus)} 50%)"></div>
             {/if}
             <div class="dot {cls}">
                 {#if cls === 'ok'}
@@ -79,7 +79,7 @@
         top: 0.6875rem;
         left: 50%;
         right: -50%;
-        height: 0.125rem;
+        height: 0.2rem;
         background: var(--bg-deep);
         z-index: 0;
         transition: background .2s;
@@ -93,7 +93,7 @@
         width: 1.5rem;
         height: 1.5rem;
         border-radius: 50%;
-        border: 0.125rem solid var(--bg-high);
+        border: 0.125rem solid var(--bg-deep);
         flex-shrink: 0;
         position: relative;
         z-index: 1;
@@ -101,7 +101,7 @@
         align-items: center;
         justify-content: center;
         color: var(--tx);
-        background: var(--bg-high);
+        background: var(--bg-deep);
         transition: all .2s;
     }
 

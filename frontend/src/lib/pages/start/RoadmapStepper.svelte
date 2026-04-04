@@ -257,7 +257,7 @@
 		font-size: 0.625rem;
 		font-weight: 500;
 		padding: 0.0625rem 0.4375rem;
-		border-radius: 0.625rem;
+		border-radius: var(--r);
 		text-transform: uppercase;
 		letter-spacing: 0.03em;
 		white-space: nowrap;

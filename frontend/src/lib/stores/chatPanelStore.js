@@ -15,7 +15,7 @@ const MAX_WIDTH_VW = 0.5; // 50vw
 
 function getDefaultWidth() {
 	try {
-		return Math.max(Math.round(window.innerWidth * 0.33), MIN_WIDTH);
+		return Math.max(Math.round(window.innerWidth * 0.40), MIN_WIDTH);
 	} catch {
 		return DEFAULT_WIDTH_FALLBACK;
 	}

@@ -12,8 +12,6 @@
 	 *   href: string,
 	 *   isFirst?: boolean,
 	 *   isLast?: boolean,
-	 *   prevStatus?: string,
-	 *   nextStatus?: string,
 	 * }}
 	 */
 	let {
@@ -21,18 +19,30 @@
 		href,
 		isFirst = false,
 		isLast = false,
-		prevStatus = 'pending',
-		nextStatus = 'pending',
 	} = $props();
+
+	/** Task-level phase order for display (excludes project-level constitution/architecture). */
+	const TASK_PHASES = ['clarify', 'plan', 'implement', 'tests'];
 
 	/** Whether all meaningful phases are complete. */
 	let allComplete = $derived(
 		task.phases &&
 			Object.keys(task.phases).length > 0 &&
-			['clarify', 'plan', 'implement', 'tests'].every(
-				(k) => task.phases[k] === 'complete'
-			)
+			TASK_PHASES.every((k) => task.phases[k] === 'complete')
 	);
+
+	/**
+	 * First incomplete task-level phase.
+	 * Ignores constitution/architecture which are project-global.
+	 */
+	let displayPhase = $derived.by(() => {
+		if (allComplete) return 'done';
+		const ph = task.phases || {};
+		for (const key of TASK_PHASES) {
+			if (ph[key] !== 'complete') return key;
+		}
+		return 'clarify';
+	});
 
 	/** Simplified status: 'done' | 'active' | 'pending'. */
 	let itemStatus = $derived.by(() => {
@@ -44,10 +54,10 @@
 		return hasProgress ? 'active' : 'pending';
 	});
 
-	/** Animated icon component based on current_phase. */
+	/** Animated icon component based on displayPhase. */
 	let PhaseIcon = $derived.by(() => {
 		if (allComplete) return null; // done uses CheckCircle2 directly
-		switch (task.current_phase) {
+		switch (displayPhase) {
 			case 'clarify':
 				return SparklesAnimated;
 			case 'plan':
@@ -63,7 +73,7 @@
 
 	/** Phase label for the badge. */
 	let phaseLabel = $derived(
-		allComplete ? $t('phase.done') : $t('phase.' + (task.current_phase || 'clarify'))
+		allComplete ? $t('phase.done') : $t('phase.' + displayPhase)
 	);
 
 	/** Badge variant class. */
@@ -97,7 +107,7 @@
 	{#if !isFirst}
 		<div
 			class="tl-line tl-line-top"
-			style="background: linear-gradient(to bottom, {statusColor(prevStatus)}, {statusColor(itemStatus)})"
+			style="background: {statusColor(itemStatus)}"
 		></div>
 	{/if}
 
@@ -105,7 +115,7 @@
 	{#if !isLast}
 		<div
 			class="tl-line tl-line-bottom"
-			style="background: linear-gradient(to bottom, {statusColor(itemStatus)}, {statusColor(nextStatus)})"
+			style="background: {statusColor(itemStatus)}"
 		></div>
 	{/if}
 
@@ -270,7 +280,7 @@
 		font-size: 0.625rem;
 		font-weight: 500;
 		padding: 0.0625rem 0.4375rem;
-		border-radius: 0.625rem;
+		border-radius: var(--r);
 		text-transform: uppercase;
 		letter-spacing: 0.03em;
 		white-space: nowrap;
