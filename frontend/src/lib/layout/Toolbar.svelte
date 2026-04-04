@@ -7,7 +7,7 @@
 
 	/** Map of route segment → i18n key. Covers every sidebar entry. */
 	const NAV_KEYS = {
-		dashboard: 'nav.dashboard',
+		start: 'nav.start',
 		constitution: 'nav.constitution',
 		architecture: 'nav.architecture',
 		adr: 'nav.adr',
@@ -21,12 +21,12 @@
 	};
 
 	/** Pages that have a chat context available. */
-	const NO_CHAT_PAGES = new Set(['dashboard', 'git', 'settings', 'about']);
+	const NO_CHAT_PAGES = new Set(['start', 'git', 'settings', 'about']);
 
 	/** Check if current page supports chat panel. */
 	let hasChatContext = $derived.by(() => {
 		const parts = $page.url.pathname.split('/').filter(Boolean);
-		const section = parts[0] || 'dashboard';
+		const section = parts[0] || 'start';
 		return !NO_CHAT_PAGES.has(section);
 	});
 
@@ -34,7 +34,7 @@
 
 	let currentTab = $derived.by(() => {
 		const parts = $page.url.pathname.split('/').filter(Boolean);
-		return parts[0] || 'dashboard';
+		return parts[0] || 'start';
 	});
 
 	/**
@@ -43,7 +43,7 @@
 	 */
 	let crumbs = $derived.by(() => {
 		const parts = $page.url.pathname.split('/').filter(Boolean);
-		const section = parts[0] || 'dashboard';
+		const section = parts[0] || 'start';
 		const navKey = NAV_KEYS[section];
 		const sectionLabel = navKey ? $t(navKey) : section;
 
@@ -65,13 +65,13 @@
 </script>
 
 <div class="toolbar-strip">
-	{#if currentTab === 'dashboard'}
+	{#if currentTab === 'start'}
 	<div class="project-title">
 		{projectName || 'Skaro'}
 	</div>
 	{:else}
 	<nav class="breadcrumb" aria-label="Breadcrumb">
-		<a class="crumb" href="/dashboard">{projectName || 'Skaro'}</a>
+		<a class="crumb" href="/start">{projectName || 'Skaro'}</a>
 		{#each crumbs as crumb}
 			<span class="sep">›</span>
 			{#if crumb.href}
@@ -106,12 +106,13 @@
 		height: 2.875rem;
 		display: flex;
 		align-items: center;
-		padding: 0 1rem;
-		font-size: 0.9375rem;
+		padding: 0 1.5rem;
+		font-size: 0.9rem;
 		color: var(--tx-dim);
 		gap: 0.25rem;
 		flex-shrink: 0;
         border-bottom: solid 1px var(--bd);
+        background: var(--bg-soft);
 	}
 
 	.breadcrumb {

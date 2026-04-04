@@ -18,7 +18,7 @@
 	const STORAGE_KEY = 'skaro:sidebar-collapsed';
 
 	const mainTabs = [
-		{ id: 'dashboard', icon: LayoutGridAnimated, labelKey: 'nav.start' },
+		{ id: 'start', icon: LayoutGridAnimated, labelKey: 'nav.start' },
 		{ id: 'constitution', icon: FileTextAnimated, labelKey: 'nav.constitution' },
 		{ id: 'architecture', icon: LayersAnimated, labelKey: 'nav.architecture' },
 		{ id: 'adr', icon: FolderOpenCrossfade, labelKey: 'nav.adr' },
@@ -52,7 +52,7 @@
 	}
 
 	function isActive(tabId) {
-		if (tabId === 'dashboard') return currentPath === '/' || currentPath === '/dashboard';
+		if (tabId === 'start') return currentPath === '/start';
 		if (tabId === 'constitution') return currentPath === '/constitution';
 		return currentPath === '/' + tabId || currentPath.startsWith('/' + tabId + '/');
 	}

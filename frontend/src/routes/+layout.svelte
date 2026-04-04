@@ -25,7 +25,7 @@
 
 	// ── Dynamic browser title ──
 	const TAB_NAV_KEYS = {
-		dashboard: 'nav.start',
+		start: 'nav.start',
 		constitution: 'nav.constitution',
 		architecture: 'nav.architecture',
 		adr: 'nav.adr',
@@ -41,7 +41,7 @@
 
 	let pageTitle = $derived.by(() => {
 		const parts = $page.url.pathname.split('/').filter(Boolean);
-		const section = parts[0] || 'dashboard';
+		const section = parts[0] || 'start';
 		const navKey = TAB_NAV_KEYS[section];
 		const label = navKey ? $t(navKey) : section;
 		if (section === 'tasks' && parts[1]) {

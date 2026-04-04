@@ -152,7 +152,6 @@
 
 <div class="main-header">
 	<h2>
-		<Layers size={24} />
 		{$t('arch.title')}
 		{#if data?.has_architecture}
 			{#if data.architecture_reviewed}

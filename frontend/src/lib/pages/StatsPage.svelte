@@ -24,7 +24,7 @@
 </script>
 
 <div class="main-header">
-	<h2><BarChart3 size={24} /> {$t('stats.title')}</h2>
+	<h2>{$t('stats.title')}</h2>
 	<p>{$t('stats.subtitle')}</p>
 </div>
 

@@ -129,7 +129,7 @@
 </script>
 
 <div class="main-header">
-	<h2><FolderOpen size={24} /> {$t('adr.title')}</h2>
+	<h2>{$t('adr.title')}</h2>
 	<p>{$t('adr.subtitle')}</p>
 </div>
 

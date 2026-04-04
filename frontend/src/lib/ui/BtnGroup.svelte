@@ -23,7 +23,8 @@
 				{@render item(it, active)}
 			{:else}
 				{#if it.icon}
-					<svelte:component this={it.icon} size={14} />
+					{@const Icon = it.icon}
+					<Icon size={14} />
 				{/if}
 				{it.label}
 			{/if}
@@ -45,7 +46,7 @@
 		display: inline-flex;
 		align-items: center;
 		gap: 0.375rem;
-		padding: 0.25rem 0.75rem;
+		padding: 0.35rem 0.75rem;
 		border: none;
 		border-radius: var(--r);
 		background: transparent;

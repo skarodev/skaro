@@ -5,6 +5,7 @@
 	import { addError } from '$lib/stores/logStore.js';
 	import { cachedFetch } from '$lib/api/cache.js';
 	import { Rocket } from 'lucide-svelte';
+	import ProjectIcon from '$lib/ui/icons/ProjectIcon.svelte';
 	import RoadmapStepper from './start/RoadmapStepper.svelte';
 	import ProjectProgress from './start/ProjectProgress.svelte';
 	import GitStatusCard from './start/GitStatusCard.svelte';
@@ -20,7 +21,7 @@
 
 	onMount(async () => {
 		try {
-			data = await cachedFetch('dashboard', () => api.getDashboard());
+			data = await cachedFetch('start', () => api.getDashboard());
 		} catch (e) { error = e.message; addError(e.message, 'start'); }
 		loading = false;
 	});
@@ -52,6 +53,10 @@
 	{#if isEarlyStage}
 		<!-- ═══ Variant A: Early-stage roadmap ═══ -->
 		<div class="start-early">
+			<div class="start-brand">
+				<ProjectIcon size={39} />
+				<span class="start-brand-name">Skaro</span>
+			</div>
 			<div class="start-header">
 				<h2><Rocket size={22} /> {$t('start.welcome')}</h2>
 				<p class="start-subtitle">{$t('start.welcome_desc')}</p>
@@ -80,6 +85,25 @@
 
 	.start-early {
 		max-width: 40rem;
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		min-height: calc(100vh - 10rem);
+	}
+
+	.start-brand {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 0.5rem;
+		margin-bottom: 3rem;
+		color: var(--tx-bright);
+	}
+
+	.start-brand-name {
+		font-size: 1.7rem;
+		font-weight: 600;
+        color: var(--tx);
 	}
 
 	.start-header {

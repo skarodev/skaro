@@ -231,7 +231,7 @@
 		flex-direction: column;
 		flex-shrink: 0;
 		height: 100%;
-		background: var(--bg-deep);
+		background: var(--bg-soft);
 		border-left: 1px solid var(--bd);
 		position: relative;
 		min-width: 0;

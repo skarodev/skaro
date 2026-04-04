@@ -6,18 +6,15 @@
 	import FolderOpenCrossfade from '$lib/ui/icons/FolderOpenCrossfade.svelte';
 	import MapFoldFlipAnimated from '$lib/ui/icons/MapFoldFlipAnimated.svelte';
 	import PackageOpenAnimated from '$lib/ui/icons/PackageOpenAnimated.svelte';
-	import ShieldCheckAnimated from '$lib/ui/icons/ShieldCheckAnimated.svelte';
 
 	let { status } = $props();
 
-	let allTasksDone = $derived.by(() => {
-		const tasks = status?.tasks;
-		if (!tasks || tasks.length === 0) return false;
-		return tasks.every(f => f.phases?.tests === 'complete');
-	});
-
 	let steps = $derived.by(() => {
 		if (!status?.initialized) return [];
+
+		const tasks = status.tasks ?? [];
+		const allTasksDone = tasks.length > 0 && tasks.every(f => f.phases?.tests === 'complete');
+
 		return [
 			{
 				id: 'constitution',
@@ -51,21 +48,21 @@
 				id: 'tasks',
 				icon: PackageOpenAnimated,
 				done: allTasksDone,
-				active: (status.tasks?.length || 0) > 0 && !allTasksDone,
+				active: tasks.length > 0 && !allTasksDone,
 				href: '/tasks',
-			},
-			{
-				id: 'review',
-				icon: ShieldCheckAnimated,
-				done: status.review_passed === true,
-				active: allTasksDone && status.review_passed !== true,
-				href: '/review',
 			},
 		];
 	});
 
 	/** Index of first incomplete step — used for "current" highlight */
 	let currentIdx = $derived(steps.findIndex(s => !s.done));
+
+	/** Map step status to its connector colour */
+	function statusColor(step) {
+		if (step.done) return 'var(--ok)';
+		if (step.active) return 'var(--warn)';
+		return 'var(--bd)';
+	}
 </script>
 
 <div class="roadmap">
@@ -79,9 +76,20 @@
 			class:current={isCurrent}
 			href={step.href}
 		>
-			<!-- Connector line (above, except first) -->
+			<!-- Connector line above marker (from previous step) -->
 			{#if i > 0}
-				<div class="rm-line" class:rm-line-done={steps[i - 1].done}></div>
+				<div
+					class="rm-line rm-line-top"
+					style="background: linear-gradient(to bottom, {statusColor(steps[i - 1])}, {statusColor(step)})"
+				></div>
+			{/if}
+
+			<!-- Connector line below marker (to next step) -->
+			{#if i < steps.length - 1}
+				<div
+					class="rm-line rm-line-bottom"
+					style="background: linear-gradient(to bottom, {statusColor(step)}, {statusColor(steps[i + 1])})"
+				></div>
 			{/if}
 
 			<div class="rm-marker">
@@ -133,6 +141,7 @@
 		align-items: flex-start;
 		gap: 1rem;
 		padding: 1rem 1.25rem;
+		border: 1px solid transparent;
 		border-radius: var(--r);
 		text-decoration: none;
 		transition: background .15s;
@@ -146,26 +155,28 @@
 
 	.rm-step.current {
 		background: color-mix(in srgb, var(--ac) 6%, transparent);
-		border: 1px solid color-mix(in srgb, var(--ac) 20%, transparent);
+		border-color: color-mix(in srgb, var(--ac) 20%, transparent);
 	}
 
-	/* ── Vertical connector line ── */
+	/* ── Vertical connector lines ── */
 
 	.rm-line {
 		position: absolute;
-		left: 2.1rem;
-		top: -0.5rem;
-		bottom: calc(100% - 1rem);
+		/* centre on marker: padding-left + half marker width − half line width */
+		left: calc(1.25rem + 1.625rem / 2 - 1px);
 		width: 2px;
-		height: 1rem;
-		background: var(--bd);
 		z-index: 0;
-		top: 0;
-		height: 1rem;
+		transition: background .2s;
 	}
 
-	.rm-line.rm-line-done {
-		background: var(--ok);
+	.rm-line-top {
+		top: 0;
+		height: calc(1rem + 0.125rem);
+	}
+
+	.rm-line-bottom {
+		top: calc(1rem + 0.125rem + 1.375rem);
+		bottom: 0;
 	}
 
 	/* ── Marker circle ── */

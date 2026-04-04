@@ -136,8 +136,8 @@
 	/* ── Turn text (assistant markdown) ── */
 
 	.turn-text {
-		font-size: 1rem;
-		line-height: 1.65;
+		font-size: .9rem;
+		line-height: 1.5;
 		color: var(--tx);
 	}
 
@@ -180,13 +180,13 @@
 		border-radius: var(--r);
 		padding: 0 0.2rem;
 		color: var(--ac);
-		font-size: 1rem;
+		font-size: .9rem;
 		border: solid 1px rgb(from var(--ac) r g b / 0.15);
 	}
 
 	.turn-text :global(pre) {
 		position: relative;
-		background: var(--bg-soft);
+		background: var(--bg-deep);
 		border: none;
 		border-radius: var(--r);
 		padding: 0.75rem 1rem;

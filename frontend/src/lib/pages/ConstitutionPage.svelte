@@ -69,7 +69,6 @@
 
 <div class="main-header">
 	<h2>
-		<FileText size={24} />
 		{$t('const.title')}
 		{#if data?.has_constitution}
 			{#if isValidated}

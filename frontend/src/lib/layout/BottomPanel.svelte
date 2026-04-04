@@ -34,7 +34,7 @@
 	}
 
 	let storedCollapsed = $state(readStored());
-	let dashboardOverride = $state(/** @type {boolean|null} */ (null));
+	let startOverride = $state(/** @type {boolean|null} */ (null));
 	let savedHeight = $state(200);
 
 	// ── LLM auto-open/close ──
@@ -91,10 +91,10 @@
 
 	let currentTab = $derived.by(() => {
 		const parts = $page.url.pathname.split('/').filter(Boolean);
-		return parts[0] || 'dashboard';
+		return parts[0] || 'start';
 	});
 
-	let onDashboard = $derived(currentTab === 'dashboard');
+	let onStartPage = $derived(currentTab === 'start');
 
 	function getRoleInfo(s, tab) {
 		if (!s?.config) return '—';
@@ -118,7 +118,7 @@
 
 	$effect(() => {
 		if (currentTab !== prevTab) {
-			dashboardOverride = null;
+			startOverride = null;
 			prevTab = currentTab;
 		}
 	});
@@ -126,8 +126,8 @@
 	let collapsed = $derived(
 		llmOverride !== null
 			? llmOverride
-			: (onDashboard
-				? (dashboardOverride !== null ? dashboardOverride : true)
+			: (onStartPage
+				? (startOverride !== null ? startOverride : true)
 				: storedCollapsed)
 	);
 
@@ -152,7 +152,7 @@
 	function switchPane(pane) {
 		activePane = pane;
 		if (collapsed) {
-			if (onDashboard) dashboardOverride = false;
+			if (onStartPage) startOverride = false;
 			else { storedCollapsed = false; writeStored(false); }
 		}
 	}
@@ -160,8 +160,8 @@
 	function toggle() {
 		llmOverride = null;
 		const next = !collapsed;
-		if (onDashboard) {
-			dashboardOverride = next;
+		if (onStartPage) {
+			startOverride = next;
 		} else {
 			storedCollapsed = next;
 			writeStored(next);
@@ -276,8 +276,8 @@
 		display: flex;
 		align-items: center;
 		height: 1.75rem;
-		background: var(--sf);
-		border-bottom: 0.0625rem solid var(--bd);
+		background: var(--bg-soft);
+		border-bottom: 0.0625rem solid var(--bg-soft);
 		flex-shrink: 0;
 		padding: 0 0.25rem;
 		user-select: none;

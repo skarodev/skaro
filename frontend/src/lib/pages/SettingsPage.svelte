@@ -161,7 +161,7 @@
 
 <div class="page-with-tabs">
 	<div class="main-header">
-		<h2><Settings size={24} /> {$t('settings.title')}</h2>
+		<h2>{$t('settings.title')}</h2>
 		<p>{$t('settings.subtitle')}</p>
 	</div>
 

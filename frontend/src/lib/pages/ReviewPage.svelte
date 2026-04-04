@@ -51,7 +51,7 @@
 </script>
 
 <div class="main-header">
-	<h2><ShieldCheck size={24} /> {$t('review.title')}</h2>
+	<h2>{$t('review.title')}</h2>
 	<p>{$t('review.subtitle')}</p>
 </div>
 

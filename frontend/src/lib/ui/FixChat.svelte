@@ -434,7 +434,7 @@
 	.fix-bar {
 		position: absolute; bottom: 0;
         width: calc(100% - 4rem);
-		background: linear-gradient(to bottom, transparent, var(--bg-deep));
+		background: linear-gradient(to bottom, transparent, var(--bg-soft));
 		padding: 0; z-index: 10;
 	}
 

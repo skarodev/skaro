@@ -131,7 +131,6 @@
 
 		<div class="main-header">
 			<h2>
-				<span class="status-icon"><Sparkles size={24} /></span>
 				{displayTitle}
 			</h2>
 			<span class="badge {statusBadgeClass(feature.status)}">

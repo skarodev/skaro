@@ -19,7 +19,7 @@
 
 	let currentTab = $derived.by(() => {
 		const parts = $page.url.pathname.split('/').filter(Boolean);
-		return parts[0] || 'dashboard';
+		return parts[0] || 'start';
 	});
 
 	function getRoleInfo(s, tab) {

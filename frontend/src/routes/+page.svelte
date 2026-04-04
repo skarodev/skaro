@@ -1,5 +1,1 @@
-<script>
-	import StartPage from '$lib/pages/StartPage.svelte';
-</script>
-
-<StartPage />
+<!-- Redirect to /start is handled by +page.js -->

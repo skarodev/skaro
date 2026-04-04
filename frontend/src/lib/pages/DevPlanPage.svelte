@@ -117,7 +117,6 @@
 
 <div class="main-header">
 	<h2>
-		<Map size={24} />
 		{$t('devplan.title')}
 		{#if hasDevplan}
 			{#if devplanConfirmed}

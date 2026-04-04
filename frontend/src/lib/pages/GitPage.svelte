@@ -202,7 +202,7 @@
 
 <div class="page-with-tabs">
 	<div class="main-header">
-		<h2><GitBranch size={24} /> {$t('git.title')}</h2>
+		<h2>{$t('git.title')}</h2>
 		<p>{$t('git.subtitle')}</p>
 	</div>
 
