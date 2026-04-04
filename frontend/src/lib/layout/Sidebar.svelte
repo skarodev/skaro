@@ -12,12 +12,13 @@
 	import FolderOpenCrossfade from '$lib/ui/icons/FolderOpenCrossfade.svelte';
 	import ShieldCheckAnimated from '$lib/ui/icons/ShieldCheckAnimated.svelte';
 	import SparklesAnimated from '$lib/ui/icons/SparklesAnimated.svelte';
+	import BarChartAnimated from '$lib/ui/icons/BarChartAnimated.svelte';
 	import Tooltip from '$lib/ui/Tooltip.svelte';
 
 	const STORAGE_KEY = 'skaro:sidebar-collapsed';
 
 	const mainTabs = [
-		{ id: 'dashboard', icon: LayoutGridAnimated, labelKey: 'nav.dashboard' },
+		{ id: 'dashboard', icon: LayoutGridAnimated, labelKey: 'nav.start' },
 		{ id: 'constitution', icon: FileTextAnimated, labelKey: 'nav.constitution' },
 		{ id: 'architecture', icon: LayersAnimated, labelKey: 'nav.architecture' },
 		{ id: 'adr', icon: FolderOpenCrossfade, labelKey: 'nav.adr' },
@@ -26,6 +27,7 @@
 		{ id: 'tasks', icon: PackageOpenAnimated, labelKey: 'nav.tasks' },
 		{ id: 'review', icon: ShieldCheckAnimated, labelKey: 'nav.review' },
 		{ id: 'git', icon: GitBranchAnimated, labelKey: 'nav.git' },
+		{ id: 'stats', icon: BarChartAnimated, labelKey: 'nav.stats' },
 	];
 
 	const settingsTab = { id: 'settings', labelKey: 'nav.settings' };

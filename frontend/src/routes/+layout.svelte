@@ -25,7 +25,7 @@
 
 	// ── Dynamic browser title ──
 	const TAB_NAV_KEYS = {
-		dashboard: 'nav.dashboard',
+		dashboard: 'nav.start',
 		constitution: 'nav.constitution',
 		architecture: 'nav.architecture',
 		adr: 'nav.adr',
@@ -33,6 +33,7 @@
 		tasks: 'nav.tasks',
 		review: 'nav.review',
 		git: 'nav.git',
+		stats: 'nav.stats',
 		settings: 'nav.settings',
 	};
 

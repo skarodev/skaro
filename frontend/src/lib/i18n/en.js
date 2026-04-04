@@ -428,6 +428,7 @@ export default {
 	'log.arch_chat_accepted': 'Architecture generated and saved',
 
 	// Settings
+	'nav.start': 'Start',
 	'nav.stats': 'Statistics',
 	'nav.dashboard': 'Dashboard',
 	'nav.settings': 'Settings',
@@ -566,6 +567,44 @@ export default {
 	'dash.no_roles': 'No role overrides configured',
 	'dash.no_data': 'No data yet.',
 	'dash.tasks_total': 'total',
+
+	// ── Start page ──
+	'start.welcome': 'Project Setup',
+	'start.welcome_desc': 'Follow each step to set up and launch your project. Complete them in order — each step unlocks the next.',
+
+	'start.step_constitution': 'Constitution',
+	'start.step_architecture': 'Architecture',
+	'start.step_adr': 'Architecture Decision Records',
+	'start.step_devplan': 'Development Plan',
+	'start.step_tasks': 'Tasks',
+	'start.step_review': 'Project Review',
+
+	'start.desc_constitution': 'Define the rules, conventions, and constraints for the entire project. The constitution governs coding style, testing strategy, commit conventions, security policies, and what the AI is and isn\'t allowed to do. This document is referenced at every subsequent stage.',
+	'start.desc_architecture': 'Describe the system\'s high-level structure: services, layers, data flows, key technology choices. The AI will review the draft, suggest improvements, and highlight potential issues. Once approved, the architecture becomes the blueprint for all implementation work.',
+	'start.desc_adr': 'Capture critical technical decisions as Architecture Decision Records. Each ADR documents the context, alternatives considered, and rationale. ADRs can be generated automatically from the approved architecture or created manually for new decisions.',
+	'start.desc_devplan': 'Break the project into milestones and tasks with clear dependencies and priorities. The AI generates a plan based on the constitution and architecture, then you refine it. Once confirmed, the plan seeds the task backlog.',
+	'start.desc_tasks': 'Execute the plan task by task. Each task passes through clarify → plan → implement → test phases with AI assistance at every step. Code is generated, reviewed, tested, and committed incrementally.',
+	'start.desc_review': 'Run the full verification suite across the entire project: structural checks, global test commands, cross-file consistency. Fix any issues found and confirm the project meets all quality gates.',
+
+	'start.done': 'Done',
+	'start.in_progress': 'In progress',
+	'start.pending': 'Pending',
+	'start.go_to': 'Continue',
+
+	'start.project_progress': 'Project Progress',
+	'start.tasks_done': 'tasks done',
+	'start.quick_actions': 'Quick Actions',
+	'start.action_current_task': 'Continue current task',
+	'start.action_create_task': 'Create task',
+	'start.action_new_feature': 'New feature',
+	'start.action_run_review': 'Run review',
+	'start.action_open_git': 'Git',
+
+	'start.open_git': 'Open',
+	'start.git_unavailable': 'Git is not available for this project.',
+	'start.git_branch': 'Branch',
+	'start.git_staged': 'Staged',
+	'start.git_changed': 'Changed',
 
 	// ── Git ──
 	'git.title': 'Git',

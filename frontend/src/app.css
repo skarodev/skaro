@@ -259,10 +259,10 @@ table td {
 .btn-group {
 	display: flex;
 	gap: .75rem;
-	margin: 1.3rem auto;
+	margin: 1rem auto;
 	flex-wrap: wrap;
 	align-items: center;
-	justify-content: end;
+	justify-content: start;
 }
 
 /* Alerts */

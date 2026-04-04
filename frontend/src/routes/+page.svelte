@@ -1,5 +1,5 @@
 <script>
-	import DashboardPage from '$lib/pages/DashboardPage.svelte';
+	import StartPage from '$lib/pages/StartPage.svelte';
 </script>
 
-<DashboardPage />
+<StartPage />
