@@ -6,6 +6,10 @@ export default {
 	'app.not_initialized': 'Skaro not initialized. Run',
 	'app.not_initialized_cmd': 'skaro init',
 
+	// Status badges
+	'status.approved': 'Approved',
+	'status.not_approved': 'Not approved',
+
 	// Nav
 	'nav.constitution': 'Constitution',
 	'nav.architecture': 'Architecture',
@@ -179,7 +183,7 @@ export default {
 	'task.empty': 'No tasks yet.',
 	'task.empty_hint': 'Go to the Dev Plan tab and generate a development plan, or create tasks manually.',
 	'task.back': 'Back to tasks',
-	'task.detail_title': 'Task: {name}',
+	'task.detail_title': '{name}',
 	'task.implement_progress': 'Implement',
 	'task.all_milestones': 'All',
 	'task.filter_all': 'All',

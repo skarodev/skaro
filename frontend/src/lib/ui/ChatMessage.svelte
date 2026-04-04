@@ -143,24 +143,23 @@
 
 	.turn-text :global(h1) {
 		font-size: 1.3rem;
-		margin: 1rem 0 0.5rem;
 		color: var(--tx-bright);
 	}
 
 	.turn-text :global(h2) {
 		font-size: 1.2rem;
-		margin: 1rem 0 0.5rem;
-		color: var(--ac);
+		margin: .5rem 0 0.25rem;
+        color: var(--tx-bright);
 	}
 
 	.turn-text :global(h3) {
 		font-size: 1.1rem;
-		margin: 1rem 0 0.5rem;
+		margin: .5rem 0 0.25rem;
 		color: var(--tx-bright);
 	}
 
 	.turn-text :global(p) {
-		margin: 0.75rem 0;
+		margin: 0.25rem 0;
 	}
 
 	.turn-text :global(ul),
@@ -178,11 +177,11 @@
 
 	.turn-text :global(code) {
 		background: rgb(from var(--ac) r g b / 0.05);
-		border-radius: var(--r2);
-		padding: 0.08rem 0.25rem 0.1rem;
+		border-radius: var(--r);
+		padding: 0 0.2rem;
 		color: var(--ac);
 		font-size: 1rem;
-		border: solid 1px rgb(from var(--ac) r g b / 0.25);
+		border: solid 1px rgb(from var(--ac) r g b / 0.15);
 	}
 
 	.turn-text :global(pre) {

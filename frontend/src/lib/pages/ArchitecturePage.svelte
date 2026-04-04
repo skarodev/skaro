@@ -5,10 +5,10 @@
 	import { status } from '$lib/stores/statusStore.js';
 	import { addLog, addError } from '$lib/stores/logStore.js';
 	import { cachedFetch, invalidate } from '$lib/api/cache.js';
-	import { Layers, AlertTriangle, Info, CheckCircle, Loader2, Pencil, Sparkles, FolderOpen, MessageSquare } from 'lucide-svelte';
-	import FileTabs from '$lib/ui/FileTabs.svelte';
+	import { Layers, AlertTriangle, Info, Loader2, Pencil, Sparkles, FolderOpen, MessageSquare } from 'lucide-svelte';
 	import ArchActions from './architecture/ArchActions.svelte';
 	import ProposedArchitecture from './architecture/ProposedArchitecture.svelte';
+	import MarkdownContent from '$lib/ui/MarkdownContent.svelte';
 	import MdEditor from '$lib/ui/md-editor/MdEditor.svelte';
 	import { openChatPanel } from '$lib/stores/chatPanelStore.js';
 
@@ -22,7 +22,6 @@
 	let generatingAdrs = $state(false);
 	let reviewResult = $state('');
 	let proposedArchitecture = $state('');
-	let activeTab = $state('document');
 	let showEditor = $state(false);
 
 	onMount(() => {
@@ -64,7 +63,6 @@
 				invalidate('architecture', 'status');
 				status.set(await api.getStatus());
 				await load();
-				if (reviewResult) activeTab = 'review';
 			} else {
 				addError(result.message, 'archReview');
 				reviewResult = result.message;
@@ -147,54 +145,23 @@
 		} catch (e) { addError(e.message, 'archSave'); }
 	}
 
-	async function saveInvariants(content) {
-		try {
-			const result = await api.updateInvariants(content);
-			if (result.success) {
-				addLog($t('editor.doc_saved'));
-				invalidate('architecture', 'status');
-				status.set(await api.getStatus());
-				await load();
-			} else { addError(result.message, 'invSave'); }
-		} catch (e) { addError(e.message, 'invSave'); }
-	}
-
-	// ── Tabs ──
-	let archTabs = $derived.by(() => {
-		const tabs = [];
-		if (data?.content) {
-			tabs.push({ id: 'document', label: $t('arch.document') });
-		}
-		if (reviewResult && !reviewing) {
-			tabs.push({ id: 'review', label: $t('arch.review_result') });
-		}
-		if (data?.has_invariants) {
-			tabs.push({ id: 'invariants', label: $t('arch.invariants') });
-		}
-		return tabs;
-	});
-
-	let archTabContent = $derived.by(() => {
-		if (activeTab === 'review') return reviewResult || '';
-		if (activeTab === 'invariants') return data?.invariants || '';
-		return data?.content || '';
-	});
-
-	/** Show review action buttons when review tab is active and there's a review */
 	let showReviewActions = $derived(
-		activeTab === 'review' && reviewResult && !reviewing && !proposedArchitecture
+		reviewResult && !reviewing && !proposedArchitecture
 	);
-
-	$effect(() => {
-		if (archTabs.length > 0 && !archTabs.find(t => t.id === activeTab)) {
-			activeTab = archTabs[0].id;
-		}
-	});
 </script>
 
-<div class="page-with-tabs">
 <div class="main-header">
-	<h2><Layers size={24} /> {$t('arch.title')}</h2>
+	<h2>
+		<Layers size={24} />
+		{$t('arch.title')}
+		{#if data?.has_architecture}
+			{#if data.architecture_reviewed}
+				<span class="status-badge status-badge-ok">{$t('status.approved')}</span>
+			{:else}
+				<span class="status-badge status-badge-pending">{$t('status.not_approved')}</span>
+			{/if}
+		{/if}
+	</h2>
 	<p>{$t('arch.subtitle')}</p>
 </div>
 
@@ -216,7 +183,6 @@
 		</div>
 
 	{:else if data.architecture_reviewed}
-		<div class="alert alert-success"><CheckCircle size={14} /> {$t('arch.approved')}</div>
 		<ArchActions
 			architectureReviewed={true}
 			hasDevplan={$status?.has_devplan}
@@ -227,7 +193,6 @@
 		/>
 
 	{:else}
-		<div class="alert alert-info">{$t('arch.has_arch')}</div>
 		<ArchActions
 			architectureReviewed={false}
 			hasReviewResult={!!reviewResult}
@@ -237,16 +202,6 @@
 		/>
 	{/if}
 
-	{#if archTabs.length > 0}
-		<FileTabs
-			tabs={archTabs}
-			activeTab={activeTab}
-			content={archTabContent}
-			onSelectTab={(id) => activeTab = id}
-		/>
-	{/if}
-
-	<!-- Review action buttons — shown below review content -->
 	{#if showReviewActions}
 		<div class="review-actions">
 			<button class="btn btn-primary" disabled={applying} onclick={applyReview}>
@@ -260,23 +215,31 @@
 		</div>
 	{/if}
 
-	<!-- Proposed architecture — from initial review OR from apply-review -->
-	{#if proposedArchitecture && activeTab === 'review'}
+	{#if proposedArchitecture}
 		<ProposedArchitecture
 			content={proposedArchitecture}
 			{accepting} {accepted}
 			onAccept={acceptProposed}
 		/>
 	{/if}
-{/if}
 
-</div>
+	{#if reviewResult && !reviewing}
+		<div class="review-result-section">
+			<h3>{$t('arch.review_result')}</h3>
+			<MarkdownContent content={reviewResult} />
+		</div>
+	{/if}
+
+	{#if data?.content}
+		<MarkdownContent content={data.content} />
+	{/if}
+{/if}
 
 {#if showEditor}
 	<MdEditor
-		content={activeTab === 'invariants' ? (data?.invariants || '') : (data?.content || '')}
+		content={data?.content || ''}
 		onSave={(c) => {
-			if (activeTab === 'invariants') { saveInvariants(c); } else { saveContent(c); }
+			saveContent(c);
 			showEditor = false;
 		}}
 		onClose={() => showEditor = false}
@@ -297,6 +260,21 @@
 	.arch-hint {
 		color: var(--tx-dim);
 		font-size: 0.875rem;
+		margin-bottom: 0.75rem;
+	}
+
+	.review-result-section {
+		margin-top: 1.5rem;
+		padding-top: 1rem;
+		border-top: 0.0625rem solid var(--bd);
+	}
+
+	.review-result-section h3 {
+		font-size: 0.875rem;
+		font-weight: 600;
+		color: var(--tx-dim);
+		text-transform: uppercase;
+		letter-spacing: 0.03em;
 		margin-bottom: 0.75rem;
 	}
 </style>

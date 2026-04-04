@@ -389,7 +389,7 @@
 
 	<TaskActions
 		{phases} {currentStage} {totalStages} {actionLoading} {hasUnanswered}
-		onClarify={runClarify} onPlan={runPlan} onImplement={runImplement} onTests={runTests}
+		onClarify={runClarify} onPlan={runPlan} onImplement={runImplement}
 	/>
 
 	{#if actionResult && !actionLoading}

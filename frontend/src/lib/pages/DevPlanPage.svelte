@@ -5,7 +5,7 @@
 	import { status, devplanMilestones } from '$lib/stores/statusStore.js';
 	import { addLog, addError } from '$lib/stores/logStore.js';
 	import { cachedFetch, invalidate } from '$lib/api/cache.js';
-	import { Map, ClipboardList, RefreshCw, AlertTriangle, CheckCircle, Loader2 } from 'lucide-svelte';
+	import { Map, ClipboardList, RefreshCw, AlertTriangle, Loader2 } from 'lucide-svelte';
 	import MarkdownContent from '$lib/ui/MarkdownContent.svelte';
 	import GuidanceInput from '$lib/pages/devplan/GuidanceInput.svelte';
 	import DevPlanProposal from '$lib/pages/devplan/DevPlanProposal.svelte';
@@ -116,7 +116,17 @@
 </script>
 
 <div class="main-header">
-	<h2><Map size={24} /> {$t('devplan.title')}</h2>
+	<h2>
+		<Map size={24} />
+		{$t('devplan.title')}
+		{#if hasDevplan}
+			{#if devplanConfirmed}
+				<span class="status-badge status-badge-ok">{$t('status.approved')}</span>
+			{:else}
+				<span class="status-badge status-badge-pending">{$t('status.not_approved')}</span>
+			{/if}
+		{/if}
+	</h2>
 	<p>{$t('devplan.subtitle')}</p>
 </div>
 
@@ -137,7 +147,6 @@
 	</div>
 {:else}
 	{#if ($devplanMilestones || draftMilestones) && !devplanConfirmed}
-		<div class="alert alert-warn"><AlertTriangle size={14} /> {$t('devplan.draft')}</div>
 		<DevPlanProposal
 			mode="initial"
 			items={$devplanMilestones || draftMilestones}
@@ -146,7 +155,6 @@
 			onDiscard={() => { devplanMilestones.set(null); draftMilestones = null; }}
 		/>
 	{:else if !$devplanMilestones && !hasProposal}
-		<div class="alert alert-success"><CheckCircle size={14} /> {$t('devplan.exists')}</div>
 		<div class="btn-group">
 			{#if !showGuidanceInput}
 				<button class="btn btn-primary" disabled={updating} onclick={() => showGuidanceInput = true}>

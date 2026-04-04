@@ -1,6 +1,6 @@
 <script>
 	import { t } from '$lib/i18n/index.js';
-	import { Search, ClipboardList, Hammer, FlaskConical, Loader2 } from 'lucide-svelte';
+	import { Search, ClipboardList, Hammer, Loader2 } from 'lucide-svelte';
 
 	let {
 		phases = {},
@@ -11,7 +11,6 @@
 		onClarify = () => {},
 		onPlan = () => {},
 		onImplement = () => {},
-		onTests = () => {},
 	} = $props();
 </script>
 
@@ -43,15 +42,6 @@
 				{$t('action.implement_stage', { n: nextStage })}
 			</button>
 		</div>
-
-	{:else if phases.tests !== 'complete' && (phases.implement === 'complete' || (currentStage > 0 && currentStage >= totalStages))}
-		<p class="phase-hint"><strong>{$t('phase_hint.prefix')}</strong>{$t('phase_hint.tests')}</p>
-		<div class="btn-group">
-			<button class="btn btn-primary" disabled={!!actionLoading} onclick={onTests}>
-				{#if actionLoading === 'tests'}<Loader2 size={14} class="spin" />{:else}<FlaskConical size={14} />{/if}
-				{$t('action.run_tests')}
-			</button>
-		</div>
 	{/if}
 </div>
 
@@ -63,8 +53,8 @@
 	}
 
     .phase-hint {
-        margin: 1.5rem 0 0;
-        padding: 1rem .9rem;
+        margin: 1rem 0 0;
+        padding: 0.625rem .9rem;
         font-size: .9rem;
         color: var(--tx-dim);
         background: var(--bg-deep);

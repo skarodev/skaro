@@ -63,10 +63,22 @@
 		editorContent = data?.content || '';
 		showEditor = true;
 	}
+
+	let isValidated = $derived($status?.constitution_validated);
 </script>
 
 <div class="main-header">
-	<h2><FileText size={24} /> {$t('const.title')}</h2>
+	<h2>
+		<FileText size={24} />
+		{$t('const.title')}
+		{#if data?.has_constitution}
+			{#if isValidated}
+				<span class="status-badge status-badge-ok">{$t('status.approved')}</span>
+			{:else}
+				<span class="status-badge status-badge-pending">{$t('status.not_approved')}</span>
+			{/if}
+		{/if}
+	</h2>
 	<p>{$t('const.subtitle')}</p>
 </div>
 
@@ -84,11 +96,8 @@
 			</button>
 		</div>
 	{:else}
-		{#if $status?.constitution_validated}
-			<div class="alert alert-success"><CheckCircle size={14} /> {$t('const.valid')}</div>
-		{/if}
 		<div class="btn-group">
-			{#if !$status?.constitution_validated}
+			{#if !isValidated}
 				<button class="btn btn-primary" disabled={validating} onclick={validate}>
 					{#if validating}<Loader2 size={14} class="spin" />{:else}<CheckCircle size={14} />{/if}
 					{$t('const.validate')}
@@ -101,9 +110,7 @@
 	{/if}
 
 	{#if validation}
-		{#if validation.valid && !$status?.constitution_validated}
-			<div class="alert alert-success"><CheckCircle size={14} /> {$t('const.valid')}</div>
-		{:else if !validation.valid}
+		{#if !validation.valid}
 			<div class="alert alert-warn"><AlertTriangle size={14} /> {$t('const.invalid')}</div>
 		{/if}
 		<ul class="check-list">

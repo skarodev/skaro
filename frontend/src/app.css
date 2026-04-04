@@ -47,7 +47,7 @@
 	--sf2: #45494a;
 	--sf-hover: rgba(208, 94, 82, 0.10);
 	/* Borders */
-	--bd: #313131;
+	--bd: #363636;
 	--bd2: #515151;
 	/* Text (bright → dim) */
 	--tx-bright: #eeeeee;
@@ -360,6 +360,34 @@ table td {
 	display: flex;
 	align-items: center;
 	gap: 0.5rem;
+}
+
+.main-header h2 :is(svg) {
+	color: var(--tx);
+	flex-shrink: 0;
+}
+
+.status-badge {
+	display: inline-flex;
+	align-items: center;
+	padding: 0.125rem 0.5rem;
+	border-radius: 0.375rem;
+	font-size: 0.75rem;
+	font-weight: 500;
+	font-family: var(--font-ui);
+	line-height: 1.375;
+	white-space: nowrap;
+	flex-shrink: 0;
+}
+
+.status-badge-ok {
+	background: color-mix(in srgb, var(--ok) 12%, transparent);
+	color: var(--ok);
+}
+
+.status-badge-pending {
+	background: var(--sf);
+	color: var(--tx-dim);
 }
 
 .main-header p {

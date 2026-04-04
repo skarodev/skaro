@@ -62,25 +62,23 @@
 
 	.md-content :global(h1) {
 		font-size: 1.3rem;
-		margin: 1rem 0 0.5rem;
-		padding-bottom: 0.25rem;
 		color: var(--tx-bright);
 	}
 
 	.md-content :global(h2) {
 		font-size: 1.2rem;
-		margin: 1rem 0 .5rem;
-		color: var(--ac);
+		margin: .5rem 0 .25rem;
+        color: var(--tx-bright);
 	}
 
 	.md-content :global(h3) {
 		font-size: 1.1rem;
-		margin: 1rem 0 .5rem;
-		color: var(--tx-bright);
+		margin: .5rem 0 .25rem;
+        color: var(--tx-bright);
 	}
 
 	.md-content :global(p) {
-		margin: 1rem 0;
+		margin: .25rem 0;
 	}
 
 	.md-content :global(ul),
@@ -105,11 +103,11 @@
 
 	.md-content :global(code) {
         background: rgb(from var(--ac) r g b / 0.05);
-        border-radius: var(--r2);
-        padding: .08rem .2rem .1rem .2rem;
+        border-radius: var(--r);
+        padding: 0 .2rem;
         color: var(--ac);
         font-size: 1rem;
-        border: solid 1px rgb(from var(--ac) r g b / 0.25);
+        border: solid 1px rgb(from var(--ac) r g b / 0.15);
 	}
 
     .md-content :global(pre > code) {

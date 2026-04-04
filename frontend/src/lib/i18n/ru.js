@@ -6,6 +6,10 @@ export default {
 	'app.not_initialized': 'Skaro не инициализирован. Выполните',
 	'app.not_initialized_cmd': 'skaro init',
 
+	// Status badges
+	'status.approved': 'Утверждён',
+	'status.not_approved': 'Не утверждён',
+
 	// Nav
 	'nav.constitution': 'Конституция',
 	'nav.architecture': 'Архитектура',
@@ -179,7 +183,7 @@ export default {
 	'task.empty': 'Задач пока нет.',
 	'task.empty_hint': 'Перейдите на вкладку План и сгенерируйте план разработки или создайте задачи вручную.',
 	'task.back': 'Назад к задачам',
-	'task.detail_title': 'Задача: {name}',
+	'task.detail_title': '{name}',
 	'task.implement_progress': 'Реализация',
 	'task.all_milestones': 'Все',
 	'task.filter_all': 'Все',
