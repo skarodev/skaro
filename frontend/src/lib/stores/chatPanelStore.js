@@ -9,9 +9,17 @@ import { writable } from 'svelte/store';
 const STORAGE_KEY = 'skaro:chat-panel-open';
 const WIDTH_KEY = 'skaro:chat-panel-width';
 
-const DEFAULT_WIDTH = 420;
+const DEFAULT_WIDTH_FALLBACK = 420;
 const MIN_WIDTH = 420;
 const MAX_WIDTH_VW = 0.5; // 50vw
+
+function getDefaultWidth() {
+	try {
+		return Math.max(Math.round(window.innerWidth * 0.33), MIN_WIDTH);
+	} catch {
+		return DEFAULT_WIDTH_FALLBACK;
+	}
+}
 
 function readBool(key, fallback) {
 	try {
@@ -34,7 +42,7 @@ function readNumber(key, fallback) {
 }
 
 /** Whether the chat panel is open. */
-export const chatPanelOpen = writable(readBool(STORAGE_KEY, false));
+export const chatPanelOpen = writable(readBool(STORAGE_KEY, true));
 
 chatPanelOpen.subscribe((v) => {
 	try {
@@ -45,7 +53,7 @@ chatPanelOpen.subscribe((v) => {
 });
 
 /** Panel width in pixels. */
-export const chatPanelWidth = writable(readNumber(WIDTH_KEY, DEFAULT_WIDTH));
+export const chatPanelWidth = writable(readNumber(WIDTH_KEY, getDefaultWidth()));
 
 chatPanelWidth.subscribe((v) => {
 	try {
@@ -84,4 +92,4 @@ export function clearChatContextMeta() {
 	chatContextMeta.set({});
 }
 
-export { MIN_WIDTH, MAX_WIDTH_VW, DEFAULT_WIDTH };
+export { MIN_WIDTH, MAX_WIDTH_VW, DEFAULT_WIDTH_FALLBACK as DEFAULT_WIDTH };

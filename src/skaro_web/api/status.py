@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import re
 from collections import defaultdict
 from pathlib import Path
 from typing import Any
@@ -14,6 +15,28 @@ from skaro_core.config import load_config, load_token_usage, load_usage_log
 from skaro_core.phases.base import SKIP_DIRS
 from skaro_core.providers import get_providers
 from skaro_web.api.deps import get_am, get_project_root
+
+_CONTEXT_RE = re.compile(
+    r"^##\s+Context\s*\n(.*?)(?=\n##\s|\Z)",
+    re.MULTILINE | re.DOTALL,
+)
+_CONTEXT_MAX_LEN = 250
+
+
+def _extract_context(am: ArtifactManager, task_name: str) -> str:
+    """Extract the Context section from a task's spec.md (up to 250 chars)."""
+    spec = am.find_and_read_task_file(task_name, "spec.md")
+    if not spec:
+        return ""
+    m = _CONTEXT_RE.search(spec)
+    if not m:
+        return ""
+    text = m.group(1).strip()
+    if len(text) > _CONTEXT_MAX_LEN:
+        # Cut at last space before limit to avoid broken words
+        text = text[:_CONTEXT_MAX_LEN].rsplit(" ", 1)[0] + "…"
+    return text
+
 
 router = APIRouter(prefix="/api", tags=["status"])
 
@@ -65,6 +88,7 @@ def _build_status(am: ArtifactManager, project_root: Path) -> dict[str, Any]:
             "total_stages": ts.total_stages,
             "progress_percent": ts.progress_percent,
             "phases": {p.value: s.value for p, s in ts.phases.items()},
+            "context": _extract_context(am, ts.name),
         }
         for ts in state.tasks
     ]

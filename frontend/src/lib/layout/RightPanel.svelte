@@ -135,92 +135,95 @@
 
 <svelte:window onkeydown={handleKeydown} />
 
-{#if visible}
+{#if hasContext}
 	<!-- svelte-ignore a11y_no_static_element_interactions -->
 	<aside
 		class="right-panel"
+		class:open={$chatPanelOpen}
 		class:resizing
-		style="width: {panelWidth}px"
+		style="--panel-w: {panelWidth}px"
 	>
 		<div class="resize-handle" onmousedown={onResizeStart}></div>
 
-		<div class="right-panel-header">
-			<ChatModelPicker
-				value={modelOverride}
-				onSelect={handleModelSelect}
-			/>
-			<button class="close-btn" onclick={closeChatPanel} title={$t('chat_panel.close')}>
-				<X size={15} />
-			</button>
-		</div>
+		<div class="right-panel-inner">
+			<div class="right-panel-header">
+				<ChatModelPicker
+					value={modelOverride}
+					onSelect={handleModelSelect}
+				/>
+				<button class="close-btn" onclick={closeChatPanel} title={$t('chat_panel.close')}>
+					<X size={15} />
+				</button>
+			</div>
 
-		<div class="right-panel-body">
-			{#key context?.type + ':' + context?.id}
-				{#if context?.type === 'task'}
-					<FixPanel task={context.id} {modelOverride} />
-				{:else if context?.type === 'architecture'}
-					<ArchChat {modelOverride} />
-				{:else if context?.type === 'review'}
-					<ProjectFixPanel {modelOverride} />
-				{:else if context?.type === 'feature'}
-					<FeatureChat
-						slug={context.id}
-						{modelOverride}
-						onConfirmed={() => window.dispatchEvent(new CustomEvent('skaro:feature-confirmed', { detail: { slug: context.id } }))}
-					/>
-				{:else if context?.type === 'constitution'}
-					<PageChat
-						contextType="constitution"
-						roleName="architect"
-						errorSource="constitutionChat"
-						placeholderKey="chat_panel.placeholder_constitution"
-						{modelOverride}
-						onFileApplied={() => window.dispatchEvent(new CustomEvent('skaro:constitution-updated'))}
-					/>
-				{:else if context?.type === 'adr-list'}
-					<PageChat
-						contextType="adr"
-						roleName="architect"
-						errorSource="adrChat"
-						placeholderKey="chat_panel.placeholder_adr"
-						{modelOverride}
-					/>
-				{:else if context?.type === 'adr-detail'}
-					<PageChat
-						contextType="adr-detail"
-						contextId={context.id}
-						roleName="architect"
-						errorSource="adrDetailChat"
-						placeholderKey="chat_panel.placeholder_adr_detail"
-						{modelOverride}
-					/>
-				{:else if context?.type === 'devplan'}
-					<PageChat
-						contextType="devplan"
-						roleName="architect"
-						errorSource="devplanChat"
-						placeholderKey="chat_panel.placeholder_devplan"
-						{modelOverride}
-						onFileApplied={() => window.dispatchEvent(new CustomEvent('skaro:devplan-updated'))}
-					/>
-				{:else if context?.type === 'features-list'}
-					<PageChat
-						contextType="features"
-						roleName="architect"
-						errorSource="featuresChat"
-						placeholderKey="chat_panel.placeholder_features"
-						{modelOverride}
-					/>
-				{:else if context?.type === 'tasks-list'}
-					<PageChat
-						contextType="tasks"
-						roleName="coder"
-						errorSource="tasksChat"
-						placeholderKey="chat_panel.placeholder_tasks"
-						{modelOverride}
-					/>
-				{/if}
-			{/key}
+			<div class="right-panel-body">
+				{#key context?.type + ':' + context?.id}
+					{#if context?.type === 'task'}
+						<FixPanel task={context.id} {modelOverride} />
+					{:else if context?.type === 'architecture'}
+						<ArchChat {modelOverride} />
+					{:else if context?.type === 'review'}
+						<ProjectFixPanel {modelOverride} />
+					{:else if context?.type === 'feature'}
+						<FeatureChat
+							slug={context.id}
+							{modelOverride}
+							onConfirmed={() => window.dispatchEvent(new CustomEvent('skaro:feature-confirmed', { detail: { slug: context.id } }))}
+						/>
+					{:else if context?.type === 'constitution'}
+						<PageChat
+							contextType="constitution"
+							roleName="architect"
+							errorSource="constitutionChat"
+							placeholderKey="chat_panel.placeholder_constitution"
+							{modelOverride}
+							onFileApplied={() => window.dispatchEvent(new CustomEvent('skaro:constitution-updated'))}
+						/>
+					{:else if context?.type === 'adr-list'}
+						<PageChat
+							contextType="adr"
+							roleName="architect"
+							errorSource="adrChat"
+							placeholderKey="chat_panel.placeholder_adr"
+							{modelOverride}
+						/>
+					{:else if context?.type === 'adr-detail'}
+						<PageChat
+							contextType="adr-detail"
+							contextId={context.id}
+							roleName="architect"
+							errorSource="adrDetailChat"
+							placeholderKey="chat_panel.placeholder_adr_detail"
+							{modelOverride}
+						/>
+					{:else if context?.type === 'devplan'}
+						<PageChat
+							contextType="devplan"
+							roleName="architect"
+							errorSource="devplanChat"
+							placeholderKey="chat_panel.placeholder_devplan"
+							{modelOverride}
+							onFileApplied={() => window.dispatchEvent(new CustomEvent('skaro:devplan-updated'))}
+						/>
+					{:else if context?.type === 'features-list'}
+						<PageChat
+							contextType="features"
+							roleName="architect"
+							errorSource="featuresChat"
+							placeholderKey="chat_panel.placeholder_features"
+							{modelOverride}
+						/>
+					{:else if context?.type === 'tasks-list'}
+						<PageChat
+							contextType="tasks"
+							roleName="coder"
+							errorSource="tasksChat"
+							placeholderKey="chat_panel.placeholder_tasks"
+							{modelOverride}
+						/>
+					{/if}
+				{/key}
+			</div>
 		</div>
 	</aside>
 {/if}
@@ -232,9 +235,26 @@
 		flex-shrink: 0;
 		height: 100%;
 		background: var(--bg-soft);
-		border-left: 1px solid var(--bd);
 		position: relative;
 		min-width: 0;
+		width: 0;
+		overflow: hidden;
+		border-left: 1px solid transparent;
+		transition: width .25s ease, border-color .25s ease;
+	}
+
+	.right-panel.open {
+		width: var(--panel-w);
+		border-left-color: var(--bd);
+	}
+
+	/* Inner wrapper keeps content at full width during slide animation */
+	.right-panel-inner {
+		display: flex;
+		flex-direction: column;
+		min-width: var(--panel-w);
+		width: var(--panel-w);
+		height: 100%;
 	}
 
 	/* Disable pointer events on iframes/etc during resize */
@@ -243,6 +263,11 @@
 	}
 	.right-panel.resizing {
 		pointer-events: auto;
+	}
+
+	/* Disable transition during manual resize */
+	.right-panel.resizing {
+		transition: none;
 	}
 
 	/* ── Resize handle ── */

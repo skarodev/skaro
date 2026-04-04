@@ -4,8 +4,8 @@
 	import { addLog, addError } from '$lib/stores/logStore.js';
 	import { invalidate } from '$lib/api/cache.js';
 	import { api } from '$lib/api/client.js';
-	import { Package, Plus, GripVertical, Rocket } from 'lucide-svelte';
-	import TaskCard from '$lib/pages/tasks/TaskCard.svelte';
+	import { Plus, GripVertical, Rocket } from 'lucide-svelte';
+	import TaskListItem from '$lib/pages/tasks/TaskListItem.svelte';
 	import CreateTaskModal from '$lib/pages/tasks/CreateTaskModal.svelte';
 	import AutopilotOverlay from '$lib/pages/tasks/AutopilotOverlay.svelte';
 	import BtnGroup from '$lib/ui/BtnGroup.svelte';
@@ -78,6 +78,16 @@
 
 	/** DnD is available when status filter is "all" (so ordering is unambiguous). */
 	let canReorder = $derived(statusFilter === 'all');
+
+	/** Simplified status of a task for connector line colours. */
+	function getItemStatus(task) {
+		if (isTaskDone(task)) return 'done';
+		const ph = task.phases || {};
+		const hasProgress = Object.values(ph).some(
+			(s) => s === 'complete' || s === 'in_progress' || s === 'draft' || s === 'awaiting_review'
+		);
+		return hasProgress ? 'active' : 'pending';
+	}
 
 	function formatMilestone(slug) {
 		return (slug || '')
@@ -242,11 +252,13 @@
 					</button>
 				{/each}
 			</nav>
-			<div class="milestone-tabs-content" role="list">
+			<div class="milestone-tabs-content roadmap" role="list">
 				{#each filteredTasks as task, i (task.name)}
 					{@const isDragging = dragIndex === i}
 					{@const isOver = overIndex === i && dragIndex !== i}
 					{@const sameMilestone = dragMilestone === '' || task.milestone === dragMilestone}
+					{@const prevSt = i > 0 ? getItemStatus(filteredTasks[i - 1]) : 'pending'}
+					{@const nextSt = i < filteredTasks.length - 1 ? getItemStatus(filteredTasks[i + 1]) : 'pending'}
 					<div
 						class="drag-wrapper"
 						class:drag-active={isDragging}
@@ -265,7 +277,14 @@
 							<span class="drag-grip"><GripVertical size={16} /></span>
 						{/if}
 						<div class="drag-card-wrap">
-							<TaskCard {task} href="/tasks/{encodeURIComponent(task.name)}" />
+							<TaskListItem
+								{task}
+								href="/tasks/{encodeURIComponent(task.name)}"
+								isFirst={i === 0}
+								isLast={i === filteredTasks.length - 1}
+								prevStatus={prevSt}
+								nextStatus={nextSt}
+							/>
 						</div>
 					</div>
 				{/each}
@@ -405,7 +424,12 @@
 		min-width: 0;
 		display: flex;
 		flex-direction: column;
-		gap: 0.75rem;
+		gap: 0;
+	}
+
+	/* Roadmap continuous connector layout */
+	.roadmap {
+		position: relative;
 	}
 
 	/* ── Drag & Drop ── */
