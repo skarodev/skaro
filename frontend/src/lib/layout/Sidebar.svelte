@@ -153,7 +153,7 @@
 		flex-shrink: 0;
 		user-select: none;
 		transition: width .2s ease;
-		overflow: hidden;
+		overflow: visible;
 	}
 
 	.sidebar.collapsed {
@@ -166,6 +166,7 @@
 		display: flex;
 		align-items: center;
 		min-height: 3.25rem;
+		overflow: hidden;
 	}
 
 	.logo-area {
@@ -201,7 +202,7 @@
 
 	.toggle-btn:hover {
 		color: var(--tx-bright);
-		background: var(--sf);
+		background: var(--bg-deep);
 	}
 
 	.collapsed .toggle-btn {
@@ -214,6 +215,7 @@
 		flex: 1;
 		padding: 0.25rem 0.625rem;
 		overflow-y: auto;
+		overflow-x: hidden;
 		gap: 0.0625rem;
 		display: flex;
 		flex-direction: column;
@@ -303,6 +305,7 @@
 		flex-direction: column;
 		border-top: 0.0625rem solid var(--bd);
 		flex-shrink: 0;
+		overflow: hidden;
 	}
 
 	.collapsed .nav-aux {

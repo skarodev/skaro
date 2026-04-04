@@ -292,7 +292,7 @@
 
 	.close-btn:hover {
 		color: var(--tx-bright);
-		background: var(--sf);
+		background: var(--bg-deep);
 	}
 
 	/* ── Body (scroll container for chat) ── */

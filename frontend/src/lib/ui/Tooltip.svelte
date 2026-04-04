@@ -2,15 +2,12 @@
 	/**
 	 * Reusable animated tooltip component.
 	 *
-	 * Usage:
-	 *   <Tooltip text="Label" placement="right">
-	 *     <button>Hover me</button>
-	 *   </Tooltip>
+	 * Uses position:fixed to escape overflow containers (e.g. sidebar).
 	 *
 	 * Props:
-	 *   text     — tooltip text
+	 *   text      — tooltip text
 	 *   placement — "right" | "top" | "bottom" (default: "right")
-	 *   disabled — suppress tooltip when true
+	 *   disabled  — suppress tooltip when true
 	 */
 	let {
 		text = '',
@@ -21,10 +18,36 @@
 
 	let visible = $state(false);
 	let timeout = $state(null);
+	let anchor = $state(null);
+	let pos = $state({ top: 0, left: 0 });
+
+	function calcPosition() {
+		if (!anchor) return;
+		const rect = anchor.getBoundingClientRect();
+		if (placement === 'right') {
+			pos = {
+				top: rect.top + rect.height / 2,
+				left: rect.right + 8,
+			};
+		} else if (placement === 'top') {
+			pos = {
+				top: rect.top - 8,
+				left: rect.left + rect.width / 2,
+			};
+		} else {
+			pos = {
+				top: rect.bottom + 8,
+				left: rect.left + rect.width / 2,
+			};
+		}
+	}
 
 	function show() {
 		if (disabled || !text) return;
-		timeout = setTimeout(() => { visible = true; }, 80);
+		timeout = setTimeout(() => {
+			calcPosition();
+			visible = true;
+		}, 80);
 	}
 
 	function hide() {
@@ -36,6 +59,7 @@
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <span
 	class="tooltip-anchor"
+	bind:this={anchor}
 	onmouseenter={show}
 	onmouseleave={hide}
 	onfocusin={show}
@@ -43,7 +67,11 @@
 >
 	{@render children()}
 	{#if visible && text}
-		<span class="tooltip tooltip-{placement}" role="tooltip">{text}</span>
+		<span
+			class="tooltip tooltip-{placement}"
+			role="tooltip"
+			style="top: {pos.top}px; left: {pos.left}px;"
+		>{text}</span>
 	{/if}
 </span>
 
@@ -54,7 +82,7 @@
 	}
 
 	.tooltip {
-		position: absolute;
+		position: fixed;
 		white-space: nowrap;
 		padding: 0.375rem 0.625rem;
 		border-radius: 0.375rem;
@@ -69,21 +97,17 @@
 	}
 
 	.tooltip-right {
-		left: calc(100% + 0.5rem);
-		top: 50%;
 		transform: translateY(-50%);
 	}
 
 	.tooltip-top {
-		bottom: calc(100% + 0.5rem);
-		left: 50%;
-		transform: translateX(-50%);
+		transform: translate(-50%, -100%);
+		animation-name: tooltip-in-top;
 	}
 
 	.tooltip-bottom {
-		top: calc(100% + 0.5rem);
-		left: 50%;
 		transform: translateX(-50%);
+		animation-name: tooltip-in-bottom;
 	}
 
 	@keyframes tooltip-in {
@@ -97,23 +121,15 @@
 		}
 	}
 
-	.tooltip-top {
-		animation-name: tooltip-in-top;
-	}
-
 	@keyframes tooltip-in-top {
 		from {
 			opacity: 0;
-			transform: translateX(-50%) translateY(4px);
+			transform: translate(-50%, -100%) translateY(4px);
 		}
 		to {
 			opacity: 1;
-			transform: translateX(-50%) translateY(0);
+			transform: translate(-50%, -100%) translateY(0);
 		}
-	}
-
-	.tooltip-bottom {
-		animation-name: tooltip-in-bottom;
 	}
 
 	@keyframes tooltip-in-bottom {

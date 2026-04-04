@@ -57,6 +57,9 @@
 	/** Index of first incomplete step — used for "current" highlight */
 	let currentIdx = $derived(steps.findIndex(s => !s.done));
 
+	/** Tracks which step is being hovered for icon animation */
+	let hoveredStep = $state('');
+
 	/** Map step status to its connector colour */
 	function statusColor(step) {
 		if (step.done) return 'var(--ok)';
@@ -75,6 +78,8 @@
 			class:active={step.active}
 			class:current={isCurrent}
 			href={step.href}
+			onmouseenter={() => hoveredStep = step.id}
+			onmouseleave={() => hoveredStep = ''}
 		>
 			<!-- Connector line above marker (from previous step) -->
 			{#if i > 0}
@@ -104,7 +109,7 @@
 
 			<div class="rm-body">
 				<div class="rm-head">
-					<span class="rm-icon"><Icon size={16} active={isCurrent} /></span>
+					<span class="rm-icon"><Icon size={16} active={hoveredStep === step.id || isCurrent} /></span>
 					<span class="rm-title">{$t('start.step_' + step.id)}</span>
 					{#if step.done}
 						<span class="rm-badge rm-badge-done">{$t('start.done')}</span>

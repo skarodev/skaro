@@ -83,21 +83,19 @@
 	</nav>
 	{/if}
 	{#if hasChatContext}
-		<div class="chat-area">
+		<button
+			class="chat-toggle"
+			class:active={$chatPanelOpen}
+			onclick={toggleChatPanel}
+			title={$t('chat_panel.toggle')}
+		>
 			<span class="chat-label">{$t('chat_panel.label')}</span>
-			<button
-				class="chat-toggle"
-				class:active={$chatPanelOpen}
-				onclick={toggleChatPanel}
-				title={$t('chat_panel.toggle')}
-			>
-				{#if $chatPanelOpen}
-					<PanelRightClose size={16} strokeWidth={1.5} />
-				{:else}
-					<PanelRightOpen size={16} strokeWidth={1.5} />
-				{/if}
-			</button>
-		</div>
+			{#if $chatPanelOpen}
+				<PanelRightClose size={16} strokeWidth={1.5} />
+			{:else}
+				<PanelRightOpen size={16} strokeWidth={1.5} />
+			{/if}
+		</button>
 	{/if}
 </div>
 
@@ -145,27 +143,13 @@
 		color: var(--tx);
 	}
 
-	.chat-area {
+	.chat-toggle {
 		margin-left: auto;
 		display: flex;
 		align-items: center;
-		gap: 0.25rem;
-		flex-shrink: 0;
-	}
-
-	.chat-label {
-		font-size: 0.8125rem;
-		color: var(--tx-dim);
-		font-family: var(--font-ui);
-		white-space: nowrap;
-	}
-
-	.chat-toggle {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		width: 2rem;
+		gap: 0.375rem;
 		height: 2rem;
+		padding: 0 0.5rem;
 		border: none;
 		background: none;
 		color: var(--tx-dim);
@@ -175,9 +159,14 @@
 		transition: color .12s, background .12s;
 	}
 
+	.chat-label {
+		font-size: 0.8125rem;
+		white-space: nowrap;
+	}
+
 	.chat-toggle:hover {
 		color: var(--tx-bright);
-		background: var(--sf);
+		background: var(--bg-deep);
 	}
 
 	.chat-toggle.active {

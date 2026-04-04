@@ -121,7 +121,7 @@
 	}
 
 	.model-trigger:hover {
-		background: var(--sf);
+		background: var(--bg-deep);
 	}
 
 	.model-name {
