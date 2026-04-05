@@ -1,7 +1,6 @@
 <script>
 	import { t } from '$lib/i18n/index.js';
-	import { X } from 'lucide-svelte';
-	import { portal } from '$lib/utils/portal.js';
+	import Modal from '$lib/ui/Modal.svelte';
 
 	let { filepath, diffText, onClose } = $props();
 
@@ -26,7 +25,6 @@
 
 		for (const line of lines) {
 			if (line.startsWith('@@')) {
-				// Parse hunk header: @@ -oldStart,oldCount +newStart,newCount @@
 				const m = line.match(/@@ -(\d+)(?:,\d+)? \+(\d+)(?:,\d+)? @@/);
 				if (m) {
 					oldNum = parseInt(m[1], 10);
@@ -51,87 +49,44 @@
 		}
 		return result;
 	}
-
-	function handleKeydown(e) {
-		if (e.key === 'Escape') onClose();
-	}
 </script>
 
-<svelte:window onkeydown={handleKeydown} />
-
-<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
-<div class="overlay" use:portal role="dialog" aria-modal="true" aria-label={filepath} tabindex="-1" onkeydown={handleKeydown} onclick={onClose}>
-	<!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_static_element_interactions -->
-	<div class="modal" role="document" onclick={(e) => e.stopPropagation()}>
-		<div class="modal-header">
-			<span class="file-path">{filepath}</span>
-			<div class="stats">
-				{#if stats.added > 0}<span class="stat-add">+{stats.added}</span>{/if}
-				{#if stats.removed > 0}<span class="stat-del">-{stats.removed}</span>{/if}
-			</div>
-			<button class="close-x" onclick={onClose}><X size={16} /></button>
+<Modal {onClose} width="62.5rem" maxHeight="85vh" ariaLabel={filepath}>
+	{#snippet header()}
+		<span class="file-path">{filepath}</span>
+		<div class="stats">
+			{#if stats.added > 0}<span class="stat-add">+{stats.added}</span>{/if}
+			{#if stats.removed > 0}<span class="stat-del">-{stats.removed}</span>{/if}
 		</div>
+	{/snippet}
 
-		<div class="diff-scroll">
-			{#if diffLines.length === 0}
-				<p class="diff-empty">(no changes)</p>
-			{:else}
-				<table class="diff-table">
-					<tbody>
-						{#each diffLines as line}
-							<tr class="diff-row diff-{line.type}">
-								<td class="line-num old-num">{line.oldNum}</td>
-								<td class="line-num new-num">{line.newNum}</td>
-								<td class="line-marker">
-									{#if line.type === 'add'}+{:else if line.type === 'del'}-{:else if line.type === 'sep'}⋯{:else}&nbsp;{/if}
-								</td>
-								<td class="line-text"><pre>{line.text}</pre></td>
-							</tr>
-						{/each}
-					</tbody>
-				</table>
-			{/if}
-		</div>
-
-		<div class="modal-footer">
-			<button class="btn" onclick={onClose}>{$t('fix.close')}</button>
-		</div>
+	<div class="diff-scroll">
+		{#if diffLines.length === 0}
+			<p class="diff-empty">(no changes)</p>
+		{:else}
+			<table class="diff-table">
+				<tbody>
+					{#each diffLines as line}
+						<tr class="diff-row diff-{line.type}">
+							<td class="line-num old-num">{line.oldNum}</td>
+							<td class="line-num new-num">{line.newNum}</td>
+							<td class="line-marker">
+								{#if line.type === 'add'}+{:else if line.type === 'del'}-{:else if line.type === 'sep'}⋯{:else}&nbsp;{/if}
+							</td>
+							<td class="line-text"><pre>{line.text}</pre></td>
+						</tr>
+					{/each}
+				</tbody>
+			</table>
+		{/if}
 	</div>
-</div>
+
+	{#snippet footer()}
+		<button class="btn" onclick={onClose}>{$t('fix.close')}</button>
+	{/snippet}
+</Modal>
 
 <style>
-	.overlay {
-		position: fixed;
-		inset: 0;
-		z-index: 1000;
-		background: rgba(0, 0, 0, .6);
-		backdrop-filter: blur(0.125rem);
-		display: flex;
-		align-items: center;
-		justify-content: center;
-	}
-
-	.modal {
-		background: var(--bg-deep);
-		border: 1px solid var(--bd2);
-		border-radius: var(--r);
-		width: 90vw;
-		max-width: 62.5rem;
-		max-height: 85vh;
-		display: flex;
-		flex-direction: column;
-		box-shadow: 0 0.5rem 2rem rgba(0, 0, 0, .5);
-	}
-
-	.modal-header {
-		display: flex;
-		align-items: center;
-		gap: 0.625rem;
-		padding: 0.625rem 1rem;
-		border-bottom: 1px solid var(--bd);
-		flex-shrink: 0;
-	}
-
 	.file-path {
 		font-family: var(--font-ui);
 		font-size: 0.8125rem;
@@ -151,16 +106,6 @@
 
 	.stat-add { color: var(--ok); }
 	.stat-del { color: var(--err); }
-
-	.close-x {
-		background: none;
-		border: none;
-		color: var(--tx-dim);
-		cursor: pointer;
-		padding: 0.25rem;
-	}
-
-	.close-x:hover { color: var(--tx-bright); }
 
 	.diff-scroll {
 		overflow: auto;
@@ -227,14 +172,5 @@
 		font-size: inherit;
 		white-space: pre;
 		overflow-x: visible;
-	}
-
-	.modal-footer {
-		display: flex;
-		gap: 0.5rem;
-		padding: 0.625rem 1rem;
-		border-top: 1px solid var(--bd);
-		flex-shrink: 0;
-		justify-content: flex-end;
 	}
 </style>

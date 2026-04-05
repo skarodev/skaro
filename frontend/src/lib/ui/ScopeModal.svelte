@@ -1,7 +1,7 @@
 <script>
 	import { t } from '$lib/i18n/index.js';
-	import { X, Search, FolderOpen, File, ChevronRight, ChevronDown, Trash2 } from 'lucide-svelte';
-	import { portal } from '$lib/utils/portal.js';
+	import { Search, FolderOpen, File, ChevronRight, ChevronDown, Trash2 } from 'lucide-svelte';
+	import Modal from '$lib/ui/Modal.svelte';
 
 	/**
 	 * @type {{
@@ -105,49 +105,36 @@
 		return k >= 1 ? `~${k.toFixed(0)}k ${$t('fix.tokens')}` : `~${estimatedTokens} ${$t('fix.tokens')}`;
 	});
 
-	function handleKeydown(e) {
-		if (e.key === 'Escape') onClose();
-	}
-
 	function formatSize(bytes) {
 		if (bytes < 1024) return `${bytes} B`;
 		return `${(bytes / 1024).toFixed(1)} KB`;
 	}
 </script>
 
-<svelte:window onkeydown={handleKeydown} />
+<Modal title={$t('scope.title')} {onClose} width="62.5rem" maxHeight="85vh">
+	<div class="search-bar">
+		<Search size={14} />
+		<input
+			type="text"
+			bind:value={filter}
+			placeholder={$t('scope.search_placeholder')}
+			class="search-input"
+		/>
+	</div>
 
-<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
-<div class="overlay" use:portal role="dialog" aria-modal="true" aria-label={$t('scope.title')} tabindex="-1" onkeydown={handleKeydown} onclick={onClose}>
-	<!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_static_element_interactions -->
-	<div class="modal" onclick={(e) => e.stopPropagation()}>
-		<div class="modal-header">
-			<h3>{$t('scope.title')}</h3>
-			<button class="close-x" onclick={onClose}><X size={16} /></button>
-		</div>
-
-		<div class="search-bar">
-			<Search size={14} />
-			<input
-				type="text"
-				bind:value={filter}
-				placeholder={$t('scope.search_placeholder')}
-				class="search-input"
-			/>
-		</div>
-
-		<div class="tree-scroll">
-			{#each tree as node}
-				{#if nodeVisible(node)}
-					{@render treeNode(node, 0)}
-				{/if}
-			{/each}
-			{#if tree.length === 0}
-				<div class="empty">{$t('scope.empty')}</div>
+	<div class="tree-scroll">
+		{#each tree as node}
+			{#if nodeVisible(node)}
+				{@render treeNode(node, 0)}
 			{/if}
-		</div>
+		{/each}
+		{#if tree.length === 0}
+			<div class="empty">{$t('scope.empty')}</div>
+		{/if}
+	</div>
 
-		<div class="modal-footer">
+	{#snippet footer()}
+		<div class="scope-footer">
 			<div class="footer-info">
 				<span class="count">{$t('scope.selected_count', { n: selectedCount })}</span>
 				{#if selectedCount > 0}
@@ -164,8 +151,8 @@
 				<button class="btn btn-primary" onclick={confirm}>{$t('scope.confirm')}</button>
 			</div>
 		</div>
-	</div>
-</div>
+	{/snippet}
+</Modal>
 
 {#snippet treeNode(node, depth)}
 	{@const state = getCheckState(node)}
@@ -218,52 +205,6 @@
 {/snippet}
 
 <style>
-	.overlay {
-		position: fixed;
-		inset: 0;
-		z-index: 1000;
-		background: rgba(0, 0, 0, .6);
-		backdrop-filter: blur(0.125rem);
-		display: flex;
-		align-items: center;
-		justify-content: center;
-	}
-
-	.modal {
-		background: var(--bg-deep);
-		border: 0.0625rem solid var(--bd2);
-		border-radius: var(--r);
-		width: 90vw;
-		max-width: 62.5rem;
-		max-height: 85vh;
-		display: flex;
-		flex-direction: column;
-		box-shadow: 0 0.5rem 2rem rgba(0, 0, 0, .5);
-	}
-
-	.modal-header {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		padding: 0.75rem 1rem;
-		border-bottom: 0.0625rem solid var(--bd);
-		flex-shrink: 0;
-	}
-
-	.modal-header h3 {
-		margin: 0;
-		font-size: 0.9375rem;
-	}
-
-	.close-x {
-		background: none;
-		border: none;
-		color: var(--tx-dim);
-		cursor: pointer;
-		padding: 0.25rem;
-	}
-	.close-x:hover { color: var(--tx-bright); }
-
 	.search-bar {
 		display: flex;
 		align-items: center;
@@ -360,13 +301,11 @@
 		font-size: 0.8125rem;
 	}
 
-	.modal-footer {
+	.scope-footer {
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
-		padding: 0.625rem 1rem;
-		border-top: 0.0625rem solid var(--bd);
-		flex-shrink: 0;
+		width: 100%;
 	}
 
 	.footer-info {
