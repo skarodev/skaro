@@ -57,7 +57,6 @@
 	let contextTokens = $state(0);
 	let initialLoaded = $state(false);
 	let appliedFiles = $state({});
-	let createdProposalTurns = $state({});
 	let diffModal = $state(null);
 
 	// Scope state
@@ -338,16 +337,12 @@
 
 	async function handleCreateTasks(turnIndex, tasks) {
 		if (!onCreateTasks) return;
-		const result = await onCreateTasks(tasks);
-		if (result) {
-			createdProposalTurns = { ...createdProposalTurns, [turnIndex]: true };
-		}
+		await onCreateTasks(tasks);
 	}
 
 	async function clearConversation() {
 		conversation = [];
 		appliedFiles = {};
-		createdProposalTurns = {};
 		message = '';
 		try { await clearConversationFn(); } catch {}
 	}
@@ -386,7 +381,6 @@
 				{modelDisplay}
 				onOpenDiff={openDiff}
 				onCreateTasks={onCreateTasks ? handleCreateTasks : null}
-				{createdProposalTurns}
 			/>
 		{/each}
 		{#if loading}

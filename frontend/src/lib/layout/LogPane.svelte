@@ -1,7 +1,6 @@
 <script>
 	import { t } from '$lib/i18n/index.js';
 	import { logEntries, llmActive, llmPhase, llmText } from '$lib/stores/logStore.js';
-	import KittIndicator from '$lib/ui/KittIndicator.svelte';
 
 	let streamEl = $state(null);
 
@@ -19,9 +18,6 @@
 			<div class="llm-header">
 				{#if $llmPhase}
 					<span class="llm-label">{$llmPhase}</span>
-				{/if}
-				{#if $llmActive}
-					<KittIndicator cells={14} speed={1100} color="var(--ac)" />
 				{/if}
 			</div>
 			<div class="llm-body" bind:this={streamEl}>
@@ -84,7 +80,7 @@
 	.llm-label {
 		font-size: 0.6875rem;
 		font-weight: 600;
-		color: var(--ac);
+		color: var(--tx-dim);
 		text-transform: uppercase;
 		letter-spacing: 0.06em;
 		white-space: nowrap;

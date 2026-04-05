@@ -19,6 +19,7 @@
 		href,
 		isFirst = false,
 		isLast = false,
+		isActive = false,
 	} = $props();
 
 	/** Task-level phase order for display (excludes project-level constitution/architecture). */
@@ -44,14 +45,12 @@
 		return 'clarify';
 	});
 
-	/** Simplified status: 'done' | 'active' | 'pending'. */
+	/** Simplified status: 'done' | 'active' | 'pending'.
+	 *  Only one task should have isActive=true (the first non-done task).
+	 */
 	let itemStatus = $derived.by(() => {
 		if (allComplete) return 'done';
-		const ph = task.phases || {};
-		const hasProgress = Object.values(ph).some(
-			(s) => s === 'complete' || s === 'in_progress' || s === 'draft' || s === 'awaiting_review'
-		);
-		return hasProgress ? 'active' : 'pending';
+		return isActive ? 'active' : 'pending';
 	});
 
 	/** Animated icon component based on displayPhase. */

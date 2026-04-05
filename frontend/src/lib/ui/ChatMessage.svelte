@@ -11,7 +11,6 @@
 		modelDisplay = '',
 		onOpenDiff = (turnIdx, fpath, fdata) => {},
 		onCreateTasks = null,
-		createdProposalTurns = {},
 	} = $props();
 
 	/**
@@ -82,8 +81,6 @@
 		{#if onCreateTasks && turn.taskProposals?.length > 0}
 			<TaskProposal
 				proposals={turn.taskProposals}
-				confirming={false}
-				created={!!createdProposalTurns[turnIdx]}
 				onConfirm={(tasks) => onCreateTasks(turnIdx, tasks)}
 			/>
 		{/if}

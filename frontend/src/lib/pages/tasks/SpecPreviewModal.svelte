@@ -53,6 +53,7 @@
 		overflow: auto;
 		flex: 1;
 		min-height: 0;
+		padding: 1.25rem;
 	}
 
 	.spec-content {

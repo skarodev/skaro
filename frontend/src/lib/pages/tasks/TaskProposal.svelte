@@ -1,5 +1,6 @@
 <script>
 	import { t } from '$lib/i18n/index.js';
+	import { status } from '$lib/stores/statusStore.js';
 	import { Loader2, CheckCircle, ListPlus, Eye, Check } from 'lucide-svelte';
 	import SpecPreviewModal from './SpecPreviewModal.svelte';
 
@@ -7,7 +8,6 @@
 		proposals = [],
 		onConfirm = (/** @type {any[]} */ _tasks) => {},
 		confirming = false,
-		created = false,
 	} = $props();
 
 	let tasks = $state([]);
@@ -18,6 +18,16 @@
 			tasks = proposals.map((p, i) => ({ ...p, enabled: true, _idx: i }));
 		}
 	});
+
+	/** Set of existing task names from the global status store. */
+	let existingNames = $derived(
+		new Set(($status?.tasks || []).map(t => t.name))
+	);
+
+	/** All proposed tasks already exist on disk — show as created. */
+	let created = $derived(
+		proposals.length > 0 && proposals.every(p => existingNames.has(p.name))
+	);
 
 	let enabledTasks = $derived(tasks.filter(t => t.enabled));
 	let canConfirm = $derived(enabledTasks.length > 0 && !confirming && !created);

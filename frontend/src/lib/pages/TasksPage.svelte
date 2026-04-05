@@ -76,6 +76,15 @@
 		applyStatusFilter(tasksForTab(activeTab))
 	);
 
+	/** Name of the first non-done task — only this one gets the "active" highlight. */
+	let firstActiveName = $derived.by(() => {
+		const tasks = filteredTasks;
+		for (const task of tasks) {
+			if (!isTaskDone(task)) return task.name;
+		}
+		return '';
+	});
+
 	/** DnD is available when status filter is "all" (so ordering is unambiguous). */
 	let canReorder = $derived(statusFilter === 'all');
 
@@ -270,6 +279,7 @@
 								href="/tasks/{encodeURIComponent(task.name)}"
 								isFirst={i === 0}
 								isLast={i === filteredTasks.length - 1}
+								isActive={task.name === firstActiveName}
 							/>
 						</div>
 					</div>
