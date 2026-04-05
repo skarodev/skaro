@@ -7,12 +7,7 @@
 	import { Rocket } from 'lucide-svelte';
 	import ProjectIcon from '$lib/ui/icons/ProjectIcon.svelte';
 	import RoadmapStepper from './start/RoadmapStepper.svelte';
-	import ProjectProgress from './start/ProjectProgress.svelte';
-	import GitStatusCard from './start/GitStatusCard.svelte';
-	import QuickActions from './start/QuickActions.svelte';
-	import PipelineCard from './dashboard/PipelineCard.svelte';
-	import TasksOverview from './dashboard/TasksOverview.svelte';
-	import LlmConfigCard from './dashboard/LlmConfigCard.svelte';
+	import KanbanBoard from './start/KanbanBoard.svelte';
 	import StartSkeleton from './start/StartSkeleton.svelte';
 
 	let data = $state(null);
@@ -28,16 +23,9 @@
 
 	let status = $derived(data?.status);
 
-	let activeRoles = $derived.by(() => {
-		if (!status?.config?.roles) return [];
-		return Object.entries(status.config.roles)
-			.filter(([, v]) => v !== null)
-			.map(([name, cfg]) => ({ name, ...cfg }));
-	});
-
 	/**
 	 * Early stage = devplan not confirmed OR no tasks exist.
-	 * Once there are confirmed tasks, we switch to the active view.
+	 * Once there are confirmed tasks, we switch to the kanban view.
 	 */
 	let isEarlyStage = $derived(
 		!status?.devplan_confirmed || !status?.tasks?.length
@@ -64,17 +52,9 @@
 			<RoadmapStepper {status} />
 		</div>
 	{:else}
-		<!-- ═══ Variant B: Active project ═══ -->
-		<div class="start-grid">
-			<PipelineCard {status} />
-
-			<ProjectProgress tasks={status?.tasks} />
-			<GitStatusCard />
-
-			<TasksOverview tasks={status?.tasks} />
-			<QuickActions {status} />
-
-			<LlmConfigCard config={status?.config} roles={activeRoles} />
+		<!-- ═══ Variant B: Active project — Kanban board ═══ -->
+		<div class="start-kanban">
+			<KanbanBoard tasks={status?.tasks} />
 		</div>
 	{/if}
 
@@ -125,23 +105,9 @@
 		margin-top: 0.25rem;
 	}
 
-	/* ── Active project grid ── */
+	/* ── Kanban layout — full width ── */
 
-	:global(.main > .start-grid) {
+	:global(.main > .start-kanban) {
 		max-width: 100% !important;
-	}
-
-	.start-grid {
-		display: grid;
-		grid-template-columns: repeat(8, 1fr);
-		gap: 1.5rem;
-	}
-
-	.start-grid > :global(.card) { margin-bottom: 0; }
-	.start-grid > :global(.widget.lg) { grid-column: span 4; }
-	.start-grid > :global(.widget.md) { grid-column: span 2; }
-
-	@media (max-width: 1980px) {
-		.start-grid > :global(.widget.lg.pipeline-card) { grid-column: span 8; }
 	}
 </style>
