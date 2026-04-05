@@ -47,6 +47,7 @@
 	/** Summary counts. */
 	let doneCount = $derived(tasks.filter(isTaskDone).length);
 	let totalCount = $derived(tasks.length);
+	let pct = $derived(totalCount > 0 ? Math.round((doneCount / totalCount) * 100) : 0);
 
 	/** Format milestone slug for display. */
 	function fmtMilestone(slug) {
@@ -61,6 +62,9 @@
 <div class="kb-summary">
 	<span class="kb-summary-count">{doneCount}<span class="kb-summary-sep">/</span>{totalCount}</span>
 	<span class="kb-summary-label">{$t('start.tasks_done')}</span>
+</div>
+<div class="kb-progress-track">
+	<div class="kb-progress-fill" style="width: {pct}%"></div>
 </div>
 
 <!-- Kanban board -->
@@ -108,7 +112,7 @@
 		display: flex;
 		align-items: baseline;
 		gap: 0.375rem;
-		margin-bottom: 1rem;
+		margin-bottom: 0.375rem;
 	}
 
 	.kb-summary-count {
@@ -127,6 +131,25 @@
 	.kb-summary-label {
 		font-size: 0.8125rem;
 		color: var(--tx-dim);
+	}
+
+	/* ── Progress bar ── */
+
+	.kb-progress-track {
+		width: 100%;
+		height: 0.25rem;
+		background: var(--bg-deep);
+		border-radius: 0.125rem;
+		overflow: hidden;
+		margin-bottom: 1rem;
+	}
+
+	.kb-progress-fill {
+		height: 100%;
+		background: var(--ok);
+		border-radius: 0.125rem;
+		transition: width .4s ease;
+		min-width: 2px;
 	}
 
 	/* ── Board ── */

@@ -4,19 +4,27 @@
 	import { api } from '$lib/api/client.js';
 	import { addError } from '$lib/stores/logStore.js';
 	import { cachedFetch } from '$lib/api/cache.js';
-	import { Rocket } from 'lucide-svelte';
+	import { Rocket, GitBranch, FileUp, FileWarning, ArrowRight } from 'lucide-svelte';
 	import ProjectIcon from '$lib/ui/icons/ProjectIcon.svelte';
 	import RoadmapStepper from './start/RoadmapStepper.svelte';
 	import KanbanBoard from './start/KanbanBoard.svelte';
 	import StartSkeleton from './start/StartSkeleton.svelte';
 
+	const TASK_PHASES = ['clarify', 'plan', 'implement', 'tests'];
+
 	let data = $state(null);
 	let loading = $state(true);
 	let error = $state('');
+	let gitData = $state(null);
 
 	onMount(async () => {
 		try {
-			data = await cachedFetch('start', () => api.getDashboard());
+			const [dashboard, git] = await Promise.all([
+				cachedFetch('start', () => api.getDashboard()),
+				api.getGitStatus().catch(() => null),
+			]);
+			data = dashboard;
+			gitData = git;
 		} catch (e) { error = e.message; addError(e.message, 'start'); }
 		loading = false;
 	});
@@ -30,6 +38,18 @@
 	let isEarlyStage = $derived(
 		!status?.devplan_confirmed || !status?.tasks?.length
 	);
+
+	/** First incomplete task — entry point to continue work. */
+	let activeTask = $derived.by(() => {
+		const tasks = status?.tasks || [];
+		return tasks.find(t =>
+			!TASK_PHASES.every(k => t.phases?.[k] === 'complete')
+		) || null;
+	});
+
+	/** Git counts. */
+	let stagedCount = $derived(gitData?.files?.filter(f => f.status === 'staged').length || 0);
+	let changedCount = $derived(gitData?.files?.filter(f => f.status !== 'staged').length || 0);
 </script>
 
 {#if loading}
@@ -54,6 +74,25 @@
 	{:else}
 		<!-- ═══ Variant B: Active project — Kanban board ═══ -->
 		<div class="start-kanban">
+			<div class="kb-toolbar">
+				{#if gitData}
+					<a class="kb-git" href="/git">
+						<GitBranch size={14} />
+						<span class="mono">{gitData.branch || '—'}</span>
+						{#if stagedCount > 0}
+							<span class="status-badge status-badge-ok"><FileUp size={11} /> {stagedCount}</span>
+						{/if}
+						{#if changedCount > 0}
+							<span class="status-badge status-badge-warn"><FileWarning size={11} /> {changedCount}</span>
+						{/if}
+					</a>
+				{/if}
+				{#if activeTask}
+					<a class="btn btn-sm kb-continue" href="/tasks/{encodeURIComponent(activeTask.name)}">
+						{$t('start.action_current_task')} <ArrowRight size={13} />
+					</a>
+				{/if}
+			</div>
 			<KanbanBoard tasks={status?.tasks} />
 		</div>
 	{/if}
@@ -109,5 +148,57 @@
 
 	:global(.main > .start-kanban) {
 		max-width: 100% !important;
+	}
+
+	/* ── Toolbar ── */
+
+	.kb-toolbar {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 0.75rem;
+		margin-bottom: 1rem;
+	}
+
+	.kb-git {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.375rem;
+		color: var(--tx-dim);
+		font-size: 0.8125rem;
+		text-decoration: none;
+		transition: color .15s;
+	}
+
+	.kb-git:hover {
+		color: var(--tx-bright);
+	}
+
+	.kb-git .mono {
+		font-family: var(--font-ui);
+		color: var(--tx);
+	}
+
+	.kb-git .status-badge {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.2rem;
+	}
+
+	.status-badge-warn {
+		background: color-mix(in srgb, var(--warn) 12%, transparent);
+		color: var(--warn);
+	}
+
+	.kb-continue {
+		border-color: color-mix(in srgb, var(--ac) 40%, transparent);
+		background: color-mix(in srgb, var(--ac) 8%, transparent);
+		color: var(--ac);
+		margin-left: auto;
+	}
+
+	.kb-continue:hover {
+		background: color-mix(in srgb, var(--ac) 14%, transparent);
+		border-color: color-mix(in srgb, var(--ac) 55%, transparent);
 	}
 </style>
