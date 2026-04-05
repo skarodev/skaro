@@ -2,6 +2,7 @@
 	import { t } from '$lib/i18n/index.js';
 	import { X, Check, FilePlus } from 'lucide-svelte';
 	import { computeUnifiedDiff, diffStats } from '$lib/utils/diff.js';
+	import { portal } from '$lib/utils/portal.js';
 
 	let { filepath, oldContent, newContent, isNew, applied, onApply, onClose } = $props();
 
@@ -16,7 +17,7 @@
 <svelte:window onkeydown={handleKeydown} />
 
 <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
-<div class="overlay" role="dialog" aria-modal="true" aria-label={filepath} tabindex="-1" onkeydown={handleKeydown} onclick={onClose}>
+<div class="overlay" use:portal role="dialog" aria-modal="true" aria-label={filepath} tabindex="-1" onkeydown={handleKeydown} onclick={onClose}>
 	<!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_static_element_interactions -->
 	<div class="modal" role="document" onclick={(e) => e.stopPropagation()}>
 		<div class="modal-header">
