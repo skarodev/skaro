@@ -5,9 +5,12 @@
 	import { onWsEvent } from '$lib/api/client.js';
 	import { addLog, addError } from '$lib/stores/logStore.js';
 	import {
-		GitBranch, GitCommit, Upload, RefreshCw, ChevronDown, ChevronRight,
-		Plus, Minus, FileQuestion, Check, X, Loader2, AlertTriangle, Eye
+		GitBranch, GitCommit, Upload, RefreshCw, ChevronDown,
+		Plus, Minus, FileQuestion, FilePen, Check, X, Loader2,
+		AlertTriangle, Eye, CircleCheckBig
 	} from 'lucide-svelte';
+	import Tooltip from '$lib/ui/Tooltip.svelte';
+	import GitDiffModal from './git/GitDiffModal.svelte';
 
 	let data = $state(null);
 	let error = $state('');
@@ -60,6 +63,7 @@
 	let unstagedFiles = $derived(data?.files?.filter(f => f.status !== 'staged') || []);
 	let hasStaged = $derived(stagedFiles.length > 0);
 	let hasUnstaged = $derived(unstagedFiles.length > 0);
+	let isClean = $derived(!hasStaged && !hasUnstaged);
 
 	// ── Selection helpers ──
 	function toggleSelect(path) {
@@ -152,7 +156,6 @@
 	}
 
 	async function showDiff(filepath) {
-		if (diffFile === filepath) { diffFile = null; return; }
 		diffFile = filepath;
 		loadingDiff = true;
 		try {
@@ -160,6 +163,11 @@
 			diffContent = result.diff || '(no changes)';
 		} catch (e) { diffContent = `Error: ${e.message}`; }
 		loadingDiff = false;
+	}
+
+	function closeDiff() {
+		diffFile = null;
+		diffContent = '';
 	}
 
 	async function switchBranch(name) {
@@ -189,7 +197,7 @@
 	function changeIcon(change) {
 		if (change === 'A') return Plus;
 		if (change === 'D') return Minus;
-		if (change === 'M') return GitCommit;
+		if (change === 'M') return FilePen;
 		return FileQuestion;
 	}
 
@@ -200,9 +208,9 @@
 	}
 </script>
 
-<div class="page-with-tabs">
+<div class="git-page">
 	<div class="main-header">
-		<h2>{$t('git.title')}</h2>
+		<h2><GitBranch size={20} /> {$t('git.title')}</h2>
 		<p>{$t('git.subtitle')}</p>
 	</div>
 
@@ -214,25 +222,40 @@
 		<div class="alert alert-warn"><AlertTriangle size={14} /> {$t('git.not_a_repo')}</div>
 	{:else if data}
 
-		<!-- ── Branch bar ── -->
-		<div class="branch-bar">
-			<div class="branch-current">
-				<GitBranch size={14} />
-				<span class="branch-name">{data.branch}</span>
-				<button class="btn btn-sm" onclick={() => showBranchInput = !showBranchInput}>
-					<ChevronDown size={12} /> {$t('git.branches')}
-				</button>
-				<button class="btn btn-sm" onclick={load} title={$t('git.refresh')}>
-					<RefreshCw size={12} />
-				</button>
+		<!-- ── Branch toolbar ── -->
+		<div class="git-toolbar">
+			<div class="git-toolbar-row">
+				<div class="git-branch-info">
+					<GitBranch size={14} />
+					<span class="git-branch-name">{data.branch}</span>
+					{#if hasStaged}
+						<span class="status-badge status-badge-ok">{stagedFiles.length} staged</span>
+					{/if}
+					{#if hasUnstaged}
+						<span class="status-badge git-badge-warn">{unstagedFiles.length} changed</span>
+					{/if}
+					{#if isClean}
+						<span class="status-badge status-badge-ok"><Check size={10} /> clean</span>
+					{/if}
+				</div>
+				<div class="git-toolbar-actions">
+					<button class="btn btn-sm" onclick={() => showBranchInput = !showBranchInput}>
+						<ChevronDown size={12} /> {$t('git.branches')}
+					</button>
+					<Tooltip text={$t('git.refresh')} placement="bottom">
+						<button class="btn btn-sm" onclick={load}>
+							<RefreshCw size={12} />
+						</button>
+					</Tooltip>
+				</div>
 			</div>
 
 			{#if showBranchInput}
-				<div class="branch-panel">
-					<div class="branch-list">
+				<div class="git-branch-panel">
+					<div class="git-branch-list">
 						{#each data.branches as br}
 							<button
-								class="branch-item"
+								class="git-branch-item"
 								class:active={br === data.branch}
 								disabled={br === data.branch || switchingBranch}
 								onclick={() => switchBranch(br)}
@@ -242,10 +265,10 @@
 							</button>
 						{/each}
 					</div>
-					<div class="branch-create">
+					<div class="git-branch-create">
 						<input
 							type="text"
-							class="input"
+							class="git-input"
 							placeholder={$t('git.new_branch_placeholder')}
 							bind:value={newBranchName}
 							onkeydown={(e) => e.key === 'Enter' && createBranch()}
@@ -258,126 +281,130 @@
 			{/if}
 		</div>
 
-		<!-- ── Staged changes ── -->
-		<div class="file-section">
-			<div class="section-header">
-				<h3>{$t('git.staged_changes')} ({stagedFiles.length})</h3>
-				{#if hasStaged}
-					<button class="btn btn-sm" onclick={unstageAll} disabled={staging}>
-						<Minus size={12} /> {$t('git.unstage_all')}
-					</button>
-				{/if}
+		<!-- ── Clean state ── -->
+		{#if isClean}
+			<div class="card git-clean-state">
+				<CircleCheckBig size={28} />
+				<p>{$t('git.working_tree_clean')}</p>
 			</div>
-			{#if hasStaged}
-				<div class="file-list">
-					{#each stagedFiles as f}
-						{@const Icon = changeIcon(f.change)}
-						<div class="file-row staged">
-							<span class="file-change {changeClass(f.change)}"><Icon size={12} /></span>
-							<span class="file-path">{f.path}</span>
-							<button class="btn-icon" title={$t('git.view_diff')} onclick={() => showDiff(f.path)}>
-								<Eye size={13} />
-							</button>
-							<button class="btn-icon" title={$t('git.unstage')} onclick={() => unstageFiles([f.path])}>
-								<Minus size={13} />
-							</button>
-						</div>
-						{#if diffFile === f.path}
-							<div class="diff-inline">
-								{#if loadingDiff}
-									<Loader2 size={12} class="spin" /> Loading...
-								{:else}
-									<pre class="diff-pre">{diffContent}</pre>
-								{/if}
-							</div>
-						{/if}
-					{/each}
-				</div>
-			{:else}
-				<p class="empty-hint">{$t('git.no_staged')}</p>
-			{/if}
-		</div>
+		{:else}
+			<!-- ── File sections grid ── -->
+			<div class="git-files-grid">
 
-		<!-- ── Unstaged / untracked ── -->
-		<div class="file-section">
-			<div class="section-header">
-				<h3>{$t('git.changes')} ({unstagedFiles.length})</h3>
-				{#if hasUnstaged}
-					<button class="btn btn-sm" onclick={() => selectAll(unstagedFiles)}>
-						<Check size={12} /> {$t('git.select_all')}
-					</button>
-					<button class="btn btn-sm" onclick={stageAll} disabled={staging}>
-						<Plus size={12} /> {$t('git.stage_all')}
-					</button>
-				{/if}
-			</div>
-			{#if hasUnstaged}
-				<div class="file-list">
-					{#each unstagedFiles as f}
-						{@const Icon = changeIcon(f.change)}
-						<div class="file-row">
-							<label class="file-checkbox">
-								<input
-									type="checkbox"
-									checked={selectedFiles.has(f.path)}
-									onchange={() => toggleSelect(f.path)}
-								/>
-							</label>
-							<span class="file-change {changeClass(f.change)}"><Icon size={12} /></span>
-							<span class="file-path">{f.path}</span>
-							<span class="file-status-badge">{f.status}</span>
-							<button class="btn-icon" title={$t('git.view_diff')} onclick={() => showDiff(f.path)}>
-								<Eye size={13} />
+				<!-- Staged changes -->
+				<div class="card git-file-section">
+					<div class="section-head">
+						<h3>{$t('git.staged_changes')} ({stagedFiles.length})</h3>
+						{#if hasStaged}
+							<button class="sec-btn" onclick={unstageAll} disabled={staging}>
+								<Minus size={10} /> {$t('git.unstage_all')}
 							</button>
+						{/if}
+					</div>
+					{#if hasStaged}
+						<div class="git-file-list">
+							{#each stagedFiles as f}
+								{@const Icon = changeIcon(f.change)}
+								<div class="git-file-row git-file-staged">
+									<span class="git-file-change {changeClass(f.change)}"><Icon size={12} /></span>
+									<span class="git-file-path">{f.path}</span>
+									<Tooltip text={$t('git.view_diff')} placement="top">
+										<button class="git-btn-icon" onclick={() => showDiff(f.path)}>
+											<Eye size={13} />
+										</button>
+									</Tooltip>
+									<Tooltip text={$t('git.unstage')} placement="top">
+										<button class="git-btn-icon" onclick={() => unstageFiles([f.path])}>
+											<Minus size={13} />
+										</button>
+									</Tooltip>
+								</div>
+							{/each}
 						</div>
-						{#if diffFile === f.path}
-							<div class="diff-inline">
-								{#if loadingDiff}
-									<Loader2 size={12} class="spin" /> Loading...
-								{:else}
-									<pre class="diff-pre">{diffContent}</pre>
-								{/if}
+					{:else}
+						<p class="empty-hint">{$t('git.no_staged')}</p>
+					{/if}
+				</div>
+
+				<!-- Unstaged / untracked -->
+				<div class="card git-file-section">
+					<div class="section-head">
+						<h3>{$t('git.changes')} ({unstagedFiles.length})</h3>
+						{#if hasUnstaged}
+							<div class="git-section-actions">
+								<button class="sec-btn" onclick={() => selectAll(unstagedFiles)}>
+									<Check size={10} /> {$t('git.select_all')}
+								</button>
+								<button class="sec-btn" onclick={stageAll} disabled={staging}>
+									<Plus size={10} /> {$t('git.stage_all')}
+								</button>
 							</div>
 						{/if}
-					{/each}
-				</div>
-				{#if selectedFiles.size > 0}
-					<div class="selection-actions">
-						<button class="btn btn-primary btn-sm" onclick={stageSelected} disabled={staging}>
-							{#if staging}<Loader2 size={12} class="spin" />{/if}
-							<Plus size={12} /> {$t('git.stage_selected', { n: selectedFiles.size })}
-						</button>
-						<button class="btn btn-sm" onclick={() => deselectAll(unstagedFiles)}>
-							<X size={12} /> {$t('git.deselect')}
-						</button>
 					</div>
-				{/if}
-			{:else}
-				<p class="empty-hint">{$t('git.working_tree_clean')}</p>
-			{/if}
-		</div>
+					{#if hasUnstaged}
+						<div class="git-file-list">
+							{#each unstagedFiles as f}
+								{@const Icon = changeIcon(f.change)}
+								<div class="git-file-row">
+									<label class="git-file-checkbox">
+										<input
+											type="checkbox"
+											checked={selectedFiles.has(f.path)}
+											onchange={() => toggleSelect(f.path)}
+										/>
+									</label>
+									<span class="git-file-change {changeClass(f.change)}"><Icon size={12} /></span>
+									<span class="git-file-path">{f.path}</span>
+									<span class="git-file-status">{f.status}</span>
+									<Tooltip text={$t('git.view_diff')} placement="top">
+										<button class="git-btn-icon" onclick={() => showDiff(f.path)}>
+											<Eye size={13} />
+										</button>
+									</Tooltip>
+								</div>
+							{/each}
+						</div>
+						{#if selectedFiles.size > 0}
+							<div class="git-selection-bar">
+								<button class="btn btn-primary btn-sm" onclick={stageSelected} disabled={staging}>
+									{#if staging}<Loader2 size={12} class="spin" />{/if}
+									<Plus size={12} /> {$t('git.stage_selected', { n: selectedFiles.size })}
+								</button>
+								<button class="btn btn-sm" onclick={() => deselectAll(unstagedFiles)}>
+									<X size={12} /> {$t('git.deselect')}
+								</button>
+							</div>
+						{/if}
+					{:else}
+						<p class="empty-hint">{$t('git.working_tree_clean')}</p>
+					{/if}
+				</div>
+			</div>
+		{/if}
 
 		<!-- ── Commit box ── -->
 		{#if hasStaged}
-			<div class="commit-box">
+			<div class="card git-commit-box">
 				<h3><GitCommit size={16} /> {$t('git.commit')}</h3>
 				<textarea
-					class="input commit-input"
+					class="git-input git-commit-input"
 					placeholder={$t('git.commit_message_placeholder')}
 					bind:value={commitMessage}
 					rows="3"
 					onkeydown={(e) => { if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') commit(); }}
 				></textarea>
-				<div class="commit-actions">
-					<label class="push-toggle">
+				<div class="git-commit-actions">
+					<label class="git-push-toggle">
 						<input type="checkbox" bind:checked={pushAfterCommit} disabled={!data.has_remote} />
 						<Upload size={12} />
-						{$t('git.push_after_commit')}
-						{#if !data.has_remote}
-							<span class="hint">({$t('git.no_remote')})</span>
-						{/if}
+						<span>
+							{$t('git.push_after_commit')}
+							{#if !data.has_remote}
+								<span class="hint">({$t('git.no_remote')})</span>
+							{/if}
+						</span>
 					</label>
-					<div class="commit-buttons">
+					<div class="git-commit-buttons">
 						<button
 							class="btn btn-primary"
 							onclick={commit}
@@ -394,51 +421,86 @@
 						{/if}
 					</div>
 				</div>
-				<p class="commit-hint">{$t('git.commit_hint')}</p>
 			</div>
 		{/if}
 
 	{/if}
 </div>
 
+<!-- ── Diff modal ── -->
+{#if diffFile && !loadingDiff}
+	<GitDiffModal filepath={diffFile} diffText={diffContent} onClose={closeDiff} />
+{/if}
+
 <style>
-	/* ── Branch bar ── */
-	.branch-bar {
-		background: var(--bd);
-		border-radius: var(--r);
-		padding: 0.625rem 0.75rem;
+	/* ── Page width ── */
+
+	:global(.main > .git-page) {
+		max-width: 63.5rem !important;
+	}
+
+	/* ── Branch toolbar (transparent) ── */
+
+	.git-toolbar {
 		margin-bottom: 1rem;
 	}
 
-	.branch-current {
+	.git-toolbar-row {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 0.75rem;
+	}
+
+	.git-branch-info {
 		display: flex;
 		align-items: center;
 		gap: 0.5rem;
+		color: var(--tx-dim);
+		min-width: 0;
 	}
 
-	.branch-name {
+	.git-branch-name {
 		font-family: var(--font-ui);
 		font-weight: 600;
+		font-size: 0.9375rem;
 		color: var(--ac);
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
 	}
 
-	.branch-panel {
+	.git-badge-warn {
+		background: color-mix(in srgb, var(--warn) 12%, transparent);
+		color: var(--warn);
+	}
+
+	.git-toolbar-actions {
+		display: flex;
+		align-items: center;
+		gap: 0.375rem;
+		flex-shrink: 0;
+	}
+
+	/* ── Branch panel ── */
+
+	.git-branch-panel {
 		margin-top: 0.75rem;
-		border-top: 0.0625rem solid var(--bd);
+		border-top: 1px solid var(--bd);
 		padding-top: 0.75rem;
 	}
 
-	.branch-list {
+	.git-branch-list {
 		display: flex;
 		flex-wrap: wrap;
 		gap: 0.25rem;
 		margin-bottom: 0.5rem;
 	}
 
-	.branch-item {
+	.git-branch-item {
 		padding: 0.25rem 0.5rem;
 		background: var(--bg-deep);
-		border: 0.0625rem solid var(--bd);
+		border: 1px solid var(--bd);
 		border-radius: var(--r2);
 		color: var(--tx);
 		font-size: 0.8125rem;
@@ -447,70 +509,99 @@
 		display: inline-flex;
 		align-items: center;
 		gap: 0.25rem;
+		transition: all .1s;
 	}
 
-	.branch-item:hover:not(:disabled) { background: var(--sf2); }
-	.branch-item.active { border-color: var(--ac); color: var(--ac); }
-	.branch-item:disabled { opacity: 0.6; cursor: default; }
+	.git-branch-item:hover:not(:disabled) { background: var(--sf2); }
+	.git-branch-item.active { border-color: var(--ac); color: var(--ac); }
+	.git-branch-item:disabled { opacity: 0.6; cursor: default; }
 
-	.branch-create {
+	.git-branch-create {
 		display: flex;
 		gap: 0.5rem;
 		align-items: center;
 	}
 
-	.branch-create .input {
-		flex: 1;
-		font-size: 0.8125rem;
-	}
+	.git-branch-create .git-input { flex: 1; }
 
-	/* ── File sections ── */
-	.file-section {
-		margin-bottom: 1rem;
-	}
+	/* ── Clean state ── */
 
-	.section-header {
+	.git-clean-state {
 		display: flex;
+		flex-direction: column;
 		align-items: center;
 		gap: 0.5rem;
-		margin-bottom: 0.375rem;
+		padding: 2.5rem 1rem;
+		color: var(--ok);
+		text-align: center;
 	}
 
-	.section-header h3 {
+	.git-clean-state p {
+		color: var(--tx-dim);
 		font-size: 0.875rem;
-		color: var(--tx-bright);
-		flex: 1;
+		margin: 0;
 	}
 
-	.file-list {
-		background: var(--bd);
+	/* ── Files grid ── */
+
+	.git-files-grid {
+		display: grid;
+		grid-template-columns: 1fr;
+		gap: 0.5rem;
+	}
+
+	@media (min-width: 768px) {
+		.git-files-grid {
+			grid-template-columns: 1fr 1fr;
+		}
+	}
+
+	.git-file-section {
+		min-width: 0;
+	}
+
+	.git-file-section .section-head {
+		margin-bottom: 0.5rem;
+	}
+
+	.git-section-actions {
+		display: flex;
+		gap: 0.25rem;
+	}
+
+	/* ── File list ── */
+
+	.git-file-list {
+		background: var(--bg-deep);
 		border-radius: var(--r);
 		overflow: hidden;
 	}
 
-	.file-row {
+	.git-file-row {
 		display: flex;
 		align-items: center;
 		gap: 0.5rem;
 		padding: 0.375rem 0.625rem;
-		border-bottom: 0.0625rem solid var(--bd);
+		border-bottom: 1px solid var(--bg);
 		font-size: 0.8125rem;
+		transition: background .1s;
 	}
 
-	.file-row:last-child { border-bottom: none; }
-	.file-row:hover { background: var(--bg-deep); }
-	.file-row.staged { background: color-mix(in srgb, var(--ok) 6%, transparent); }
+	.git-file-row:last-child { border-bottom: none; }
+	.git-file-row:hover { background: var(--bg-high); }
 
-	.file-checkbox {
+	.git-file-staged {
+		background: color-mix(in srgb, var(--ok) 4%, transparent);
+	}
+
+	.git-file-checkbox {
 		display: flex;
 		align-items: center;
 	}
 
-	.file-checkbox input {
-		accent-color: var(--ac);
-	}
+	.git-file-checkbox input { accent-color: var(--ac); }
 
-	.file-change {
+	.git-file-change {
 		display: flex;
 		align-items: center;
 		width: 1rem;
@@ -521,7 +612,7 @@
 	.change-del { color: var(--err); }
 	.change-mod { color: var(--warn); }
 
-	.file-path {
+	.git-file-path {
 		flex: 1;
 		font-family: var(--font-ui);
 		font-size: 0.8125rem;
@@ -529,18 +620,19 @@
 		overflow: hidden;
 		text-overflow: ellipsis;
 		white-space: nowrap;
+		min-width: 0;
 	}
 
-	.file-status-badge {
+	.git-file-status {
 		font-size: 0.6875rem;
 		color: var(--tx-dim);
-		background: var(--bg-high);
+		background: var(--sf);
 		padding: 0 0.375rem;
 		border-radius: 0.25rem;
 		flex-shrink: 0;
 	}
 
-	.btn-icon {
+	.git-btn-icon {
 		display: flex;
 		align-items: center;
 		justify-content: center;
@@ -552,55 +644,34 @@
 		cursor: pointer;
 		border-radius: var(--r2);
 		flex-shrink: 0;
+		transition: all .1s;
 	}
 
-	.btn-icon:hover { color: var(--tx-bright); background: var(--bg-high); }
+	.git-btn-icon:hover { color: var(--tx-bright); background: var(--sf); }
 
-	/* ── Diff inline ── */
-	.diff-inline {
-		background: var(--bg-deep);
-		border-bottom: 0.0625rem solid var(--bd);
-		padding: 0.5rem;
-		max-height: 20rem;
-		overflow: auto;
-	}
+	/* ── Selection bar ── */
 
-	.diff-pre {
-		font-family: var(--font-ui);
-		font-size: 0.75rem;
-		line-height: 1.4;
-		white-space: pre;
-		color: var(--tx);
-		margin: 0;
-	}
-
-	/* ── Selection actions ── */
-	.selection-actions {
+	.git-selection-bar {
 		display: flex;
 		gap: 0.5rem;
-		margin-top: 0.5rem;
-		padding: 0.5rem;
+		padding: 0.625rem;
+		border-top: 1px solid var(--bd);
 	}
 
 	/* ── Commit box ── */
-	.commit-box {
-		background: var(--sf);
-		border: 0.0625rem solid var(--bd);
-		border-radius: var(--r);
-		padding: 0.75rem;
-		margin-top: 1rem;
+
+	.git-commit-box {
+		border-color: color-mix(in srgb, var(--ac) 35%, var(--bd));
 	}
 
-	.commit-box h3 {
-		font-size: 0.875rem;
-		color: var(--tx-bright);
-		margin-bottom: 0.5rem;
+	.git-commit-box h3 {
+		font-size: 0.9375rem;
 		display: flex;
 		align-items: center;
 		gap: 0.375rem;
 	}
 
-	.commit-input {
+	.git-commit-input {
 		width: 100%;
 		resize: vertical;
 		font-family: var(--font-ui);
@@ -608,7 +679,7 @@
 		margin-bottom: 0.5rem;
 	}
 
-	.commit-actions {
+	.git-commit-actions {
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
@@ -616,53 +687,37 @@
 		gap: 0.5rem;
 	}
 
-	.push-toggle {
-		display: flex;
+	.git-push-toggle {
+		display: inline-flex;
 		align-items: center;
 		gap: 0.375rem;
 		font-size: 0.8125rem;
 		color: var(--tx);
 		cursor: pointer;
+		white-space: nowrap;
 	}
 
-	.push-toggle input { accent-color: var(--ac); }
-	.push-toggle .hint { color: var(--tx-dim); font-size: 0.75rem; }
+	.git-push-toggle input { accent-color: var(--ac); }
+	.git-push-toggle .hint { color: var(--tx-dim); font-size: 0.75rem; }
 
-	.commit-buttons {
+	.git-commit-buttons {
 		display: flex;
 		gap: 0.5rem;
 	}
 
-	.commit-hint {
-		margin-top: 0.375rem;
-		font-size: 0.75rem;
-		color: var(--tx-dim);
-	}
+	/* ── Shared input ── */
 
-	/* ── Misc ── */
-	.empty-hint {
-		padding: 0.75rem;
-		color: var(--tx-dim);
-		font-size: 0.8125rem;
-		text-align: center;
-	}
-
-	.btn-sm {
-		font-size: 0.75rem;
-		padding: 0.1875rem 0.5rem;
-	}
-
-	.input {
+	.git-input {
 		background: var(--bg-deep);
-		border: 0.0625rem solid var(--bd);
-		border-radius: var(--r2);
+		border: 1px solid var(--bd);
+		border-radius: var(--r);
 		color: var(--tx);
 		padding: 0.375rem 0.5rem;
 		font-family: inherit;
 		font-size: 0.8125rem;
 	}
 
-	.input:focus {
+	.git-input:focus {
 		border-color: var(--ac);
 		outline: none;
 	}
