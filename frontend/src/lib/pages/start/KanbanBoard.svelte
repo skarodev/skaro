@@ -7,13 +7,13 @@
 	/** Task-level phases in pipeline order. */
 	const TASK_PHASES = ['clarify', 'plan', 'implement', 'tests'];
 
-	/** Column definitions with phase key, icon, and color. */
+	/** Column definitions with phase key and icon. */
 	const COLUMNS = [
-		{ key: 'clarify',   icon: MessageCircle,  color: 'var(--ac)' },
-		{ key: 'plan',      icon: ClipboardList,   color: 'var(--warn)' },
-		{ key: 'implement', icon: Code,            color: 'var(--ac)' },
-		{ key: 'tests',     icon: FlaskConical,    color: 'var(--warn)' },
-		{ key: 'done',      icon: CircleCheckBig,  color: 'var(--ok)' },
+		{ key: 'clarify',   icon: MessageCircle },
+		{ key: 'plan',      icon: ClipboardList },
+		{ key: 'implement', icon: Code },
+		{ key: 'tests',     icon: FlaskConical },
+		{ key: 'done',      icon: CircleCheckBig },
 	];
 
 	/** Check if all task phases are complete. */
@@ -31,14 +31,6 @@
 			if (ph[key] !== 'complete') return key;
 		}
 		return 'clarify';
-	}
-
-	/** Whether a task is actively being worked on (has in_progress/draft/awaiting_review). */
-	function isActive(task) {
-		const ph = task.phases || {};
-		return Object.values(ph).some(
-			s => s === 'in_progress' || s === 'draft' || s === 'awaiting_review'
-		);
 	}
 
 	/** Tasks grouped by column key. */
@@ -84,15 +76,12 @@
 			</div>
 			<div class="kb-col-body">
 				{#each items as task (task.name)}
-					{@const active = isActive(task)}
 					{@const done = col.key === 'done'}
 					<a
 						class="kb-card"
-						class:kb-card-active={active}
 						class:kb-card-done={done}
 						href="/tasks/{encodeURIComponent(task.name)}"
 					>
-						<span class="kb-card-accent" style="background: {done ? 'var(--ok)' : active ? 'var(--warn)' : 'var(--bd)'}"></span>
 						<div class="kb-card-body">
 							<span class="kb-card-name">{task.name}</span>
 							{#if task.context}
@@ -144,10 +133,10 @@
 
 	.kb-board {
 		display: flex;
+		align-items: flex-start;
 		gap: 0.625rem;
 		overflow-x: auto;
 		padding-bottom: 0.25rem;
-		/* subtle scrollbar */
 		scrollbar-width: thin;
 	}
 
@@ -158,21 +147,20 @@
 		min-width: 13rem;
 		display: flex;
 		flex-direction: column;
+		align-self: flex-start;
 		background: var(--bg-deep);
 		border-radius: var(--r);
-		padding: 2px;
+		padding: 0.5rem;
 	}
 
 	.kb-col-header {
 		display: flex;
 		align-items: center;
 		gap: 0.375rem;
-		padding: 0.5rem 0.625rem 0.375rem;
-		color: var(--tx-dim);
-		font-size: 0.75rem;
+		padding: 0.5rem 0.625rem 0.5rem;
+		color: var(--tx);
+		font-size: 1rem;
 		font-weight: 600;
-		text-transform: uppercase;
-		letter-spacing: 0.03em;
 		user-select: none;
 	}
 
@@ -202,20 +190,18 @@
 	.kb-col-body {
 		display: flex;
 		flex-direction: column;
-		gap: 2px;
-		flex: 1;
+		gap: 0.5rem;
 		min-height: 2rem;
 	}
 
 	.kb-empty {
-		flex: 1;
 		min-height: 2rem;
 	}
 
 	/* ── Card ── */
 
 	.kb-card {
-		display: flex;
+		display: block;
 		background: var(--bg);
 		border-radius: var(--r);
 		text-decoration: none;
@@ -230,23 +216,15 @@
 		box-shadow: 0 1px 4px rgba(0, 0, 0, .12);
 	}
 
-	.kb-card-accent {
-		width: 3px;
-		flex-shrink: 0;
-		border-radius: var(--r) 0 0 var(--r);
-	}
-
 	.kb-card-body {
-		flex: 1;
-		min-width: 0;
 		padding: 0.5rem 0.625rem;
 	}
 
 	.kb-card-name {
 		display: block;
-		font-size: 0.8125rem;
+		font-size: 0.95rem;
 		font-weight: 600;
-		color: var(--tx-bright);
+		color: var(--tx);
 		overflow: hidden;
 		text-overflow: ellipsis;
 		white-space: nowrap;
