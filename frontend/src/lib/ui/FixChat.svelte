@@ -37,6 +37,7 @@
 		applyFileFn,
 		clearConversationFn,
 		onSendSuccess = () => {},
+		onCreateTasks = null,
 		errorSource = 'fix',
 		autoLoad = true,
 		modelOverride = '',
@@ -56,6 +57,7 @@
 	let contextTokens = $state(0);
 	let initialLoaded = $state(false);
 	let appliedFiles = $state({});
+	let createdProposalTurns = $state({});
 	let diffModal = $state(null);
 
 	// Scope state
@@ -170,7 +172,9 @@
 			if (result.success) {
 				conversation = [...conversation, {
 					role: 'assistant', content: result.message,
-					files: result.files || {}, turnIndex: conversation.length,
+					files: result.files || {},
+					taskProposals: result.task_proposals || [],
+					turnIndex: conversation.length,
 				}];
 				onSendSuccess();
 			} else {
@@ -282,7 +286,9 @@
 			if (result.success) {
 				conversation = [...conversation, {
 					role: 'assistant', content: result.message,
-					files: result.files || {}, turnIndex: conversation.length,
+					files: result.files || {},
+					taskProposals: result.task_proposals || [],
+					turnIndex: conversation.length,
 				}];
 				onSendSuccess();
 			} else {
@@ -330,9 +336,18 @@
 		};
 	}
 
+	async function handleCreateTasks(turnIndex, tasks) {
+		if (!onCreateTasks) return;
+		const result = await onCreateTasks(tasks);
+		if (result) {
+			createdProposalTurns = { ...createdProposalTurns, [turnIndex]: true };
+		}
+	}
+
 	async function clearConversation() {
 		conversation = [];
 		appliedFiles = {};
+		createdProposalTurns = {};
 		message = '';
 		try { await clearConversationFn(); } catch {}
 	}
@@ -364,7 +379,15 @@
 {:else if conversation.length > 0}
 	<div class="fix-conversation">
 		{#each conversation as turn, i}
-			<ChatMessage {turn} index={i} {appliedFiles} {modelDisplay} onOpenDiff={openDiff} />
+			<ChatMessage
+				{turn}
+				index={i}
+				{appliedFiles}
+				{modelDisplay}
+				onOpenDiff={openDiff}
+				onCreateTasks={onCreateTasks ? handleCreateTasks : null}
+				{createdProposalTurns}
+			/>
 		{/each}
 		{#if loading}
 			<div class="turn turn-assistant">

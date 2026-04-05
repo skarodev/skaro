@@ -116,6 +116,26 @@ class TaskCreateBody(BaseModel):
     milestone: str = ""
 
 
+class TaskBatchCreateItem(BaseModel):
+    """A single task in a batch create request."""
+    name: str = Field(..., min_length=1)
+    milestone: str = Field(..., min_length=1)
+    spec: str = ""
+
+    @field_validator("name")
+    @classmethod
+    def validate_task_name(cls, v: str) -> str:
+        v = v.strip()
+        if not v:
+            raise ValueError("Task name is required.")
+        return v
+
+
+class TaskBatchCreateBody(BaseModel):
+    """Batch create multiple tasks at once."""
+    tasks: list[TaskBatchCreateItem] = Field(..., min_length=1)
+
+
 class TaskReorderBody(BaseModel):
     """Reorder tasks within a milestone."""
     milestone: str = Field(..., min_length=1)

@@ -19,6 +19,7 @@ from skaro_web.api.schemas import (
     FixBody,
     FixFromIssuesBody,
     ImplementBody,
+    TaskBatchCreateBody,
     TaskCreateBody,
     TaskFileSaveBody,
     TaskReorderBody,
@@ -55,6 +56,51 @@ async def create_task(
     am.ensure_task(name, milestone=milestone_slug)
     await broadcast(request, {"event": "task:created", "task": name, "milestone": milestone_slug})
     return {"success": True, "name": name, "milestone": milestone_slug}
+
+
+@router.post("/batch")
+async def batch_create_tasks(
+    request: Request,
+    payload: TaskBatchCreateBody,
+    am: ArtifactManager = Depends(get_am),
+):
+    """Create multiple tasks at once, optionally writing spec.md for each."""
+    created: list[dict] = []
+    errors: list[str] = []
+
+    for item in payload.tasks:
+        name = item.name.strip()
+        milestone_slug = item.milestone.strip()
+
+        if not milestone_slug:
+            errors.append(f"Task '{name}': milestone is required.")
+            continue
+
+        if am.find_task_exists(name):
+            errors.append(f"Task '{name}': already exists, skipped.")
+            continue
+
+        try:
+            am.ensure_task(name, milestone=milestone_slug)
+            # Write spec if provided.
+            if item.spec.strip():
+                am.find_and_write_task_file(name, "spec.md", item.spec)
+            created.append({"name": name, "milestone": milestone_slug})
+        except Exception as e:
+            errors.append(f"Task '{name}': {e}")
+
+    if created:
+        await broadcast(request, {
+            "event": "tasks:batch_created",
+            "count": len(created),
+            "tasks": [t["name"] for t in created],
+        })
+
+    return {
+        "success": len(created) > 0,
+        "created": created,
+        "errors": errors,
+    }
 
 
 @router.put("/reorder")

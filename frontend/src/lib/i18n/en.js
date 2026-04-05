@@ -211,6 +211,14 @@ export default {
 	'log.tasks_reordered': 'Task order updated',
 	'log.task_file_saved': '{file} saved for {name}',
 
+	// Task proposals (batch creation from chat)
+	'task_proposal.title': 'Proposed Tasks',
+	'task_proposal.created_title': 'Tasks Created',
+	'task_proposal.confirm': 'Create {n} task(s)',
+	'task_proposal.creating': 'Creating...',
+	'task_proposal.preview_spec': 'Preview specification',
+	'task_proposal.batch_created': '{n} task(s) created',
+
 	// Phase actions
 	'action.clarify': 'Clarify',
 	'action.re_clarify': 'Re-clarify',

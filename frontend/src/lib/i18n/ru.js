@@ -211,6 +211,14 @@ export default {
 	'log.tasks_reordered': 'Порядок задач обновлён',
 	'log.task_file_saved': '{file} сохранён для {name}',
 
+	// Task proposals (batch creation from chat)
+	'task_proposal.title': 'Предложенные задачи',
+	'task_proposal.created_title': 'Задачи созданы',
+	'task_proposal.confirm': 'Создать ({n})',
+	'task_proposal.creating': 'Создание...',
+	'task_proposal.preview_spec': 'Просмотр спецификации',
+	'task_proposal.batch_created': 'Создано задач: {n}',
+
 	// Phase actions
 	'action.clarify': 'Уточнить',
 	'action.re_clarify': 'Переуточнить',

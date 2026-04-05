@@ -82,6 +82,7 @@ async def chat_send(
         "success": result.success,
         "message": result.message,
         "files": result.data.get("files", {}),
+        "task_proposals": result.data.get("task_proposals", []),
     }
 
 

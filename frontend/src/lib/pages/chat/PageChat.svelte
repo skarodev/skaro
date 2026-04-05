@@ -81,6 +81,34 @@
 	function onSendSuccess() {
 		addLog($t('chat_panel.response_received'));
 	}
+
+	/**
+	 * Batch create tasks from a chat proposal.
+	 * Only active when contextType is 'tasks'.
+	 * @param {Array<{name: string, milestone: string, spec: string}>} tasks
+	 * @returns {Promise<boolean>}
+	 */
+	async function handleCreateTasks(tasks) {
+		try {
+			const result = await api.batchCreateTasks(tasks);
+			if (result.success) {
+				const count = result.created?.length || 0;
+				addLog($t('task_proposal.batch_created', { n: count }));
+				invalidate('status');
+				status.set(await api.getStatus());
+				return true;
+			} else {
+				const msgs = result.errors?.join('; ') || 'Batch create failed';
+				addError(msgs, errorSource);
+				return false;
+			}
+		} catch (e) {
+			addError(e.message, errorSource);
+			return false;
+		}
+	}
+
+	let createTasksFn = $derived(contextType === 'tasks' ? handleCreateTasks : null);
 </script>
 
 <FixChat
@@ -96,4 +124,5 @@
 	applyFileFn={applyFileFn}
 	clearConversationFn={clearConversationFn}
 	onSendSuccess={onSendSuccess}
+	onCreateTasks={createTasksFn}
 />

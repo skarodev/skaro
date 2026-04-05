@@ -1,7 +1,8 @@
 <script>
 	import { t } from '$lib/i18n/index.js';
-	import { renderMarkdown, stripFilePathBlocks, stripFileMarkers } from '$lib/utils/markdown.js';
+	import { renderMarkdown, stripFilePathBlocks, stripFileMarkers, stripTaskProposals } from '$lib/utils/markdown.js';
 	import { FileCode, Check, Bot, ChevronDown, ChevronUp } from 'lucide-svelte';
+	import TaskProposal from '$lib/pages/tasks/TaskProposal.svelte';
 
 	let {
 		turn = {},
@@ -9,6 +10,8 @@
 		appliedFiles = {},
 		modelDisplay = '',
 		onOpenDiff = (turnIdx, fpath, fdata) => {},
+		onCreateTasks = null,
+		createdProposalTurns = {},
 	} = $props();
 
 	/**
@@ -17,12 +20,15 @@
 	 * File-path code blocks (```src/app.py … ```) are stripped because they
 	 * are displayed by dedicated file-card UI (turn.files / DiffModal).
 	 *
+	 * Task proposal blocks (--- TASKS --- … --- END TASKS ---) are stripped
+	 * because they are displayed by the TaskProposal component.
+	 *
 	 * All other code blocks (```python, ```json, bare ```) are preserved
 	 * for renderMarkdown to convert into <pre><code> elements.
 	 */
 	let displayContent = $derived(
 		turn.role === 'assistant'
-			? stripFileMarkers(stripFilePathBlocks(turn.content || '')).trim()
+			? stripTaskProposals(stripFileMarkers(stripFilePathBlocks(turn.content || ''))).trim()
 			: (turn.content || '')
 	);
 
@@ -71,6 +77,15 @@
 					{/if}
 				{/each}
 			</div>
+		{/if}
+
+		{#if onCreateTasks && turn.taskProposals?.length > 0}
+			<TaskProposal
+				proposals={turn.taskProposals}
+				confirming={false}
+				created={!!createdProposalTurns[turnIdx]}
+				onConfirm={(tasks) => onCreateTasks(turnIdx, tasks)}
+			/>
 		{/if}
 	{:else}
 		<div class="turn-label">{$t('fix.you')}</div>
@@ -181,7 +196,7 @@
 		padding: 0 0.2rem;
 		color: var(--ac);
 		font-size: .9rem;
-		border: solid 1px rgb(from var(--ac) r g b / 0.15);
+		border: solid 1px rgb(from var(--ac) r g b / 0.05);
 	}
 
 	.turn-text :global(pre) {
@@ -216,7 +231,6 @@
 		border-spacing: 0;
 		width: 100%;
 		margin: 0.75rem 0;
-		background: var(--bg-deep);
 		border-radius: var(--r);
 		overflow: hidden;
 		border: 1px solid var(--bd);

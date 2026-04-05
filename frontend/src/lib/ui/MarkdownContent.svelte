@@ -107,7 +107,7 @@
         padding: 0 .2rem;
         color: var(--ac);
         font-size: 1rem;
-        border: solid 1px rgb(from var(--ac) r g b / 0.15);
+        border: solid 1px rgb(from var(--ac) r g b / 0.05);
 	}
 
     .md-content :global(pre > code) {
@@ -164,7 +164,6 @@
 		border-spacing: 0;
 		width: 100%;
 		margin: 0.375rem 0;
-		background: var(--bg-deep);
 		border-radius: var(--r);
 		overflow: hidden;
 		border: 1px solid var(--bd);

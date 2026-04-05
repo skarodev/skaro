@@ -158,6 +158,11 @@ class ProjectChatPhase(ConversationalFixBase):
             # Strip file blocks from visible message.
             display_message = self._strip_file_block(display_message, fpath)
 
+        # ── Parse response for task proposals ──
+        task_proposals = self._parse_task_proposals(response_content)
+        if task_proposals:
+            display_message = self._strip_task_proposals(display_message)
+
         display_message = display_message.strip()
 
         # ── Persist conversation ──
@@ -173,6 +178,7 @@ class ProjectChatPhase(ConversationalFixBase):
             message=display_message,
             data={
                 "files": file_diffs,
+                "task_proposals": task_proposals,
                 "conversation": updated_conversation,
             },
         )

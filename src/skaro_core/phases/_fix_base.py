@@ -195,13 +195,14 @@ class ConversationalFixBase(BasePhase):
     # ── Conversation enrichment ────────────────────────
 
     def enrich_conversation(self, conversation: list[dict]) -> list[dict]:
-        """Re-parse file blocks from assistant messages and attach diffs.
+        """Re-parse file blocks and task proposals from assistant messages.
 
-        When a conversation is loaded from JSON, the ``files`` field is not
-        persisted.  This method walks each assistant turn, extracts proposed
-        file blocks via :meth:`_parse_file_blocks`, computes diffs against
-        the current state on disk, and returns a new list with ``files``
-        and ``turnIndex`` attached to every assistant turn.
+        When a conversation is loaded from JSON, the ``files`` and
+        ``taskProposals`` fields are not persisted.  This method walks each
+        assistant turn, extracts proposed file blocks and task proposals,
+        computes diffs against the current state on disk, and returns a new
+        list with ``files``, ``taskProposals``, and ``turnIndex`` attached
+        to every assistant turn.
         """
         enriched: list[dict] = []
         for i, turn in enumerate(conversation):
@@ -231,6 +232,10 @@ class ConversationalFixBase(BasePhase):
                             "truncated": True,
                         }
                     turn_copy["files"] = file_diffs
+                # Task proposals
+                task_proposals = self._parse_task_proposals(content)
+                if task_proposals:
+                    turn_copy["taskProposals"] = task_proposals
                 turn_copy["turnIndex"] = i
             enriched.append(turn_copy)
         return enriched
@@ -255,6 +260,62 @@ class ConversationalFixBase(BasePhase):
                 i += 1
                 while i < len(lines):
                     if lines[i].strip() == "--- END FILE ---":
+                        i += 1
+                        break
+                    i += 1
+            else:
+                result.append(lines[i])
+                i += 1
+        return "".join(result)
+
+    @staticmethod
+    def _parse_task_proposals(text: str) -> list[dict]:
+        """Parse ``--- TASKS --- ... --- END TASKS ---`` blocks from LLM output.
+
+        Returns a list of task dicts with ``name``, ``milestone``, ``spec``.
+        """
+        lines = text.splitlines()
+        i = 0
+        proposals: list[dict] = []
+        while i < len(lines):
+            stripped = lines[i].strip()
+            if stripped == "--- TASKS ---":
+                block_lines: list[str] = []
+                i += 1
+                while i < len(lines):
+                    if lines[i].strip() == "--- END TASKS ---":
+                        break
+                    block_lines.append(lines[i])
+                    i += 1
+                raw = "\n".join(block_lines).strip()
+                if raw:
+                    try:
+                        parsed = json.loads(raw)
+                        if isinstance(parsed, list):
+                            for item in parsed:
+                                if isinstance(item, dict) and item.get("name"):
+                                    proposals.append({
+                                        "name": item["name"],
+                                        "milestone": item.get("milestone", ""),
+                                        "spec": item.get("spec", ""),
+                                    })
+                    except (json.JSONDecodeError, KeyError):
+                        pass
+            i += 1
+        return proposals
+
+    @staticmethod
+    def _strip_task_proposals(text: str) -> str:
+        """Remove ``--- TASKS ---`` blocks from visible text."""
+        lines = text.splitlines(True)
+        result: list[str] = []
+        i = 0
+        while i < len(lines):
+            stripped = lines[i].strip()
+            if stripped == "--- TASKS ---":
+                i += 1
+                while i < len(lines):
+                    if lines[i].strip() == "--- END TASKS ---":
                         i += 1
                         break
                     i += 1
@@ -291,6 +352,7 @@ class ConversationalFixBase(BasePhase):
                 continue
             if role == "assistant":
                 content = self._strip_all_file_blocks(content)
+                content = self._strip_task_proposals(content)
             if not content.strip():
                 continue
             turns.append(LLMMessage(role=role, content=content))

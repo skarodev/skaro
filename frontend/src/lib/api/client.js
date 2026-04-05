@@ -171,6 +171,8 @@ export const api = {
 	getTask: (/** @type {string} */ name, signal) => get(`/api/tasks/${name}`, signal),
 	createTask: (/** @type {string} */ name, /** @type {string} */ milestone, signal) =>
 		post('/api/tasks', { name, milestone }, signal),
+	batchCreateTasks: (/** @type {Array<{name: string, milestone: string, spec: string}>} */ tasks, signal) =>
+		post('/api/tasks/batch', { tasks }, signal),
 	deleteTask: (/** @type {string} */ name, signal) => del(`/api/tasks/${name}`, signal),
 	reorderTasks: (/** @type {string} */ milestone, /** @type {string[]} */ tasks, signal) =>
 		put('/api/tasks/reorder', { milestone, tasks }, signal),
