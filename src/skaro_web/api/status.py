@@ -16,24 +16,27 @@ from skaro_core.phases.base import SKIP_DIRS
 from skaro_core.providers import get_providers
 from skaro_web.api.deps import get_am, get_project_root
 
-_CONTEXT_RE = re.compile(
-    r"^##\s+Context\s*\n(.*?)(?=\n##\s|\Z)",
+_FIRST_SECTION_RE = re.compile(
+    r"^##\s+\S[^\n]*[^\S\n]*\n(.*?)(?=\n##\s|\Z)",
     re.MULTILINE | re.DOTALL,
 )
 _CONTEXT_MAX_LEN = 250
 
 
 def _extract_context(am: ArtifactManager, task_name: str) -> str:
-    """Extract the Context section from a task's spec.md (up to 250 chars)."""
+    """Extract the first ## section from a task's spec.md (up to 250 chars).
+
+    Language-agnostic: takes the first ``##`` section content regardless
+    of heading name (Context, Контекст, Описание, etc.).
+    """
     spec = am.find_and_read_task_file(task_name, "spec.md")
     if not spec:
         return ""
-    m = _CONTEXT_RE.search(spec)
+    m = _FIRST_SECTION_RE.search(spec)
     if not m:
         return ""
     text = m.group(1).strip()
     if len(text) > _CONTEXT_MAX_LEN:
-        # Cut at last space before limit to avoid broken words
         text = text[:_CONTEXT_MAX_LEN].rsplit(" ", 1)[0] + "…"
     return text
 
