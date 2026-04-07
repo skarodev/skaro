@@ -13,6 +13,7 @@ from pathlib import Path
 from fastapi import APIRouter, Depends, Request
 from fastapi.responses import JSONResponse
 
+from skaro_core.artifacts import ArtifactManager
 from skaro_core.phases.base import BasePhase
 from skaro_web.api.deps import (
     broadcast,
@@ -142,8 +143,14 @@ async def chat_apply_file(
     request: Request,
     payload: dict,
     project_root: Path = Depends(get_project_root),
+    am: ArtifactManager = Depends(get_am),
 ):
-    """Apply a proposed file from chat to disk."""
+    """Apply a proposed file from chat to disk.
+
+    For known artifact types (constitution, devplan) routes through
+    ArtifactManager so that side-effects (gitignore generation, hash
+    invalidation) are applied correctly.
+    """
     filepath = payload.get("filepath", "")
     content = payload.get("content", "")
 
@@ -153,6 +160,35 @@ async def chat_apply_file(
             content={"success": False, "message": "filepath and content are required"},
         )
 
+    # ── Route known artifacts through ArtifactManager ────────────
+    normalized = filepath.replace("\\", "/").lstrip("/")
+
+    # Constitution: accept both "constitution.md" and ".skaro/constitution.md"
+    if context_type == "constitution" and normalized in (
+        "constitution.md",
+        ".skaro/constitution.md",
+    ):
+        am.write_constitution(content)
+        am.generate_project_gitignore(content)
+        await broadcast(request, {
+            "event": "artifact:updated",
+            "artifact": "constitution",
+        })
+        return {"success": True, "message": "Applied: .skaro/constitution.md"}
+
+    # Devplan: accept both "devplan.md" and ".skaro/devplan.md"
+    if context_type == "devplan" and normalized in (
+        "devplan.md",
+        ".skaro/devplan.md",
+    ):
+        am.write_devplan(content)
+        await broadcast(request, {
+            "event": "artifact:updated",
+            "artifact": "devplan",
+        })
+        return {"success": True, "message": "Applied: .skaro/devplan.md"}
+
+    # ── Generic file apply ───────────────────────────────────────
     try:
         BasePhase._validate_project_path(project_root, filepath)
     except ValueError as e:

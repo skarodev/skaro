@@ -19,7 +19,7 @@ The constitution defines the foundational decisions: technology stack, language,
 
 When proposing changes to the constitution, output the COMPLETE updated document wrapped in file markers:
 
---- FILE: constitution.md ---
+--- FILE: .skaro/constitution.md ---
 <complete updated constitution content>
 --- END FILE ---
 

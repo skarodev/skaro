@@ -21,7 +21,7 @@ The devplan defines milestones, their order, task decomposition, priorities, and
 
 When proposing changes to the devplan, output the COMPLETE updated document wrapped in file markers:
 
---- FILE: devplan.md ---
+--- FILE: .skaro/devplan.md ---
 <complete updated devplan content>
 --- END FILE ---
 
