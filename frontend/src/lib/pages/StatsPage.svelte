@@ -23,6 +23,8 @@
 	});
 </script>
 
+<div class="page-wide">
+
 <div class="main-header">
 	<h2>{$t('stats.title')}</h2>
 	<p>{$t('stats.subtitle')}</p>
@@ -59,6 +61,8 @@
 		<RecentLogCard entries={stats.log_entries} />
 	{/if}
 {/if}
+
+</div>
 
 <style>
 	.summary-grid {

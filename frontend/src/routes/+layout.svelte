@@ -176,6 +176,10 @@
 		max-width: calc(48rem + 14rem + 1.5rem);
 	}
 
+	.main > :global(.page-wide) {
+		max-width: none;
+	}
+
 	.center-msg {
 		text-align: center;
 		padding: 3.75rem 1.25rem;
