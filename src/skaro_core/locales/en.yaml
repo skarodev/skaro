@@ -3,6 +3,8 @@ cli:
     success: "Skaro initialized in {path}"
     already_exists: "Skaro is already initialized in this project"
     git_detected: "Git repository detected. .skaro/ will be tracked."
+    git_initialized: "Git repository initialized with initial commit."
+    git_committed: "Skaro artifacts committed to existing repository."
     open_ui: "Open dashboard: skaro ui"
     reinit_confirm: "Re-initialize? This will reset approval flags but keep task history"
     reinit_notice: "Task history and token usage preserved. Approval flags reset."

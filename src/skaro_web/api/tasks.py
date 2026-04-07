@@ -29,6 +29,44 @@ from skaro_web.api.schemas import (
 router = APIRouter(prefix="/api/tasks", tags=["tasks"])
 
 
+# ── Helpers ────────────────────────────────────
+
+async def _auto_commit_if_done(
+    am: ArtifactManager,
+    project_root: Path,
+    task_name: str,
+) -> bool:
+    """Auto-commit if all 4 task phases are complete and config allows it."""
+    import logging
+    from skaro_core.config import load_config
+
+    logger = logging.getLogger("skaro_web")
+
+    cfg = load_config(project_root)
+    if not cfg.git.auto_commit:
+        return False
+
+    state = am.get_project_state()
+    for ts in state.tasks:
+        if ts.name == task_name:
+            from skaro_core.artifacts._models import Status
+            all_done = all(s == Status.COMPLETE for s in ts.phases.values())
+            if not all_done:
+                return False
+            break
+    else:
+        return False
+
+    from skaro_core.git_ops import auto_commit_task
+
+    result = await asyncio.to_thread(
+        auto_commit_task, project_root, task_name, push=cfg.git.auto_push,
+    )
+    if result:
+        logger.info("Auto-committed task completion: %s", task_name)
+    return result
+
+
 # ── CRUD ────────────────────────────────────────
 
 @router.get("")
@@ -397,6 +435,7 @@ async def confirm_tests(
     name: str,
     request: Request,
     project_root: Path = Depends(get_project_root),
+    am: ArtifactManager = Depends(get_am),
 ):
     """Mark tests as confirmed by the user."""
     from skaro_core.phases.tests import TestsPhase
@@ -404,6 +443,10 @@ async def confirm_tests(
     phase = TestsPhase(project_root=project_root)
     result = phase.confirm(name)
     await broadcast(request, {"event": "tests:confirmed", "task": name})
+
+    # Auto-commit if the task is now fully complete
+    await _auto_commit_if_done(am, project_root, name)
+
     return {"success": result.success, "message": result.message}
 
 

@@ -403,6 +403,17 @@ def init(no_git: bool, name: str | None, description: str) -> None:
     if changed:
         save_config(cfg)
 
+    # ── Git auto-init ───────────────────────────────────────────────────────
+    if not no_git and cfg.git.auto_init:
+        from skaro_core.git_ops import ensure_git_init, commit_skaro_init, is_git_repo
+
+        if not is_git_repo(cwd):
+            if ensure_git_init(cwd):
+                console.print(f"  [green]✓[/green] {t('cli.init.git_initialized')}")
+        else:
+            if commit_skaro_init(cwd):
+                console.print(f"  [green]✓[/green] {t('cli.init.git_committed')}")
+
     if not is_existing:
         # ── New project: standard flow ───────────────────────────────────────
         _print_init_success_new(skaro_path, no_git, am)

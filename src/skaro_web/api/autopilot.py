@@ -256,6 +256,24 @@ async def start_autopilot(
                         "total": len(pending),
                     })
 
+                    # Auto-commit if configured
+                    try:
+                        from skaro_core.config import load_config as _load_cfg
+                        from skaro_core.git_ops import auto_commit_task
+
+                        _cfg = _load_cfg(project_root)
+                        if _cfg.git.auto_commit:
+                            committed = await asyncio.to_thread(
+                                auto_commit_task,
+                                project_root,
+                                task_name,
+                                push=_cfg.git.auto_push,
+                            )
+                            if committed:
+                                yield _sse("git:committed", {"task": task_name})
+                    except Exception as git_exc:
+                        logger.warning("Autopilot auto-commit failed for %s: %s", task_name, git_exc)
+
                 except Exception as exc:
                     logger.exception("Autopilot error on task %s", task_name)
                     yield _sse("error", {

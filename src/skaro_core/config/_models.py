@@ -207,6 +207,35 @@ class ImportConfig:
 
 
 @dataclass
+class GitConfig:
+    """Git automation settings."""
+
+    auto_init: bool = True
+    """Run ``git init`` + initial commit during ``skaro init`` if .git is absent."""
+
+    auto_commit: bool = False
+    """Automatically commit when a task is completed (all 4 phases done)."""
+
+    auto_push: bool = False
+    """Push to remote immediately after an auto-commit."""
+
+    def to_dict(self) -> dict:
+        return {
+            "auto_init": self.auto_init,
+            "auto_commit": self.auto_commit,
+            "auto_push": self.auto_push,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict) -> GitConfig:
+        return cls(
+            auto_init=data.get("auto_init", True),
+            auto_commit=data.get("auto_commit", False),
+            auto_push=data.get("auto_push", False),
+        )
+
+
+@dataclass
 class SkillsConfig:
     """Skills section of SkaroConfig."""
 
@@ -252,6 +281,7 @@ class SkaroConfig:
     verify_commands: list[VerifyCommand] = field(default_factory=list)
     skills: SkillsConfig = field(default_factory=SkillsConfig)
     execution_env: ExecutionEnvConfig = field(default_factory=ExecutionEnvConfig)
+    git: GitConfig = field(default_factory=GitConfig)
     context_always_include: list[str] = field(default_factory=list)
     """Glob patterns for files that should always be sent as full code to LLM."""
 
@@ -345,6 +375,8 @@ class SkaroConfig:
         if self.context_always_include:
             d["context"] = {"always_include": self.context_always_include}
 
+        d["git"] = self.git.to_dict()
+
         return d
 
     @classmethod
@@ -406,5 +438,6 @@ class SkaroConfig:
             verify_commands=verify_commands,
             skills=SkillsConfig.from_dict(data.get("skills") or {}),
             execution_env=ExecutionEnvConfig.from_dict(data.get("execution_env") or {}),
+            git=GitConfig.from_dict(data.get("git") or {}),
             context_always_include=data.get("context", {}).get("always_include", []),
         )
