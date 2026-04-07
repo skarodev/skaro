@@ -17,12 +17,13 @@
 		tasks: 'nav.tasks',
 		review: 'nav.review',
 		git: 'nav.git',
+		stats: 'nav.stats',
 		settings: 'nav.settings',
 		about: 'nav.about',
 	};
 
 	/** Pages that have a chat context available. */
-	const NO_CHAT_PAGES = new Set(['start', 'git', 'settings', 'about']);
+	const NO_CHAT_PAGES = new Set(['start', 'git', 'stats', 'settings', 'about']);
 
 	/** Check if current page supports chat panel. */
 	let hasChatContext = $derived.by(() => {

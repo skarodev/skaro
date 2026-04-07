@@ -44,22 +44,18 @@
 	</div>
 
 	<div class="grid-2">
+		<div class="card">
+			<h3><FileCode size={16} /> {$t('stats.project_files')}</h3>
+			<FileTypesChart files={stats.files} totalFiles={stats.total_files} />
+		</div>
 		<StatsTable icon={Cpu} title={$t('stats.by_phase')} data={stats.by_phase} />
 		<StatsTable icon={FileCode} title={$t('stats.by_task')} data={stats.by_task} />
 		<StatsTable icon={Cpu} title={$t('stats.by_model')} data={stats.by_model} />
 		<StatsTable icon={Users} title={$t('stats.by_role')} data={stats.by_role} />
+		{#if stats.log_entries?.length}
+			<RecentLogCard entries={stats.log_entries} />
+		{/if}
 	</div>
-
-	<!-- Project files by type -->
-	<div class="card">
-		<h3><FileCode size={16} /> {$t('stats.project_files')}</h3>
-		<FileTypesChart files={stats.files} totalFiles={stats.total_files} />
-	</div>
-
-	<!-- Recent log -->
-	{#if stats.log_entries?.length}
-		<RecentLogCard entries={stats.log_entries} />
-	{/if}
 {/if}
 
 </div>

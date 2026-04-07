@@ -19,6 +19,8 @@ export default {
 	'nav.security': 'Security',
 	'nav.about': 'About',
     'nav.docs': 'Docs',
+	'nav.expand': 'Expand sidebar',
+	'nav.collapse': 'Collapse sidebar',
 
 	// Status bar
 	'status.connected': 'Connected',

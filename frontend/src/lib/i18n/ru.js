@@ -19,6 +19,8 @@ export default {
 	'nav.security': 'Безопасность',
 	'nav.about': 'О проекте',
     'nav.docs': 'Документация',
+	'nav.expand': 'Развернуть панель',
+	'nav.collapse': 'Свернуть панель',
 
 	// Status bar
 	'status.connected': 'Подключено',
