@@ -2,12 +2,13 @@
 	import '../app.css';
 	import { onMount } from 'svelte';
 	import { page } from '$app/stores';
-	import { t } from '$lib/i18n/index.js';
+	import { t, setLocale } from '$lib/i18n/index.js';
 	import { api, connectWs, onWsEvent, onWsStatus } from '$lib/api/client.js';
 	import { status, wsConnected, taskDetail, updateInfo } from '$lib/stores/statusStore.js';
 	import { addLog, startLlm, addLlmChunk, endLlm } from '$lib/stores/logStore.js';
 	import { cachedFetch, invalidate } from '$lib/api/cache.js';
 	import { setProviderLabels } from '$lib/ui/icons/providers.js';
+	import { initTheme, setTheme } from '$lib/stores/themeStore.js';
 	import Sidebar from '$lib/layout/Sidebar.svelte';
 	import Toolbar from '$lib/layout/Toolbar.svelte';
 	import BottomPanel from '$lib/layout/BottomPanel.svelte';
@@ -58,6 +59,7 @@
 	status.subscribe((v) => { statusValue = v; });
 
 	onMount(() => {
+		initTheme();
 		loadStatus();
 		loadUpdateCheck();
 		connectWs();
@@ -89,11 +91,19 @@
 		});
 	});
 
+	let initialSynced = false;
+
 	async function loadStatus() {
 		try {
 			const data = await cachedFetch('status', () => api.getStatus(), 5000);
 			status.set(data);
 			if (data?._provider_labels) setProviderLabels(data._provider_labels);
+			// Sync locale & theme from server config on first load
+			if (!initialSynced && data?.config) {
+				initialSynced = true;
+				if (data.config.lang) setLocale(data.config.lang);
+				if (data.config.theme) setTheme(data.config.theme);
+			}
 			error = '';
 		} catch (e) {
 			error = e.message;

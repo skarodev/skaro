@@ -2,6 +2,7 @@
 	import { t } from '$lib/i18n/index.js';
 	import { api } from '$lib/api/client.js';
 	import { RefreshCw, Search, ChevronDown, Star, Check, Keyboard } from 'lucide-svelte';
+	import Tooltip from '$lib/ui/Tooltip.svelte';
 
 	let {
 		value = $bindable(''),
@@ -143,14 +144,15 @@
 		{#if loading}
 			<span class="refresh-btn"><RefreshCw size={14} class="spin" /></span>
 		{:else}
+			<Tooltip text={$t('settings.model_refresh')} placement="top">
 			<button
 				type="button"
 				class="refresh-btn"
-				title={$t('settings.model_refresh')}
 				onclick={onRefresh}
 			>
 				<RefreshCw size={14} />
 			</button>
+			</Tooltip>
 		{/if}
 	</div>
 
@@ -174,17 +176,18 @@
 						<span>{$t('settings.model_group_curated')}</span>
 					</div>
 					{#each filteredCurated as m}
+						<Tooltip text="{m.id} — ctx: {(m.context_window / 1000).toFixed(0)}k, out: {(m.max_output / 1000).toFixed(0)}k" placement="top">
 						<button
 							type="button"
 							class="option"
 							class:selected={m.id === value}
 							onclick={() => selectModel(m.id)}
-							title="{m.id} — ctx: {(m.context_window / 1000).toFixed(0)}k, out: {(m.max_output / 1000).toFixed(0)}k"
 						>
 							<span class="option-name">{m.name}</span>
 							<span class="option-meta">{(m.context_window / 1000).toFixed(0)}k</span>
 							{#if m.id === value}<Check size={14} />{/if}
 						</button>
+						</Tooltip>
 					{/each}
 				{/if}
 
@@ -196,17 +199,18 @@
 						{/if}
 					</div>
 					{#each filteredExtra as m}
+						<Tooltip text="{m.id} — ctx: {(m.context_window / 1000).toFixed(0)}k, out: {(m.max_output / 1000).toFixed(0)}k" placement="top">
 						<button
 							type="button"
 							class="option"
 							class:selected={m.id === value}
 							onclick={() => selectModel(m.id)}
-							title="{m.id} — ctx: {(m.context_window / 1000).toFixed(0)}k, out: {(m.max_output / 1000).toFixed(0)}k"
 						>
 							<span class="option-name">{m.id}</span>
 							<span class="option-meta">{(m.context_window / 1000).toFixed(0)}k</span>
 							{#if m.id === value}<Check size={14} />{/if}
 						</button>
+						</Tooltip>
 					{/each}
 				{/if}
 

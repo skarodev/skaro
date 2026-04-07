@@ -4,6 +4,7 @@
 	import { status } from '$lib/stores/statusStore.js';
 	import { chatPanelOpen, toggleChatPanel } from '$lib/stores/chatPanelStore.js';
 	import { MessageSquare, PanelRightClose, PanelRightOpen } from 'lucide-svelte';
+	import Tooltip from '$lib/ui/Tooltip.svelte';
 
 	/** Map of route segment → i18n key. Covers every sidebar entry. */
 	const NAV_KEYS = {
@@ -83,12 +84,13 @@
 	</nav>
 	{/if}
 	{#if hasChatContext}
-		<button
-			class="chat-toggle"
-			class:active={$chatPanelOpen}
-			onclick={toggleChatPanel}
-			title={$t('chat_panel.toggle')}
-		>
+		<span class="chat-toggle-wrap">
+		<Tooltip text={$t('chat_panel.toggle')} placement="bottom">
+			<button
+				class="chat-toggle"
+				class:active={$chatPanelOpen}
+				onclick={toggleChatPanel}
+			>
 			<span class="chat-label">{$t('chat_panel.label')}</span>
 			{#if $chatPanelOpen}
 				<PanelRightClose size={16} strokeWidth={1.5} />
@@ -96,6 +98,8 @@
 				<PanelRightOpen size={16} strokeWidth={1.5} />
 			{/if}
 		</button>
+		</Tooltip>
+		</span>
 	{/if}
 </div>
 
@@ -143,8 +147,12 @@
 		color: var(--tx);
 	}
 
-	.chat-toggle {
+	.chat-toggle-wrap {
 		margin-left: auto;
+		display: inline-flex;
+	}
+
+	.chat-toggle {
 		display: flex;
 		align-items: center;
 		gap: 0.375rem;

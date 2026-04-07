@@ -32,6 +32,7 @@
 		Eye, EyeOff,
 	} from 'lucide-svelte';
 	import KittIndicator from '$lib/ui/KittIndicator.svelte';
+	import Tooltip from '$lib/ui/Tooltip.svelte';
 
 	const PHASE_ICONS = { clarify: Search, plan: ClipboardList, implement: Hammer, tests: FlaskConical };
 	const PHASE_ORDER = ['clarify', 'plan', 'implement', 'tests'];
@@ -175,10 +176,12 @@
 				{/if}
 			</div>
 			<div class="mc-header-right">
-				<div class="mc-stat" title={$t('autopilot.tokens_total')}>
+				<Tooltip text={$t('autopilot.tokens_total')} placement="bottom">
+				<div class="mc-stat">
 					<Zap size={14} />
 					<span>{fmt(totalTokens)}</span>
 				</div>
+				</Tooltip>
 				<div class="mc-stat">
 					<Clock size={14} />
 					<span>{formatElapsed($autopilotElapsed)}</span>
@@ -234,10 +237,11 @@
 								<!-- Phase dots -->
 								<div class="mc-phase-dots">
 									{#each PHASE_ORDER as phase}
+										<Tooltip text={phase} placement="top">
 										<span
 											class="mc-dot {phaseDotClass(task.name, phase)}"
-											title={phase}
 										></span>
+										</Tooltip>
 									{/each}
 								</div>
 							</div>

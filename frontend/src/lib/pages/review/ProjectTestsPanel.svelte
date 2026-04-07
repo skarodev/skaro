@@ -5,12 +5,15 @@
 	import CommandList from '$lib/ui/CommandList.svelte';
 	import TestsSummary from '$lib/ui/TestsSummary.svelte';
 	import { buildErrorSummary } from '$lib/ui/testUtils.js';
+	import Tooltip from '$lib/ui/Tooltip.svelte';
 
 	let {
 		results = null,
 		loading = false,
 		onRunTests = () => {},
 		onSendToFix = () => {},
+		gateDisabled = false,
+		gateReason = '',
 	} = $props();
 
 	let hasErrors = $derived(results && !results.passed);
@@ -47,18 +50,22 @@
 					<Send size={14} /> {$t('review.send_to_fix')}
 				</button>
 			{/if}
-			<button class="btn" disabled={loading} onclick={onRunTests}>
+			<Tooltip text={gateReason} placement="bottom">
+			<button class="btn" disabled={loading || gateDisabled} onclick={onRunTests}>
 				{#if loading}<Loader2 size={14} class="spin" />{:else}<RotateCcw size={14} />{/if}
 				{$t('review.rerun')}
 			</button>
+			</Tooltip>
 		</div>
 	{:else}
 		<div class="tests-empty">
 			<p>{$t('review.not_run_yet')}</p>
-			<button class="btn btn-primary" disabled={loading} onclick={onRunTests}>
+			<Tooltip text={gateReason} placement="bottom">
+			<button class="btn btn-primary" disabled={loading || gateDisabled} onclick={onRunTests}>
 				{#if loading}<Loader2 size={14} class="spin" />{/if}
 				{$t('review.run_tests')}
 			</button>
+			</Tooltip>
 		</div>
 	{/if}
 </div>

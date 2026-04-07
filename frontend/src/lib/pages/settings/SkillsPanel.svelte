@@ -4,6 +4,7 @@
 	import { api } from '$lib/api/client.js';
 	import { addLog, addError } from '$lib/stores/logStore.js';
 	import { Loader2, CheckCircle, XCircle, Circle, ChevronDown, ChevronUp, Zap } from 'lucide-svelte';
+	import Tooltip from '$lib/ui/Tooltip.svelte';
 
 	let skills = $state(/** @type {any[]} */ ([]));
 	let preset = $state('');
@@ -89,12 +90,12 @@
 			{#each skills as skill}
 				<div class="skill-item" class:expanded={expanded === skill.name}>
 					<div class="skill-header">
-						<button
-							class="skill-toggle"
-							disabled={saving || skill.status === 'missing'}
-							onclick={() => toggleSkill(skill.name, skill.status, skill.source)}
-							title={skill.status === 'active' ? $t('settings.skills_disable') : $t('settings.skills_enable')}
-						>
+					<Tooltip text={skill.status === 'active' ? $t('settings.skills_disable') : $t('settings.skills_enable')} placement="top">
+							<button
+								class="skill-toggle"
+								disabled={saving || skill.status === 'missing'}
+								onclick={() => toggleSkill(skill.name, skill.status, skill.source)}
+							>
 							{#if skill.status === 'active'}
 								<CheckCircle size={16} color="var(--ok)" />
 							{:else if skill.status === 'disabled'}
@@ -102,7 +103,8 @@
 							{:else}
 								<Circle size={16} color="var(--tx-dim)" />
 							{/if}
-						</button>
+							</button>
+						</Tooltip>
 
 						<button class="skill-name-btn" onclick={() => toggleExpand(skill.name)}>
 							<span class="skill-name" class:dimmed={skill.status !== 'active'}>{skill.name}</span>

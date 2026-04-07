@@ -6,6 +6,7 @@
 	import { Play, AlertTriangle, Trash2, ChevronUp, ChevronDown, Cpu, ArrowUpCircle, GitBranch } from 'lucide-svelte';
 	import LogPane from './LogPane.svelte';
 	import ErrorPane from './ErrorPane.svelte';
+	import Tooltip from '$lib/ui/Tooltip.svelte';
 
 	const TAB_ROLES = {
 		constitution: null,
@@ -185,7 +186,8 @@
 	style="height: {collapsed ? '28px' : effectiveHeight + 'px'}"
 >
 	<div class="tabs-bar">
-		<span class="bp-info branch-info" title={gitBranch ?? ''}>
+		<Tooltip text={gitBranch ?? ''} placement="top">
+		<span class="bp-info branch-info">
 			<span class="status-dot" class:off={!$wsConnected}></span>
 			{#if gitBranch}
 				<GitBranch size={11} />
@@ -194,6 +196,7 @@
 				<span>{$wsConnected ? $t('status.connected') : $t('status.disconnected')}</span>
 			{/if}
 		</span>
+		</Tooltip>
 		<span class="bp-separator"></span>
 		<button class="bp-tab" class:active={activePane === 'run'} onclick={() => switchPane('run')}>
 			<Play size={12} /> {$t('panel.run')}
@@ -206,27 +209,30 @@
 		<button class="bp-tab" class:active={activePane === 'errors'} onclick={() => switchPane('errors')}>
 			<AlertTriangle size={12} /> {$t('panel.problems')} <span class="count" class:has-errors={$errorEntries.length > 0}>{$errorEntries.length}</span>
 		</button>
-		<button class="icon-btn" onclick={handleClear} title={$t('panel.clear')}><Trash2 size={13} /></button>
+		<Tooltip text={$t('panel.clear')} placement="top"><button class="icon-btn" onclick={handleClear}><Trash2 size={13} /></button></Tooltip>
 		<div class="tab-actions">
 			<span class="bp-info model-info">
 				<Cpu size={11} />
 				<span>{getRoleInfo($status, currentTab)}</span>
 			</span>
 			{#if hasUpdate}
+				<Tooltip text={$t('status.update_tooltip', { version: latestVersion })} placement="top">
 				<a
 					class="update-badge"
 					href={docsUrl}
 					target="_blank"
 					rel="noopener noreferrer"
-					title={$t('status.update_tooltip', { version: latestVersion })}
 				>
 					<ArrowUpCircle size={11} />
 					<span>{$t('status.update_available', { version: latestVersion })}</span>
 				</a>
+				</Tooltip>
 			{/if}
-			<button class="icon-btn" onclick={toggle} title={$t('panel.minimize')}>
+			<Tooltip text={$t('panel.minimize')} placement="top">
+			<button class="icon-btn" onclick={toggle}>
 				{#if collapsed}<ChevronUp size={14} />{:else}<ChevronDown size={14} />{/if}
 			</button>
+			</Tooltip>
 		</div>
 	</div>
 

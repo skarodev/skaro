@@ -2,6 +2,7 @@
 	import { t } from '$lib/i18n/index.js';
 	import { status } from '$lib/stores/statusStore.js';
 	import { Bot, ChevronDown, Check } from 'lucide-svelte';
+	import Tooltip from '$lib/ui/Tooltip.svelte';
 
 	let {
 		value = '',

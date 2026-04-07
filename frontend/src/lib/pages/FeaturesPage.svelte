@@ -7,6 +7,9 @@
 	import { addLog, addError } from '$lib/stores/logStore.js';
 	import { cachedFetch, invalidate } from '$lib/api/cache.js';
 	import { Sparkles, Plus, Loader2, AlertTriangle, Trash2 } from 'lucide-svelte';
+	import Tooltip from '$lib/ui/Tooltip.svelte';
+
+	let architectureReady = $derived(!!$status?.architecture_reviewed);
 
 	let features = $state([]);
 	let loading = $state(true);
@@ -72,10 +75,12 @@
 	<div class="loading-text"><Loader2 size={14} class="spin" /> {$t('app.loading')}</div>
 {:else}
 	<div class="btn-group">
-		<button class="btn btn-primary" disabled={creating} onclick={createFeature}>
+		<Tooltip text={!architectureReady ? $t('gate.need_architecture') : ''} placement="bottom">
+		<button class="btn btn-primary" disabled={creating || !architectureReady} onclick={createFeature}>
 			{#if creating}<Loader2 size={14} class="spin" />{:else}<Plus size={14} />{/if}
 			{$t('feature.new')}
 		</button>
+		</Tooltip>
 	</div>
 
 	{#if features.length === 0}
@@ -110,13 +115,14 @@
 							<td class="col-date">{feat.created_at || '—'}</td>
 							<td class="col-actions">
 								{#if feat.status === 'draft' || feat.status !== 'done'}
+									<Tooltip text={feat.status === 'draft' ? $t('feature.delete') : $t('feature.cancel')} placement="top">
 									<button
 										class="btn-icon"
-										title={feat.status === 'draft' ? $t('feature.delete') : $t('feature.cancel')}
 										onclick={(e) => { e.stopPropagation(); deleteFeature(feat.slug, feat.status); }}
 									>
 										<Trash2 size={14} />
 									</button>
+									</Tooltip>
 								{/if}
 							</td>
 						</tr>

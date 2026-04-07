@@ -67,9 +67,11 @@
                 </a>
 			</div>
 		{/if}
-		<button class="toggle-btn" onclick={toggle} title={collapsed ? 'Expand' : 'Collapse'}>
-			<PanelLeft size={18} strokeWidth={1.5} />
-		</button>
+		<Tooltip text={collapsed ? $t('nav.expand') : $t('nav.collapse')} placement="right">
+			<button class="toggle-btn" onclick={toggle}>
+				<PanelLeft size={18} strokeWidth={1.5} />
+			</button>
+		</Tooltip>
 	</div>
 
 	<div class="nav">

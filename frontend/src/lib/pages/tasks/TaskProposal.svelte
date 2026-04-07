@@ -2,6 +2,7 @@
 	import { t } from '$lib/i18n/index.js';
 	import { status } from '$lib/stores/statusStore.js';
 	import { Loader2, CheckCircle, ListPlus, Eye, Check } from 'lucide-svelte';
+	import Tooltip from '$lib/ui/Tooltip.svelte';
 	import SpecPreviewModal from './SpecPreviewModal.svelte';
 
 	let {
@@ -79,13 +80,14 @@
 						<span class="task-milestone">{task.milestone}</span>
 					</div>
 					{#if task.spec}
+						<Tooltip text={$t('task_proposal.preview_spec')} placement="top">
 						<button
 							class="preview-btn"
 							onclick={() => openPreview(task)}
-							title={$t('task_proposal.preview_spec')}
 						>
 							<Eye size={14} />
 						</button>
+						</Tooltip>
 					{/if}
 				</div>
 			{/each}

@@ -4,6 +4,7 @@
 	import { addError } from '$lib/stores/logStore.js';
 	import { Container, Monitor, Terminal, Loader, Info, RefreshCw } from 'lucide-svelte';
 	import BtnGroup from '$lib/ui/BtnGroup.svelte';
+	import Tooltip from '$lib/ui/Tooltip.svelte';
 
 	let {
 		mode = $bindable('host'),
@@ -42,10 +43,12 @@
 <div class="card">
 	<div class="card-header">
 		<h3>{$t('settings.env_title')}</h3>
-		<button class="btn btn-sm btn-ghost" onclick={detect} disabled={detecting} title={$t('settings.env_detect')}>
+		<Tooltip text={$t('settings.env_detect')} placement="bottom">
+		<button class="btn btn-sm btn-ghost" onclick={detect} disabled={detecting}>
 			{#if detecting}<Loader size={14} class="spin" />{:else}<RefreshCw size={14} />{/if}
 			{$t('settings.env_detect')}
 		</button>
+		</Tooltip>
 	</div>
 	<p class="card-desc">{$t('settings.env_desc')}</p>
 

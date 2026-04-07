@@ -3,6 +3,7 @@
 	 * Reusable animated tooltip component.
 	 *
 	 * Uses position:fixed to escape overflow containers (e.g. sidebar).
+	 * Automatically clamps position to stay within the viewport.
 	 *
 	 * Props:
 	 *   text      — tooltip text
@@ -19,7 +20,10 @@
 	let visible = $state(false);
 	let timeout = $state(null);
 	let anchor = $state(null);
+	let tooltipEl = $state(null);
 	let pos = $state({ top: 0, left: 0 });
+
+	const MARGIN = 8;
 
 	function calcPosition() {
 		if (!anchor) return;
@@ -42,11 +46,29 @@
 		}
 	}
 
+	function clampToViewport() {
+		if (!tooltipEl) return;
+		const tr = tooltipEl.getBoundingClientRect();
+		const vw = window.innerWidth;
+		const vh = window.innerHeight;
+		let dx = 0, dy = 0;
+
+		if (tr.right > vw - MARGIN) dx = vw - MARGIN - tr.right;
+		if (tr.left < MARGIN) dx = MARGIN - tr.left;
+		if (tr.bottom > vh - MARGIN) dy = vh - MARGIN - tr.bottom;
+		if (tr.top < MARGIN) dy = MARGIN - tr.top;
+
+		if (dx || dy) {
+			pos = { top: pos.top + dy, left: pos.left + dx };
+		}
+	}
+
 	function show() {
 		if (disabled || !text) return;
 		timeout = setTimeout(() => {
 			calcPosition();
 			visible = true;
+			requestAnimationFrame(clampToViewport);
 		}, 80);
 	}
 
@@ -71,6 +93,7 @@
 			class="tooltip tooltip-{placement}"
 			role="tooltip"
 			style="top: {pos.top}px; left: {pos.left}px;"
+			bind:this={tooltipEl}
 		>{text}</span>
 	{/if}
 </span>

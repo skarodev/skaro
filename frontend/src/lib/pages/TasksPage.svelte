@@ -10,6 +10,9 @@
 	import AutopilotOverlay from '$lib/pages/tasks/AutopilotOverlay.svelte';
 	import BtnGroup from '$lib/ui/BtnGroup.svelte';
 	import { startAutopilot, autopilotRunning } from '$lib/stores/autopilotStore.js';
+	import Tooltip from '$lib/ui/Tooltip.svelte';
+
+	let architectureReady = $derived(!!$status?.architecture_reviewed);
 
 	let activeTab = $state('__all__');
 	let statusFilter = $state('all');
@@ -210,17 +213,21 @@
 
                 <div class="task-actions">
                     {#if hasActiveTasks}
+                        <Tooltip text={!architectureReady ? $t('gate.need_architecture') : ''} placement="bottom">
                         <button
                                 class="btn btn-autopilot"
-                                disabled={$autopilotRunning}
+                                disabled={$autopilotRunning || !architectureReady}
                                 onclick={startAutopilot}
                         >
                             <Rocket size={14} /> {$t('autopilot.run_all')}
                         </button>
+                        </Tooltip>
                     {/if}
-                    <button class="btn btn-primary" onclick={() => showCreateModal = true}>
+                    <Tooltip text={!architectureReady ? $t('gate.need_architecture') : ''} placement="bottom">
+                    <button class="btn btn-primary" onclick={() => showCreateModal = true} disabled={!architectureReady}>
                         <Plus size={14} /> {$t('task.create')}
                     </button>
+                    </Tooltip>
                 </div>
             </div>
 		</div>
@@ -231,9 +238,11 @@
 			<p>{$t('task.empty')}</p>
 			<p class="hint">{$t('task.empty_hint')}</p>
 			<div class="btn-group" style="justify-content: center;">
-				<button class="btn btn-primary" onclick={() => showCreateModal = true}>
+				<Tooltip text={!architectureReady ? $t('gate.need_architecture') : ''} placement="bottom">
+				<button class="btn btn-primary" onclick={() => showCreateModal = true} disabled={!architectureReady}>
 					<Plus size={14} /> {$t('task.create')}
 				</button>
+				</Tooltip>
 			</div>
 		</div>
 	{:else}

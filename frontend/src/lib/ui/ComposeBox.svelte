@@ -2,6 +2,7 @@
 	import { t } from '$lib/i18n/index.js';
 	import { ArrowUp, Square, Plus } from 'lucide-svelte';
 	import AttachMenu from '$lib/ui/AttachMenu.svelte';
+	import Tooltip from '$lib/ui/Tooltip.svelte';
 
 	let {
 		message = $bindable(''),
@@ -82,16 +83,17 @@
 		<div class="bar-spacer">
 			{#if showAttach}
 				<div class="attach-wrap">
-					<button
-						class="attach-btn"
-						onclick={(e) => { e.stopPropagation(); attachMenuOpen = !attachMenuOpen; }}
-						title={$t('attach.title')}
-					>
-						<Plus size={20} strokeWidth={2} />
-						{#if totalAttached > 0}
-							<span class="attach-badge">{totalAttached}</span>
-						{/if}
-					</button>
+					<Tooltip text={$t('attach.title')} placement="top">
+						<button
+							class="attach-btn"
+							onclick={(e) => { e.stopPropagation(); attachMenuOpen = !attachMenuOpen; }}
+						>
+							<Plus size={20} strokeWidth={2} />
+							{#if totalAttached > 0}
+								<span class="attach-badge">{totalAttached}</span>
+							{/if}
+						</button>
+					</Tooltip>
 					<AttachMenu
 						open={attachMenuOpen}
 						{onAttachFromDisk}

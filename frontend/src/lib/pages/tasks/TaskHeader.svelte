@@ -2,6 +2,7 @@
 	import { t } from '$lib/i18n/index.js';
 	import { ArrowLeft, BadgeCheck, Boxes, Trash2 } from 'lucide-svelte';
 	import PhaseBar from '$lib/ui/PhaseBar.svelte';
+	import Tooltip from '$lib/ui/Tooltip.svelte';
 
 	let { taskName, phases = {}, currentPhase = '', currentStage = 0, totalStages = 0, onBack, onDelete = undefined } = $props();
 
@@ -25,9 +26,11 @@
 		{$t('task.detail_title', { name: taskName })}
 	</h2>
 	{#if onDelete}
-		<button class="delete-task-btn" onclick={onDelete} title={$t('task.delete_btn')}>
+		<Tooltip text={$t('task.delete_btn')} placement="bottom">
+		<button class="delete-task-btn" onclick={onDelete}>
 			<Trash2 size={16} /> {$t('task.delete_btn')}
 		</button>
+		</Tooltip>
 	{/if}
 </div>
 <PhaseBar {phases} />

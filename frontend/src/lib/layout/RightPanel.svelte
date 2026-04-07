@@ -15,6 +15,7 @@
 	import FeatureChat from '$lib/pages/features/FeatureChat.svelte';
 	import PageChat from '$lib/pages/chat/PageChat.svelte';
 	import ChatModelPicker from '$lib/ui/ChatModelPicker.svelte';
+	import Tooltip from '$lib/ui/Tooltip.svelte';
 
 	// ── Model override (persisted per context) ──
 
@@ -151,9 +152,11 @@
 					value={modelOverride}
 					onSelect={handleModelSelect}
 				/>
-				<button class="close-btn" onclick={closeChatPanel} title={$t('chat_panel.close')}>
-					<X size={15} />
-				</button>
+				<Tooltip text={$t('chat_panel.close')} placement="bottom">
+					<button class="close-btn" onclick={closeChatPanel}>
+						<X size={15} />
+					</button>
+				</Tooltip>
 			</div>
 
 			<div class="right-panel-body">

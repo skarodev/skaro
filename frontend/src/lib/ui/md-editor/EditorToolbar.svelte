@@ -7,6 +7,7 @@
 		Quote, SquareCheck, Link,
 		Save, X,
 	} from 'lucide-svelte';
+	import Tooltip from '$lib/ui/Tooltip.svelte';
 
 	/** @type {{ onAction: (action: string) => void, onSave: () => void, onClose: () => void, saving?: boolean, splitRatio?: number }} */
 	let { onAction, onSave, onClose, saving = false, splitRatio = 0.5 } = $props();
@@ -47,10 +48,10 @@
 			{#each groups as group, gi}
 				{#if gi > 0}<span class="sep"></span>{/if}
 				{#each group as btn}
+					<Tooltip text={$t(btn.tip)} placement="bottom">
 					<button
 						type="button"
 						class="tb-btn"
-						title={$t(btn.tip)}
 						onclick={() => onAction(btn.action)}
 					>
 						{#if btn.icon}
@@ -60,6 +61,7 @@
 							<span class="tb-label">{btn.label}</span>
 						{/if}
 					</button>
+					</Tooltip>
 				{/each}
 			{/each}
 		</div>
@@ -82,7 +84,7 @@
 		display: flex;
 		align-items: center;
 		padding: 0.375rem 0;
-		background: var(--sf);
+		background: var(--bg-high);
 		border-bottom: 0.0625rem solid var(--bd);
 		flex-shrink: 0;
 		overflow: hidden;
@@ -139,7 +141,7 @@
 	}
 
 	.tb-btn:hover {
-		background: var(--sf2);
+		background: var(--bd-deep);
 		color: var(--tx-bright);
 	}
 

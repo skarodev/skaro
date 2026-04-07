@@ -12,7 +12,7 @@
 	import ThemePicker from '$lib/pages/settings/ThemePicker.svelte';
 	import SkillsPanel from '$lib/pages/settings/SkillsPanel.svelte';
 	import EnvironmentPanel from '$lib/pages/settings/EnvironmentPanel.svelte';
-	import { setTheme } from '$lib/stores/themeStore.js';
+	import { setTheme, setAccentColor, accentColor as accentStore } from '$lib/stores/themeStore.js';
 	import { setProviderLabelsFromPresets } from '$lib/ui/icons/providers.js';
 
 	let config = $state(null);
@@ -74,6 +74,9 @@
 			};
 			lang = config.lang || 'en';
 			theme = config.theme || 'dark';
+			// Sync UI locale with config value
+			setLocale(lang);
+			setTheme(theme);
 			uiAutoOpen = config.ui?.auto_open_browser ?? true;
 			const execEnv = config.execution_env || {};
 			envMode = execEnv.mode || 'host';

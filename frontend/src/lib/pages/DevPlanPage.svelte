@@ -9,6 +9,9 @@
 	import MarkdownContent from '$lib/ui/MarkdownContent.svelte';
 	import GuidanceInput from '$lib/pages/devplan/GuidanceInput.svelte';
 	import DevPlanProposal from '$lib/pages/devplan/DevPlanProposal.svelte';
+	import Tooltip from '$lib/ui/Tooltip.svelte';
+
+	let architectureReady = $derived(!!$status?.architecture_reviewed);
 
 	let devplanContent = $state('');
 	let devplanConfirmed = $state(false);
@@ -139,10 +142,12 @@
 		<p class="hint">{$t('devplan.empty_hint')}</p>
 	</div>
 	<div class="btn-group">
-		<button class="btn btn-primary" disabled={generating} onclick={generate}>
+		<Tooltip text={!architectureReady ? $t('gate.need_architecture') : ''} placement="bottom">
+		<button class="btn btn-primary" disabled={generating || !architectureReady} onclick={generate}>
 			{#if generating}<Loader2 size={14} class="spin" />{:else}<ClipboardList size={14} />{/if}
 			{$t('devplan.generate')}
 		</button>
+		</Tooltip>
 	</div>
 {:else}
 	{#if ($devplanMilestones || draftMilestones) && !devplanConfirmed}
@@ -156,14 +161,18 @@
 	{:else if !$devplanMilestones && !hasProposal}
 		<div class="btn-group">
 			{#if !showGuidanceInput}
-				<button class="btn btn-primary" disabled={updating} onclick={() => showGuidanceInput = true}>
+				<Tooltip text={!architectureReady ? $t('gate.need_architecture') : ''} placement="bottom">
+				<button class="btn btn-primary" disabled={updating || !architectureReady} onclick={() => showGuidanceInput = true}>
 					<RefreshCw size={14} /> {$t('devplan.update_btn')}
 				</button>
+				</Tooltip>
 			{/if}
-			<button class="btn" disabled={generating} onclick={generate}>
+			<Tooltip text={!architectureReady ? $t('gate.need_architecture') : ''} placement="bottom">
+			<button class="btn" disabled={generating || !architectureReady} onclick={generate}>
 				{#if generating}<Loader2 size={14} class="spin" />{:else}<ClipboardList size={14} />{/if}
 				{$t('devplan.regenerate')}
 			</button>
+			</Tooltip>
 		</div>
 
 		{#if showGuidanceInput}

@@ -9,6 +9,7 @@
 	import { FolderOpen, AlertTriangle, Loader2, Plus, ChevronLeft, Pencil, Sparkles, ClipboardList } from 'lucide-svelte';
 	import MarkdownContent from '$lib/ui/MarkdownContent.svelte';
 	import MdEditor from '$lib/ui/md-editor/MdEditor.svelte';
+	import Tooltip from '$lib/ui/Tooltip.svelte';
 
 	/** @type {{ adrs: any[] } | null} */
 	let data = $state(null);
@@ -33,6 +34,7 @@
 	let changingStatus = $state(null);
 
 	let hasArchitecture = $derived($status?.has_architecture && $status?.architecture_reviewed);
+	let constitutionReady = $derived(!!$status?.constitution_validated);
 
 	// Sync selected ADR with chat panel context.
 	$effect(() => {
@@ -179,10 +181,12 @@
 		</div>
 		<div class="btn-group">
 			{#if hasArchitecture}
-				<button class="btn btn-primary" disabled={generating} onclick={generateAdrs}>
+				<Tooltip text={!constitutionReady ? $t('gate.need_constitution') : ''} placement="bottom">
+				<button class="btn btn-primary" disabled={generating || !constitutionReady} onclick={generateAdrs}>
 					{#if generating}<Loader2 size={14} class="spin" />{:else}<Sparkles size={14} />{/if}
 					{$t('adr.generate')}
 				</button>
+				</Tooltip>
 			{:else}
 				<div class="alert alert-info" style="margin: 0;">
 					<AlertTriangle size={14} /> {$t('adr.need_arch')}
@@ -195,10 +199,12 @@
 	{:else}
 		<div class="btn-group">
 			{#if hasArchitecture}
-				<button class="btn" disabled={generating} onclick={generateAdrs}>
+				<Tooltip text={!constitutionReady ? $t('gate.need_constitution') : ''} placement="bottom">
+				<button class="btn" disabled={generating || !constitutionReady} onclick={generateAdrs}>
 					{#if generating}<Loader2 size={14} class="spin" />{:else}<Sparkles size={14} />{/if}
 					{$t('adr.generate')}
 				</button>
+				</Tooltip>
 			{/if}
 			<button class="btn" onclick={() => showCreateForm = true}>
 				<Plus size={14} /> {$t('adr.create')}

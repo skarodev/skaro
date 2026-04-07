@@ -9,6 +9,7 @@
 	import CommandList from '$lib/ui/CommandList.svelte';
 	import TestsSummary from '$lib/ui/TestsSummary.svelte';
 	import { formatIssueLabel } from '$lib/ui/testUtils.js';
+	import Tooltip from '$lib/ui/Tooltip.svelte';
 
 	let {
 		taskName = '',
@@ -135,9 +136,11 @@
 			<div class="section-header">
 				<h4 class="section-title">{$t('tests.task_commands_title')}</h4>
 				{#if !editingTaskCmds}
-					<button class="btn-icon" title={$t('tests.edit_commands')} onclick={startEditingTaskCmds}>
+					<Tooltip text={$t('tests.edit_commands')} placement="top">
+					<button class="btn-icon" onclick={startEditingTaskCmds}>
 						<Pencil size={13} />
 					</button>
+					</Tooltip>
 				{/if}
 			</div>
 
@@ -155,9 +158,11 @@
 								placeholder={$t('tests.cmd_command_placeholder')}
 								bind:value={cmd.command}
 							/>
-							<button class="btn-icon btn-danger" onclick={() => removeCmd(i)} title="Remove">
+							<Tooltip text={$t('tests.remove_command')} placement="top">
+							<button class="btn-icon btn-danger" onclick={() => removeCmd(i)}>
 								<Trash2 size={13} />
 							</button>
+							</Tooltip>
 						</div>
 					{/each}
 					<div class="cmd-edit-actions">

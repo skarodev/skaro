@@ -9,6 +9,8 @@
 	import ProjectTestsPanel from './review/ProjectTestsPanel.svelte';
 	import { openChatPanel } from '$lib/stores/chatPanelStore.js';
 
+	let architectureReady = $derived(!!$status?.architecture_reviewed);
+
 	let testsResults = $state(null);
 	let testsLoading = $state(false);
 
@@ -60,4 +62,6 @@
 	loading={testsLoading}
 	onRunTests={runTests}
 	onSendToFix={sendErrorsToFix}
+	gateDisabled={!architectureReady}
+	gateReason={!architectureReady ? $t('gate.need_architecture') : ''}
 />
