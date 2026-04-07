@@ -169,9 +169,7 @@
 		</button>
 	</div>
 
-	<div class="card">
-		<MarkdownContent content={selectedAdr.content} />
-	</div>
+	<MarkdownContent content={selectedAdr.content} />
 {:else}
 	<!-- ══ List View ══ -->
 	{#if data.adrs.length === 0}
@@ -198,14 +196,6 @@
 		</div>
 	{:else}
 		<div class="btn-group">
-			{#if hasArchitecture}
-				<Tooltip text={!constitutionReady ? $t('gate.need_constitution') : ''} placement="bottom">
-				<button class="btn" disabled={generating || !constitutionReady} onclick={generateAdrs}>
-					{#if generating}<Loader2 size={14} class="spin" />{:else}<Sparkles size={14} />{/if}
-					{$t('adr.generate')}
-				</button>
-				</Tooltip>
-			{/if}
 			<button class="btn" onclick={() => showCreateForm = true}>
 				<Plus size={14} /> {$t('adr.create')}
 			</button>
