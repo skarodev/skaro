@@ -1,43 +1,48 @@
 <script>
-	import { onMount } from 'svelte';
+	import { onMount, onDestroy } from 'svelte';
 	import { t } from '$lib/i18n/index.js';
 	import { api } from '$lib/api/client.js';
 	import { status, devplanMilestones } from '$lib/stores/statusStore.js';
 	import { addLog, addError } from '$lib/stores/logStore.js';
 	import { cachedFetch, invalidate } from '$lib/api/cache.js';
-	import { Map, ClipboardList, RefreshCw, AlertTriangle, Loader2 } from 'lucide-svelte';
+	import { Map, ClipboardList, Check, AlertTriangle, Loader2, Pencil } from 'lucide-svelte';
 	import MarkdownContent from '$lib/ui/MarkdownContent.svelte';
-	import GuidanceInput from '$lib/pages/devplan/GuidanceInput.svelte';
 	import DevPlanProposal from '$lib/pages/devplan/DevPlanProposal.svelte';
-	import Tooltip from '$lib/ui/Tooltip.svelte';
-
-	let architectureReady = $derived(!!$status?.architecture_reviewed);
+	import MdEditor from '$lib/ui/md-editor/MdEditor.svelte';
 
 	let devplanContent = $state('');
 	let devplanConfirmed = $state(false);
-	let draftMilestones = $state(null); // milestones parsed from imported devplan
+	let draftMilestones = $state(null);
 	let loading = $state(false);
-	let generating = $state(false);
-	let updating = $state(false);
-	let confirmingUpdate = $state(false);
+	let approving = $state(false);
 	let confirmingPlan = $state(false);
 	let error = $state('');
-	let updateGuidance = $state('');
-	let showGuidanceInput = $state(false);
-	let proposedDevplan = $state('');
-	let proposedNewMilestones = $state([]);
-	let updateRawResponse = $state('');
+	let formatError = $state('');
+	let showEditor = $state(false);
 
-	onMount(() => { load(); });
+	onMount(() => {
+		load();
+		window.addEventListener('skaro:devplan-updated', handleDevplanUpdated);
+	});
+
+	onDestroy(() => {
+		window.removeEventListener('skaro:devplan-updated', handleDevplanUpdated);
+	});
+
+	function handleDevplanUpdated() {
+		invalidate('devplan', 'status');
+		load();
+	}
 
 	async function load() {
 		loading = true;
+		formatError = '';
 		try {
 			const data = await cachedFetch('devplan', () => api.getDevPlan());
 			devplanContent = data.content || '';
 			devplanConfirmed = data.devplan_confirmed ?? false;
 			error = '';
-			// If imported but not yet confirmed — load milestones for the Confirm UI
+			// If devplan exists but not confirmed — parse milestones
 			if (devplanContent.trim().length > 100 && !devplanConfirmed && !$devplanMilestones) {
 				const ms = await api.getDevPlanMilestones();
 				if (ms.milestones?.length > 0) draftMilestones = ms.milestones;
@@ -45,20 +50,6 @@
 		}
 		catch (e) { error = e.message; addError(e.message, 'devplan'); }
 		loading = false;
-	}
-
-	async function generate() {
-		generating = true;
-		addLog($t('log.devplan_gen'));
-		try {
-			const result = await api.generateDevPlan();
-			if (result.success && result.milestones?.length > 0) {
-				devplanMilestones.set(result.milestones);
-				devplanContent = result.devplan || '';
-				addLog($t('log.devplan_milestones', { n: result.milestones.length }));
-			} else { addError(result.message, 'devplan'); }
-		} catch (e) { addError(e.message, 'devplan'); }
-		generating = false;
 	}
 
 	async function confirmPlan() {
@@ -80,42 +71,47 @@
 		confirmingPlan = false;
 	}
 
-	async function runUpdate() {
-		updating = true; proposedDevplan = ''; proposedNewMilestones = []; updateRawResponse = '';
-		addLog($t('log.devplan_update'));
+	async function approve() {
+		approving = true;
+		formatError = '';
 		try {
-			const result = await api.updateDevPlan(updateGuidance);
-			if (result.success) {
-				proposedDevplan = result.updated_devplan || '';
-				proposedNewMilestones = result.new_milestones || [];
-				updateRawResponse = result.message || '';
-				addLog($t('log.devplan_update_proposed'));
-				showGuidanceInput = false; updateGuidance = '';
-			} else { addError(result.message, 'devplanUpdate'); }
-		} catch (e) { addError(e.message, 'devplanUpdate'); }
-		updating = false;
-	}
+			// Parse milestones to check format
+			const ms = await api.getDevPlanMilestones();
+			const milestones = ms.milestones || [];
+			const totalTasks = milestones.reduce((sum, m) => sum + (m.tasks?.length || 0), 0);
 
-	async function confirmUpdate() {
-		confirmingUpdate = true;
-		try {
-			const result = await api.confirmDevPlanUpdate({ updated_devplan: proposedDevplan, new_milestones: proposedNewMilestones });
+			if (milestones.length === 0 || totalTasks === 0) {
+				formatError = $t('devplan.format_error');
+				approving = false;
+				return;
+			}
+
+			// Confirm with parsed milestones
+			const result = await api.confirmDevPlan({ milestones });
 			if (result.success) {
-				addLog($t('log.devplan_updated', { n: result.tasks_created?.length || 0 }));
-				proposedDevplan = ''; proposedNewMilestones = []; updateRawResponse = '';
+				addLog($t('log.tasks_created', { n: result.tasks_created.length }));
+				devplanMilestones.set(null);
+				draftMilestones = null;
+				devplanConfirmed = true;
 				invalidate('devplan', 'status');
 				status.set(await api.getStatus());
 				await load();
-			} else { addError(result.message, 'confirmUpdate'); }
-		} catch (e) { addError(e.message, 'confirmUpdate'); }
-		confirmingUpdate = false;
+			} else { addError(result.message, 'approvePlan'); }
+		} catch (e) { addError(e.message, 'approvePlan'); }
+		approving = false;
 	}
 
-	function discardUpdate() { proposedDevplan = ''; proposedNewMilestones = []; updateRawResponse = ''; }
-	function cancelGuidance() { showGuidanceInput = false; updateGuidance = ''; }
+	async function saveContent(content) {
+		try {
+			await api.saveDevPlan(content);
+			addLog($t('editor.doc_saved'));
+			invalidate('devplan', 'status');
+			status.set(await api.getStatus());
+			await load();
+		} catch (e) { addError(e.message, 'devplanSave'); }
+	}
 
 	let hasDevplan = $derived(devplanContent.trim().length > 100);
-	let hasProposal = $derived(proposedDevplan.trim().length > 0 || updateRawResponse.trim().length > 0);
 </script>
 
 <div class="main-header">
@@ -141,14 +137,6 @@
 		<p>{$t('devplan.empty')}</p>
 		<p class="hint">{$t('devplan.empty_hint')}</p>
 	</div>
-	<div class="btn-group">
-		<Tooltip text={!architectureReady ? $t('gate.need_architecture') : ''} placement="bottom">
-		<button class="btn btn-primary" disabled={generating || !architectureReady} onclick={generate}>
-			{#if generating}<Loader2 size={14} class="spin" />{:else}<ClipboardList size={14} />{/if}
-			{$t('devplan.generate')}
-		</button>
-		</Tooltip>
-	</div>
 {:else}
 	{#if ($devplanMilestones || draftMilestones) && !devplanConfirmed}
 		<DevPlanProposal
@@ -158,53 +146,54 @@
 			onConfirm={confirmPlan}
 			onDiscard={() => { devplanMilestones.set(null); draftMilestones = null; }}
 		/>
-	{:else if !$devplanMilestones && !hasProposal}
+	{:else if !devplanConfirmed}
 		<div class="btn-group">
-			{#if !showGuidanceInput}
-				<Tooltip text={!architectureReady ? $t('gate.need_architecture') : ''} placement="bottom">
-				<button class="btn btn-primary" disabled={updating || !architectureReady} onclick={() => showGuidanceInput = true}>
-					<RefreshCw size={14} /> {$t('devplan.update_btn')}
-				</button>
-				</Tooltip>
-			{/if}
-			<Tooltip text={!architectureReady ? $t('gate.need_architecture') : ''} placement="bottom">
-			<button class="btn" disabled={generating || !architectureReady} onclick={generate}>
-				{#if generating}<Loader2 size={14} class="spin" />{:else}<ClipboardList size={14} />{/if}
-				{$t('devplan.regenerate')}
+			<button class="btn btn-success" disabled={approving} onclick={approve}>
+				{#if approving}<Loader2 size={14} class="spin" />{:else}<Check size={14} />{/if}
+				{$t('devplan.approve')}
 			</button>
-			</Tooltip>
+			<button class="btn" onclick={() => showEditor = true}>
+				<Pencil size={14} /> {$t('editor.edit')}
+			</button>
 		</div>
-
-		{#if showGuidanceInput}
-			<GuidanceInput bind:guidance={updateGuidance} {updating} onRun={runUpdate} onCancel={cancelGuidance} />
+		{#if formatError}
+			<div class="alert alert-warn" style="margin-top: 0.5rem;">
+				<AlertTriangle size={14} /> {formatError}
+			</div>
 		{/if}
+	{:else}
+		<div class="btn-group">
+			<button class="btn" onclick={() => showEditor = true}>
+				<Pencil size={14} /> {$t('editor.edit')}
+			</button>
+		</div>
 	{/if}
 
-	{#if $devplanMilestones && devplanConfirmed}
-		<DevPlanProposal
-			mode="initial"
-			items={$devplanMilestones}
-			confirming={confirmingPlan}
-			onConfirm={confirmPlan}
-			onDiscard={() => devplanMilestones.set(null)}
-		/>
-	{/if}
-
-	{#if hasProposal}
-		<DevPlanProposal
-			mode="update"
-			items={proposedNewMilestones}
-			{proposedDevplan}
-			rawResponse={updateRawResponse}
-			confirming={confirmingUpdate}
-			onConfirm={confirmUpdate}
-			onDiscard={discardUpdate}
-		/>
-	{/if}
-
-	{#if hasDevplan && !($devplanMilestones || draftMilestones) && !hasProposal}
+	{#if hasDevplan}
 		<MarkdownContent content={devplanContent} />
 	{/if}
 {/if}
 
+{#if showEditor}
+	<MdEditor
+		content={devplanContent}
+		onSave={(c) => { saveContent(c); showEditor = false; }}
+		onClose={() => showEditor = false}
+	/>
+{/if}
 
+<style>
+	.card.empty {
+		text-align: center;
+		padding: 2rem 1.25rem;
+		color: var(--tx-dim);
+	}
+	.card.empty p { margin: 0.25rem 0; }
+	.card.empty .hint { font-size: 0.8125rem; }
+	.btn-success {
+		background: var(--ok);
+		color: #fff;
+		border-color: var(--ok);
+	}
+	.btn-success:hover:not(:disabled) { filter: brightness(1.1); }
+</style>

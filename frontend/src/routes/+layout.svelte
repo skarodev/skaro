@@ -123,22 +123,22 @@
 <div class="app">
 	<Sidebar />
 	<div class="main-wrapper">
-		<Toolbar />
-		<main class="main">
-			{#if error}
-				<div class="alert alert-warn">{error}</div>
-			{:else if !statusValue}
-				<div class="center-msg">{$t('app.loading')}</div>
-			{:else if !statusValue.initialized}
-				<div class="center-msg">
-					<p>{$t('app.not_initialized')}</p>
-					<p><code>{$t('app.not_initialized_cmd')}</code></p>
-				</div>
-			{:else}
-				{@render children()}
-			{/if}
-		</main>
-		<BottomPanel />
+        <Toolbar />
+        <main class="main">
+            {#if error}
+                <div class="alert alert-warn">{error}</div>
+            {:else if !statusValue}
+                <div class="center-msg">{$t('app.loading')}</div>
+            {:else if !statusValue.initialized}
+                <div class="center-msg">
+                    <p>{$t('app.not_initialized')}</p>
+                    <p><code>{$t('app.not_initialized_cmd')}</code></p>
+                </div>
+            {:else}
+                {@render children()}
+            {/if}
+        </main>
+        <BottomPanel />
 	</div>
 	<RightPanel />
 </div>
