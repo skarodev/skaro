@@ -111,10 +111,10 @@ export default {
 	'arch.invariants': 'Architectural Invariants',
 	'arch.adrs': 'Architecture Decision Records',
 	'arch.document': 'Architecture Document',
-	'arch.generate_hint': 'Generate architecture through a dialog with AI, or fill in the document manually using the editor.',
+	'arch.generate_hint': 'Describe your project in the chat panel on the right — AI will generate the architecture document. Or fill it in manually using the editor.',
 	'arch.generate_with_ai': 'Generate with AI',
 	'arch.chat_tab': 'AI Generation',
-	'arch.chat_placeholder_start': 'Describe your project...',
+	'arch.chat_placeholder_start': 'Describe your project: what it does, main components, data storage, API style, infrastructure...',
 	'arch.chat_placeholder_reply': 'Write your reply...',
 
 	// ADR

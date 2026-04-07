@@ -5,15 +5,11 @@
 	import { status } from '$lib/stores/statusStore.js';
 	import { addLog, addError } from '$lib/stores/logStore.js';
 	import { cachedFetch, invalidate } from '$lib/api/cache.js';
-	import { Layers, AlertTriangle, Info, Loader2, Pencil, Sparkles, FolderOpen, MessageSquare } from 'lucide-svelte';
+	import { Layers, AlertTriangle, Info, Loader2, Pencil, Sparkles, FolderOpen } from 'lucide-svelte';
 	import ArchActions from './architecture/ArchActions.svelte';
 	import ProposedArchitecture from './architecture/ProposedArchitecture.svelte';
 	import MarkdownContent from '$lib/ui/MarkdownContent.svelte';
 	import MdEditor from '$lib/ui/md-editor/MdEditor.svelte';
-	import { openChatPanel } from '$lib/stores/chatPanelStore.js';
-	import Tooltip from '$lib/ui/Tooltip.svelte';
-
-	let constitutionReady = $derived(!!$status?.constitution_validated);
 
 	let data = $state(null);
 	let error = $state('');
@@ -45,10 +41,6 @@
 				reviewResult = data.last_review;
 			}
 		} catch (e) { error = e.message; addError(e.message, 'architecture'); }
-	}
-
-	function openChat() {
-		openChatPanel();
 	}
 
 	async function review() {
@@ -176,11 +168,6 @@
 		<div class="alert alert-info"><Info size={14} /> {$t('arch.empty')}</div>
 		<p class="arch-hint">{$t('arch.generate_hint')}</p>
 		<div class="btn-group">
-			<Tooltip text={!constitutionReady ? $t('gate.need_constitution') : ''} placement="bottom">
-			<button class="btn btn-primary" onclick={openChat} disabled={!constitutionReady}>
-				<MessageSquare size={14} /> {$t('arch.generate_with_ai')}
-			</button>
-			</Tooltip>
 			<button class="btn" onclick={() => showEditor = true}>
 				<Pencil size={14} /> {$t('editor.edit')}
 			</button>
