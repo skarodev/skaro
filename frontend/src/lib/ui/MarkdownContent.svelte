@@ -113,7 +113,6 @@
     .md-content :global(pre > code) {
         background: none;
         border-radius: 0;
-        padding: inherit;
         color: inherit;
         font-size: inherit;
         border: none;

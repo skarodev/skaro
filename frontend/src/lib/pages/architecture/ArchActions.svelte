@@ -1,15 +1,12 @@
 <script>
 	import { t } from '$lib/i18n/index.js';
-	import { Search, Check, RotateCcw, ClipboardList, FolderOpen, Pencil, Loader2 } from 'lucide-svelte';
+	import { Check, ClipboardList, FolderOpen, Pencil, Loader2 } from 'lucide-svelte';
 
 	let {
 		hasDevplan = false,
 		hasAdrs = false,
 		architectureReviewed = false,
-		hasReviewResult = false,
-		reviewing = false,
 		approving = false,
-		onReview,
 		onApprove,
 		onEdit,
 	} = $props();
@@ -22,10 +19,6 @@
 				<Pencil size={14} /> {$t('editor.edit')}
 			</button>
 		{/if}
-		<button class="btn" disabled={reviewing} onclick={onReview}>
-			{#if reviewing}<Loader2 size={14} class="spin" />{:else}<RotateCcw size={14} />{/if}
-			{$t('arch.re_review')}
-		</button>
 		{#if !hasAdrs}
 			<a class="hint-link" href="/adr">
 				<FolderOpen size={14} /> {$t('arch.go_adr')}
@@ -43,10 +36,6 @@
 				<Pencil size={14} /> {$t('editor.edit')}
 			</button>
 		{/if}
-		<button class="btn btn-primary" disabled={reviewing} onclick={onReview}>
-			{#if reviewing}<Loader2 size={14} class="spin" />{:else}<Search size={14} />{/if}
-			{$t('arch.review')}
-		</button>
 		<button class="btn btn-success" disabled={approving} onclick={onApprove}>
 			{#if approving}<Loader2 size={14} class="spin" />{:else}<Check size={14} />{/if}
 			{$t('arch.approve')}
