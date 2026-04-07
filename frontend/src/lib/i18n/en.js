@@ -76,6 +76,8 @@ export default {
 	'const.step2': 'Fill in all sections: Stack, Coding Standards, Testing, Constraints, Security, LLM Rules',
 	'const.step3': 'Come back and click Validate',
 	'const.validate': 'Validate',
+	'const.approve': 'Approve',
+	'const.approved_log': 'Constitution approved',
 	'const.validating': 'Validating...',
 	'const.valid': 'Constitution is valid — all sections present.',
 	'const.invalid': 'Some sections are missing or incomplete:',

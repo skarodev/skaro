@@ -51,6 +51,19 @@ async def validate_constitution(am: ArtifactManager = Depends(get_am)):
     return {"success": True, "valid": is_valid, "checks": result}
 
 
+@router.post("/approve")
+async def approve_constitution(
+    request: Request,
+    am: ArtifactManager = Depends(get_am),
+):
+    """Mark the constitution as approved without structural validation."""
+    if not am.has_constitution:
+        return {"success": False, "message": "No constitution to approve."}
+    am.mark_constitution_validated()
+    await broadcast(request, {"event": "artifact:updated", "artifact": "constitution"})
+    return {"success": True}
+
+
 @router.put("")
 async def save_constitution(
     request: Request,

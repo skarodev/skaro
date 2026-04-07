@@ -125,6 +125,7 @@ export const api = {
 	// Constitution
 	getConstitution: (signal) => get('/api/constitution', signal),
 	validateConstitution: (signal) => post('/api/constitution/validate', {}, signal),
+	approveConstitution: (signal) => post('/api/constitution/approve', {}, signal),
 	getConstitutionPresets: (signal) => get('/api/constitution/presets', signal),
 	getConstitutionPreset: (/** @type {string} */ presetId, signal) => get(`/api/constitution/presets/${presetId}`, signal),
 
