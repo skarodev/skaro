@@ -54,6 +54,12 @@
 	let envWorkdir = $state('');
 	let envCommandPrefix = $state('');
 	let envShell = $state('');
+	// Git automation
+	let gitAutoInit = $state(true);
+	let gitAutoCommit = $state(false);
+	let gitAutoPush = $state(false);
+	// Context
+	let contextPreflight = $state(true);
 	// Provider names come from the backend (providers.yaml)
 	let providerNames = $derived(config?._provider_keys || Object.keys(presets));
 
@@ -85,6 +91,12 @@
 			envWorkdir = execEnv.workdir || '';
 			envCommandPrefix = execEnv.command_prefix || '';
 			envShell = execEnv.shell || '';
+			const gitCfg = config.git || {};
+			gitAutoInit = gitCfg.auto_init ?? true;
+			gitAutoCommit = gitCfg.auto_commit ?? false;
+			gitAutoPush = gitCfg.auto_push ?? false;
+			const ctxCfg = config.context || {};
+			contextPreflight = ctxCfg.preflight ?? true;
 			for (const r of roles) {
 				const rd = config.roles?.[r.id];
 				roleOverrides[r.id] = rd?.provider && rd?.model
@@ -133,6 +145,12 @@
 					command_prefix: envCommandPrefix,
 					shell: envShell,
 				},
+				git: {
+					auto_init: gitAutoInit,
+					auto_commit: gitAutoCommit,
+					auto_push: gitAutoPush,
+				},
+				context_preflight: contextPreflight,
 			};
 			for (const r of roles) {
 				const ro = roleOverrides[r.id];
@@ -208,6 +226,44 @@
 							<label class="checkbox-label">
 								<input type="checkbox" bind:checked={uiAutoOpen} />
 								<span>{$t('settings.auto_open_browser')}</span>
+							</label>
+						</div>
+					</div>
+
+					<!-- Git automation -->
+					<div class="card">
+						<h3>{$t('settings.git_title')}</h3>
+						<p class="card-desc">{$t('settings.git_desc')}</p>
+						<div class="form-field checkbox-field">
+							<label class="checkbox-label">
+								<input type="checkbox" bind:checked={gitAutoInit} />
+								<span>{$t('settings.git_auto_init')}</span>
+							</label>
+						</div>
+						<div class="form-field checkbox-field" style="margin-top: 0.5rem;">
+							<label class="checkbox-label">
+								<input type="checkbox" bind:checked={gitAutoCommit} />
+								<span>{$t('settings.git_auto_commit')}</span>
+							</label>
+						</div>
+						{#if gitAutoCommit}
+							<div class="form-field checkbox-field" style="margin-top: 0.5rem; margin-left: 1.5rem;">
+								<label class="checkbox-label">
+									<input type="checkbox" bind:checked={gitAutoPush} />
+									<span>{$t('settings.git_auto_push')}</span>
+								</label>
+							</div>
+						{/if}
+					</div>
+
+					<!-- Context -->
+					<div class="card">
+						<h3>{$t('settings.context_title')}</h3>
+						<p class="card-desc">{$t('settings.context_desc')}</p>
+						<div class="form-field checkbox-field">
+							<label class="checkbox-label">
+								<input type="checkbox" bind:checked={contextPreflight} />
+								<span>{$t('settings.context_preflight')}</span>
 							</label>
 						</div>
 					</div>

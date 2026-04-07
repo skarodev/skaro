@@ -115,6 +115,18 @@ class ImplementPhase(BasePhase):
         if smart.full_files:
             extra_context["Relevant source files (full code)"] = smart.full_files
 
+        # Preflight: ask LLM for additional files it needs (beyond SmartContext heuristic)
+        preflight_context = f"{stage_section}\n\n{spec or ''}"
+        requested_paths = await self._preflight_file_request(
+            preflight_context, task=task,
+        )
+        # Filter out files already included by SmartContext
+        new_paths = [p for p in requested_paths if p not in smart.relevant_paths]
+        if new_paths:
+            requested_content = await self._read_requested_files(new_paths)
+            if requested_content:
+                extra_context["Additional requested files (full code)"] = requested_content
+
         # Override with explicitly passed source_files if any
         if source_files:
             files_text = ""

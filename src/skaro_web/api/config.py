@@ -60,6 +60,16 @@ def _config_to_frontend(config: SkaroConfig) -> dict:
     if "execution_env" not in data:
         data["execution_env"] = config.execution_env.to_dict()
 
+    # Always include git config for frontend
+    if "git" not in data:
+        data["git"] = config.git.to_dict()
+
+    # Always include context config for frontend
+    data["context"] = {
+        "always_include": config.context_always_include,
+        "preflight": config.context_preflight,
+    }
+
     return data
 
 
@@ -202,6 +212,13 @@ async def update_config(
             else:
                 existing_role = existing.roles.get(rname)
                 rd["api_key_env"] = existing_role.api_key_env if existing_role else None
+
+    # Preserve context.always_include from existing config (not editable in UI)
+    # and merge with context_preflight from payload
+    raw["context"] = {
+        "always_include": existing.context_always_include,
+        "preflight": raw.pop("context_preflight", True),
+    }
 
     config = SkaroConfig.from_dict(raw)
     save_config(config, project_root)

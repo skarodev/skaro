@@ -91,6 +91,17 @@ class FeaturePhase(ConversationalFixBase):
             if scope_code:
                 extra_context["Selected source files (full code)"] = scope_code
 
+        # Preflight: ask LLM for additional files
+        requested_paths = await self._preflight_file_request(
+            user_message, task=feature_slug,
+        )
+        already = set(scope_paths) | smart.relevant_paths
+        new_paths = [p for p in requested_paths if p not in already]
+        if new_paths:
+            requested_content = await self._read_requested_files(new_paths)
+            if requested_content:
+                extra_context["Additional requested files (full code)"] = requested_content
+
         # ── Build messages ────────────────────────────────
         from skaro_core.llm.base import LLMMessage
 

@@ -285,6 +285,9 @@ class SkaroConfig:
     context_always_include: list[str] = field(default_factory=list)
     """Glob patterns for files that should always be sent as full code to LLM."""
 
+    context_preflight: bool = True
+    """Ask LLM which files it needs before the main call (two-pass context)."""
+
     def llm_for_role(self, role: str | None) -> LLMConfig:
         """Return LLM config for a specific role, falling back to default."""
         if role and role in self.roles:
@@ -372,8 +375,13 @@ class SkaroConfig:
         ):
             d["execution_env"] = env_dict
 
-        if self.context_always_include:
-            d["context"] = {"always_include": self.context_always_include}
+        if self.context_always_include or not self.context_preflight:
+            ctx: dict[str, Any] = {}
+            if self.context_always_include:
+                ctx["always_include"] = self.context_always_include
+            if not self.context_preflight:
+                ctx["preflight"] = False
+            d["context"] = ctx
 
         d["git"] = self.git.to_dict()
 
@@ -440,4 +448,5 @@ class SkaroConfig:
             execution_env=ExecutionEnvConfig.from_dict(data.get("execution_env") or {}),
             git=GitConfig.from_dict(data.get("git") or {}),
             context_always_include=data.get("context", {}).get("always_include", []),
+            context_preflight=data.get("context", {}).get("preflight", True),
         )

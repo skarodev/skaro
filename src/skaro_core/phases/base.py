@@ -559,6 +559,187 @@ class BasePhase(ABC):
         if tree:
             ctx["Project File Tree"] = tree
 
+    # ── Preflight file request (two-pass context) ──────────
+
+    _REQUESTED_FILES_CACHE = "requested-files.json"
+
+    async def _preflight_file_request(
+        self,
+        task_context: str,
+        *,
+        task: str = "",
+        use_cache: bool = True,
+    ) -> list[str]:
+        """Ask LLM which project files it needs, then return the list.
+
+        Sends a lightweight request with AST index + file tree + brief task
+        context.  LLM returns a JSON list of file paths.  Results are cached
+        in the task directory so subsequent phases can reuse them.
+
+        Args:
+            task_context: Combined text describing the task (spec, error, etc.)
+            task: Task name (for cache path resolution).
+            use_cache: If True, merge with previously cached file list.
+
+        Returns:
+            List of relative file paths.
+        """
+        if not self.config.context_preflight:
+            return []
+
+        import json as _json
+
+        # ── Load cache ───────────────────────────────────
+        cached_paths: list[str] = []
+        cache_path = None
+        if task and use_cache:
+            task_dir = self.artifacts.find_task_dir(task)
+            if task_dir and task_dir.is_dir():
+                cache_path = task_dir / self._REQUESTED_FILES_CACHE
+                if cache_path.exists():
+                    try:
+                        cached_paths = _json.loads(
+                            cache_path.read_text(encoding="utf-8")
+                        )
+                    except (ValueError, OSError):
+                        cached_paths = []
+
+        # ── Build preflight context ──────────────────────
+        from skaro_core.context import SmartContextBuilder
+
+        builder = SmartContextBuilder(
+            self.artifacts.root,
+            always_include=self.config.context_always_include,
+        )
+        smart = await asyncio.to_thread(
+            builder.build,
+            stage_section=task_context,
+            max_full_files=0,
+        )
+
+        project_tree = await self._scan_project_tree_async()
+
+        preflight_context: dict[str, str] = {}
+        if smart.signatures:
+            preflight_context["Project API Index (signatures)"] = smart.signatures
+        if project_tree:
+            preflight_context["Project file tree"] = project_tree
+        preflight_context["Task context"] = task_context[:8000]
+
+        if cached_paths:
+            preflight_context["Previously requested files"] = _json.dumps(cached_paths)
+
+        prompt = self._load_prompt_template("preflight-files") or (
+            "Which project source files do you need to read in full "
+            "to work on this task? Return a JSON array of file paths."
+        )
+
+        messages = self._build_messages(prompt, preflight_context)
+
+        # Use complete() — short response, no streaming needed
+        llm = self._get_llm(task)
+        original_max = llm.config.max_tokens
+        llm.config.max_tokens = 2048
+        try:
+            response = await llm.complete(messages)
+        except Exception as exc:
+            import logging
+            logging.getLogger("skaro_core").warning(
+                "Preflight file request failed: %s", exc
+            )
+            return cached_paths
+        finally:
+            llm.config.max_tokens = original_max
+
+        # ── Parse response ───────────────────────────────
+        raw = response.content.strip()
+        # Strip markdown fences if present
+        if raw.startswith("```"):
+            raw = re.sub(r"^```\w*\n?", "", raw)
+            raw = re.sub(r"\n?```$", "", raw)
+
+        try:
+            requested = _json.loads(raw)
+        except (ValueError, TypeError):
+            # Try to extract JSON array from response
+            match = re.search(r"\[.*\]", raw, re.DOTALL)
+            if match:
+                try:
+                    requested = _json.loads(match.group())
+                except (ValueError, TypeError):
+                    return cached_paths
+            else:
+                return cached_paths
+
+        if not isinstance(requested, list):
+            return cached_paths
+
+        # Validate: only strings, only existing files inside project root
+        root = self.artifacts.root
+        valid: list[str] = []
+        for p in requested:
+            if not isinstance(p, str):
+                continue
+            p = p.strip().replace("\\", "/")
+            if not p or p.startswith("/") or ".." in p:
+                continue
+            if (root / p).is_file():
+                valid.append(p)
+
+        # ── Merge with cache and save ────────────────────
+        merged = list(dict.fromkeys(cached_paths + valid))  # preserve order, dedup
+        if cache_path:
+            try:
+                cache_path.parent.mkdir(parents=True, exist_ok=True)
+                cache_path.write_text(
+                    _json.dumps(merged, indent=2, ensure_ascii=False),
+                    encoding="utf-8",
+                )
+            except OSError:
+                pass
+
+        return merged
+
+    async def _read_requested_files(
+        self,
+        paths: list[str],
+        *,
+        max_file_size: int = 15_000,
+        max_files: int = 25,
+    ) -> str:
+        """Read requested files from disk and format for LLM context.
+
+        Args:
+            paths: Relative file paths to read.
+            max_file_size: Truncate individual files above this size (chars).
+            max_files: Maximum number of files to include.
+
+        Returns:
+            Formatted string with ``--- FILE: ... ---`` markers.
+        """
+        root = self.artifacts.root
+        parts: list[str] = []
+        count = 0
+
+        for fp in paths:
+            if count >= max_files:
+                break
+            abs_path = root / fp
+            if not abs_path.is_file():
+                continue
+            if not is_text_file(abs_path):
+                continue
+            try:
+                content = abs_path.read_text("utf-8", errors="replace")
+            except (OSError, PermissionError):
+                continue
+            if len(content) > max_file_size:
+                content = content[:max_file_size] + "\n... (truncated)"
+            parts.append(f"--- FILE: {fp} ---\n{content}\n--- END FILE ---")
+            count += 1
+
+        return "\n\n".join(parts)
+
     def _build_task_context(
         self,
         task: str,

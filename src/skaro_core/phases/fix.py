@@ -89,6 +89,21 @@ class FixPhase(ConversationalFixBase):
             if scope_code:
                 extra_context["Selected source files (full code)"] = scope_code
 
+        # Preflight: ask LLM for additional files based on error context
+        preflight_text = user_message
+        if spec:
+            preflight_text = f"{spec}\n\n---\n\nError/issue:\n{user_message}"
+        requested_paths = await self._preflight_file_request(
+            preflight_text, task=task,
+        )
+        # Filter out files already provided via scope or SmartContext
+        already = set(scope_paths) | smart.relevant_paths
+        new_paths = [p for p in requested_paths if p not in already]
+        if new_paths:
+            requested_content = await self._read_requested_files(new_paths)
+            if requested_content:
+                extra_context["Additional requested files (full code)"] = requested_content
+
         tree = await self._scan_project_tree_async()
         if tree:
             extra_context["Project File Tree"] = tree

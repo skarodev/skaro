@@ -101,7 +101,6 @@
 <style>
 	.tooltip-anchor {
 		position: relative;
-		display: inline-flex;
 	}
 
 	.tooltip {

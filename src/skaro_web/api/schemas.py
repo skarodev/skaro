@@ -264,6 +264,13 @@ class ExecutionEnvBody(BaseModel):
     shell: str = ""
 
 
+class GitConfigBody(BaseModel):
+    """Git automation settings."""
+    auto_init: bool = True
+    auto_commit: bool = False
+    auto_push: bool = False
+
+
 class ConfigUpdateBody(BaseModel):
     llm: LLMConfigBody = Field(default_factory=LLMConfigBody)
     ui: UIConfigBody = Field(default_factory=UIConfigBody)
@@ -273,6 +280,8 @@ class ConfigUpdateBody(BaseModel):
     project_description: str = ""
     roles: dict[str, RoleConfigBody | None] = Field(default_factory=dict)
     execution_env: ExecutionEnvBody = Field(default_factory=ExecutionEnvBody)
+    git: GitConfigBody = Field(default_factory=GitConfigBody)
+    context_preflight: bool = True
 
     def to_dict(self) -> dict[str, Any]:
         """Convert to plain dict for SkaroConfig.from_dict() compatibility."""

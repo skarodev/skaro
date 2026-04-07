@@ -72,6 +72,13 @@ class ClarifyPhase(BasePhase):
         if smart.signatures:
             cacheable_context["Project API Index (existing code)"] = smart.signatures
 
+        # Preflight: ask LLM which files it needs to see
+        requested_paths = await self._preflight_file_request(spec, task=task)
+        if requested_paths:
+            requested_content = await self._read_requested_files(requested_paths)
+            if requested_content:
+                extra_context["Requested source files (full code)"] = requested_content
+
         # Project file tree — so LLM sees what files exist
         project_tree = await self._scan_project_tree_async()
         if project_tree:
@@ -257,6 +264,13 @@ class ClarifyPhase(BasePhase):
         )
         if smart.signatures:
             cacheable_context["Project API Index (existing code)"] = smart.signatures
+
+        # Preflight: ask LLM which files it needs to see
+        requested_paths = await self._preflight_file_request(spec, task=task)
+        if requested_paths:
+            requested_content = await self._read_requested_files(requested_paths)
+            if requested_content:
+                extra_context["Requested source files (full code)"] = requested_content
 
         project_tree = await self._scan_project_tree_async()
         if project_tree:
