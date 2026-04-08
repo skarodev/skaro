@@ -167,7 +167,11 @@ export function startAutopilot() {
 			return pump();
 		})
 		.catch((err) => {
-			if (err.name === 'AbortError') return; // expected on stop
+			if (err.name === 'AbortError') {
+				// Stop was requested — cleanup so UI exits "stopping" state
+				_cleanup();
+				return;
+			}
 			addLog('error', '', '', `Connection error: ${err.message}`);
 			autopilotError.set({ task: '', phase: '', message: err.message });
 			_cleanup();

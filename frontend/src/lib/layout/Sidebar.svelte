@@ -249,7 +249,8 @@
 		padding: 0.5rem;
 		cursor: pointer;
 		color: var(--tx-bright);
-		font-size: 1rem;
+		font-size: .9rem;
+        font-weight: 400;
 		width: 100%;
 		border: none;
 		background: none;

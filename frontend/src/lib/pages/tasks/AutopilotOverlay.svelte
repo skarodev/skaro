@@ -31,7 +31,6 @@
 		Clock, Zap, ChevronDown, ChevronUp, Cpu, StopCircle,
 		Eye, EyeOff,
 	} from 'lucide-svelte';
-	import KittIndicator from '$lib/ui/KittIndicator.svelte';
 	import Tooltip from '$lib/ui/Tooltip.svelte';
 
 	const PHASE_ICONS = { clarify: Search, plan: ClipboardList, implement: Hammer, tests: FlaskConical };
@@ -212,7 +211,7 @@
 			<aside class="mc-sidebar">
 				<div class="mc-sidebar-title">{$t('autopilot.queue')}</div>
 				<div class="mc-task-list">
-					{#each $autopilotQueue as task (task.name)}
+					{#each $autopilotQueue as task, taskIdx (task.name)}
 						{@const taskSt = $autopilotTaskStatus[task.name] || 'pending'}
 						{@const isCurrent = $autopilotCurrentTask === task.name && $autopilotRunning}
 						<div
@@ -221,26 +220,34 @@
 							class:mc-task-done={taskSt === 'done'}
 							class:mc-task-error={taskSt === 'error'}
 						>
-							<div class="mc-task-status-icon">
+							<!-- Vertical connector lines -->
+							{#if taskIdx > 0}
+								<div class="mc-vline mc-vline-top" style="background: {taskSt === 'done' ? 'var(--ok)' : isCurrent ? 'var(--ac)' : 'var(--bd)'}"></div>
+							{/if}
+							{#if taskIdx < $autopilotQueue.length - 1}
+								<div class="mc-vline mc-vline-bottom" style="background: {taskSt === 'done' ? 'var(--ok)' : isCurrent ? 'var(--ac)' : 'var(--bd)'}"></div>
+							{/if}
+
+							<!-- Marker -->
+							<div class="mc-task-marker">
 								{#if taskSt === 'done'}
-									<CheckCircle2 size={16} />
+									<CheckCircle2 size={18} />
 								{:else if taskSt === 'error'}
-									<AlertTriangle size={16} />
+									<AlertTriangle size={18} />
 								{:else if isCurrent}
-									<Loader2 size={16} class="spin" />
+									<Loader2 size={18} class="spin" />
 								{:else}
-									<span class="mc-task-dot"></span>
+									<span class="mc-task-circle"></span>
 								{/if}
 							</div>
+
+							<!-- Info -->
 							<div class="mc-task-info">
 								<span class="mc-task-name">{task.name}</span>
-								<!-- Phase dots -->
 								<div class="mc-phase-dots">
 									{#each PHASE_ORDER as phase}
 										<Tooltip text={phase} placement="top">
-										<span
-											class="mc-dot {phaseDotClass(task.name, phase)}"
-										></span>
+										<span class="mc-dot {phaseDotClass(task.name, phase)}"></span>
 										</Tooltip>
 									{/each}
 								</div>
@@ -331,7 +338,7 @@
 						{/if}
 
 						<div class="mc-focus-spinner">
-							<KittIndicator cells={16} speed={1100} />
+							<Loader2 size={16} class="spin" />
 							<span>
 								{#if $autopilotCurrentPhase === 'clarify'}
 									{$t('autopilot.auto_clarifying')}
@@ -353,7 +360,7 @@
 						<div class="mc-thinking">
 							<button class="mc-thinking-header" onclick={() => thinkingExpanded = !thinkingExpanded}>
 								<span class="mc-thinking-title">
-									<KittIndicator cells={10} speed={1000} />
+									<Loader2 size={14} class="spin" />
 									{$t('autopilot.llm_thinking')}
 								</span>
 								{#if thinkingExpanded}
@@ -452,8 +459,8 @@
 		position: fixed;
 		inset: 0;
 		z-index: 9999;
-		background: rgba(0, 0, 0, 0.85);
-		backdrop-filter: blur(8px);
+		background: rgba(0, 0, 0, .6);
+		backdrop-filter: blur(0.125rem);
 		display: flex;
 		align-items: center;
 		justify-content: center;
@@ -468,14 +475,14 @@
 	.mc-container {
 		width: 96vw;
 		height: 92vh;
-		max-width: 1600px;
+		max-width: 90rem;
 		background: var(--bg-deep);
 		border: 1px solid var(--bd);
-		border-radius: 0.75rem;
+		border-radius: var(--r);
 		display: flex;
 		flex-direction: column;
 		overflow: hidden;
-		box-shadow: 0 0 80px rgba(88, 157, 246, 0.08), 0 0 2px rgba(88, 157, 246, 0.3);
+		box-shadow: 0 0 5rem rgba(0, 0, 0.05);
 	}
 
 	/* ── Header ── */
@@ -508,7 +515,6 @@
 		font-weight: 600;
 		color: var(--tx-bright);
 		letter-spacing: 0.04em;
-		text-transform: uppercase;
 	}
 
 	.mc-badge {
@@ -516,7 +522,7 @@
 		align-items: center;
 		gap: 0.375rem;
 		padding: 0.25rem 0.625rem;
-		border-radius: 1rem;
+		border-radius: 999px;
 		font-size: 0.75rem;
 		font-family: var(--font-ui);
 		font-weight: 500;
@@ -636,7 +642,6 @@
 		padding: 0.75rem 1rem;
 		font-size: 0.6875rem;
 		font-family: var(--font-ui);
-		text-transform: uppercase;
 		letter-spacing: 0.08em;
 		color: var(--tx-dim);
 		border-bottom: 1px solid var(--bd);
@@ -651,17 +656,17 @@
 
 	.mc-task-item {
 		display: flex;
-		align-items: center;
-		gap: 0.625rem;
+		align-items: flex-start;
+		gap: 0.5rem;
 		padding: 0.5rem 0.625rem;
 		border-radius: var(--r2);
 		transition: background 0.15s;
-		margin-bottom: 2px;
+		margin-bottom: 0;
+		position: relative;
 	}
 
 	.mc-task-current {
-		background: rgba(88, 157, 246, 0.1);
-		box-shadow: inset 3px 0 0 var(--ac);
+		background: color-mix(in srgb, var(--ac) 6%, transparent);
 	}
 
 	.mc-task-done {
@@ -669,33 +674,57 @@
 	}
 
 	.mc-task-error {
-		background: color-mix(in srgb, var(--err) 8%, transparent);
+		background: color-mix(in srgb, var(--err) 6%, transparent);
 	}
 
-	.mc-task-status-icon {
+	/* Vertical connector lines */
+	.mc-vline {
+		position: absolute;
+		left: calc(0.625rem + 9px - 1px);
+		width: 2px;
+		z-index: 0;
+	}
+
+	.mc-vline-top {
+		top: 0;
+		height: 0.5rem;
+	}
+
+	.mc-vline-bottom {
+		top: calc(0.5rem + 18px);
+		bottom: 0;
+	}
+
+	/* Marker */
+	.mc-task-marker {
 		flex-shrink: 0;
+		width: 18px;
 		display: flex;
 		align-items: center;
+		justify-content: center;
 		color: var(--tx-dim);
+		margin-top: 1px;
+		position: relative;
+		z-index: 1;
 	}
 
-	.mc-task-done .mc-task-status-icon {
+	.mc-task-done .mc-task-marker {
 		color: var(--ok);
 	}
 
-	.mc-task-error .mc-task-status-icon {
+	.mc-task-error .mc-task-marker {
 		color: var(--err);
 	}
 
-	.mc-task-current .mc-task-status-icon {
+	.mc-task-current .mc-task-marker {
 		color: var(--ac);
 	}
 
-	.mc-task-dot {
-		width: 8px;
-		height: 8px;
+	.mc-task-circle {
+		width: 1.1rem;
+		height: 1.1rem;
 		border-radius: 50%;
-		background: var(--tx-dim);
+		border: 2px solid var(--bd);
 	}
 
 	.mc-task-info {
@@ -756,14 +785,14 @@
 		flex: 1;
 		height: 6px;
 		background: var(--sf);
-		border-radius: 3px;
+		border-radius: var(--r2);
 		overflow: hidden;
 	}
 
 	.mc-progress-fill {
 		height: 100%;
 		background: var(--ac);
-		border-radius: 3px;
+		border-radius: var(--r2);
 		transition: width 0.6s ease;
 		position: relative;
 	}
@@ -805,7 +834,7 @@
 	.mc-focus-card {
 		background: var(--bg);
 		border: 1px solid var(--bd);
-		border-radius: 0.75rem;
+		border-radius: var(--r);
 		padding: 1.5rem;
 		animation: slideUp 0.3s ease;
 	}
@@ -837,13 +866,13 @@
 		color: var(--ac);
 		padding: 0.25rem 0.75rem;
 		background: rgba(88, 157, 246, 0.1);
-		border-radius: 1rem;
+		border-radius: 999px;
 	}
 
 	.mc-stage-badge {
 		padding: 0.125rem 0.375rem;
 		background: rgba(88, 157, 246, 0.2);
-		border-radius: 0.25rem;
+		border-radius: var(--r2);
 		font-size: 0.75rem;
 	}
 
@@ -861,16 +890,13 @@
 		flex-direction: column;
 		align-items: center;
 		gap: 0.375rem;
-		opacity: 0.4;
 		transition: all 0.3s;
 	}
 
 	.mc-pipe-active {
-		opacity: 1;
 	}
 
 	.mc-pipe-done {
-		opacity: 0.7;
 	}
 
 	.mc-pipe-icon {
@@ -880,7 +906,7 @@
 		align-items: center;
 		justify-content: center;
 		border-radius: 50%;
-		border: 2px solid var(--tx-dim);
+		border: 2px solid var(--bd);
 		color: var(--tx-dim);
 		transition: all 0.3s;
 	}
@@ -901,8 +927,6 @@
 		font-size: 0.6875rem;
 		font-family: var(--font-ui);
 		color: var(--tx-dim);
-		text-transform: uppercase;
-		letter-spacing: 0.05em;
 	}
 
 	.mc-pipe-active .mc-pipe-label {
@@ -916,7 +940,7 @@
 	.mc-pipe-connector {
 		width: 40px;
 		height: 2px;
-		background: var(--tx-dim);
+		background: var(--bd);
 		margin: 0 4px;
 		margin-bottom: 1.25rem;
 		transition: background 0.3s;
@@ -978,7 +1002,7 @@
 		justify-content: center;
 		text-align: center;
 		padding: 3rem 2rem;
-		border-radius: 0.75rem;
+		border-radius: var(--r);
 		background: var(--bg);
 		border: 1px solid var(--bd);
 		flex: 1;
@@ -1051,7 +1075,6 @@
 		padding: 0.75rem 1rem;
 		font-size: 0.6875rem;
 		font-family: var(--font-ui);
-		text-transform: uppercase;
 		letter-spacing: 0.08em;
 		color: var(--tx-dim);
 		border-bottom: 1px solid var(--bd);
@@ -1073,7 +1096,7 @@
 		margin-left: auto;
 		padding: 0 0.375rem;
 		background: var(--sf);
-		border-radius: 0.25rem;
+		border-radius: var(--r2);
 		font-size: 0.6875rem;
 		min-width: 1.25rem;
 		text-align: center;
@@ -1091,7 +1114,7 @@
 		display: flex;
 		gap: 0.5rem;
 		padding: 0.25rem 0.375rem;
-		border-radius: 2px;
+		border-radius: var(--r2);
 		line-height: 1.4;
 		align-items: baseline;
 	}
@@ -1134,7 +1157,7 @@
 	.mc-thinking {
 		background: var(--bg);
 		border: 1px solid var(--bd);
-		border-radius: 0.5rem;
+		border-radius: var(--r);
 		overflow: hidden;
 		animation: slideUp 0.2s ease;
 	}
