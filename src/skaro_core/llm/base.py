@@ -2,11 +2,22 @@
 
 from __future__ import annotations
 
+import platform
+import re
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import AsyncIterator
 
 from skaro_core.config import LLMConfig
+
+# ── Fix: OpenAI SDK + httpx crash on non-English OS ──────────────
+# The openai SDK passes platform.version() into HTTP headers via httpx.
+# On non-English macOS/Linux (ru_RU, zh_CN, etc.), platform.version()
+# returns non-ASCII characters. httpx 0.28+ encodes headers as ASCII
+# and crashes with UnicodeEncodeError.
+# Fix: monkey-patch platform.version to strip non-ASCII once at import.
+_original_platform_version = platform.version
+platform.version = lambda: re.sub(r"[^\x00-\x7F]", "", _original_platform_version())
 
 
 class LLMError(Exception):

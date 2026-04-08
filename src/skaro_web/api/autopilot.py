@@ -6,11 +6,12 @@ real-time progress in a Mission Control overlay.
 Flow per task:
   1. Clarify  — auto-answer via LLM
   2. Plan     — generate implementation plan
-  3. Implement — stages 1..N with auto-apply
-  4. Tests    — run & auto-confirm if passed
+  3. Implement — stages 1..N with auto-apply (truncation-safe)
+  4. Tests    — run & confirm only if passed
 
 On any error the autopilot stops and reports the failure.
-A stop signal (asyncio.Event) lets the user abort mid-flight.
+A stop signal (asyncio.Event) lets the user abort mid-flight,
+including cancellation of in-progress LLM streams.
 """
 
 from __future__ import annotations
@@ -19,6 +20,7 @@ import asyncio
 import json
 import logging
 import time
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
@@ -26,7 +28,7 @@ from fastapi import APIRouter, Depends, Request
 from fastapi.responses import StreamingResponse
 
 from skaro_core.artifacts import ArtifactManager
-from skaro_core.phases.base import BasePhase
+from skaro_core.phases.base import BasePhase, CancelledByClientError
 from skaro_web.api.deps import (
     ConnectionManager,
     get_am,
@@ -39,9 +41,18 @@ logger = logging.getLogger("skaro_web.autopilot")
 
 router = APIRouter(prefix="/api/autopilot", tags=["autopilot"])
 
-# ── Global stop event (one autopilot session at a time) ──────────
-_stop_event: asyncio.Event | None = None
-_running: bool = False
+
+# ═══════════════════════════════════════════════════
+# Session state (replaces module-level globals)
+# ═══════════════════════════════════════════════════
+
+@dataclass
+class _AutopilotSession:
+    """Encapsulated autopilot state — one session at a time."""
+    running: bool = False
+    stop_event: asyncio.Event = field(default_factory=asyncio.Event)
+
+_session = _AutopilotSession()
 
 
 def _sse(event: str, data: dict[str, Any]) -> str:
@@ -59,7 +70,9 @@ def _is_task_done(task: dict) -> bool:
     )
 
 
-# ── SSE endpoint ─────────────────────────────────────────────────
+# ═══════════════════════════════════════════════════
+# SSE endpoint
+# ═══════════════════════════════════════════════════
 
 @router.post("/start")
 async def start_autopilot(
@@ -69,22 +82,17 @@ async def start_autopilot(
     ws: ConnectionManager = Depends(get_ws_manager),
 ):
     """Start autopilot and stream progress via SSE."""
-    global _stop_event, _running
-
-    if _running:
+    if _session.running:
         return StreamingResponse(
             iter([_sse("error", {"message": "Autopilot is already running."})]),
             media_type="text/event-stream",
         )
 
-    _stop_event = asyncio.Event()
-    _running = True
-
-    # Capture in local var for closure (avoids Python 3.13 global scoping issue)
-    stop_event = _stop_event
+    _session.running = True
+    _session.stop_event = asyncio.Event()
+    stop_event = _session.stop_event
 
     async def generate():
-        global _running, _stop_event
         started = time.time()
         try:
             yield _sse("started", {"timestamp": started})
@@ -128,12 +136,7 @@ async def start_autopilot(
 
                 try:
                     # ── Refresh task state from disk ──
-                    fresh_state = am.get_project_state()
-                    fresh_ts = None
-                    for ts in fresh_state.tasks:
-                        if ts.name == task_name:
-                            fresh_ts = ts
-                            break
+                    fresh_ts = _find_task(am, task_name)
                     if fresh_ts is None:
                         yield _sse("task:skip", {"task": task_name, "reason": "not found"})
                         continue
@@ -149,7 +152,9 @@ async def start_autopilot(
                             return
 
                         yield _sse("phase:start", {"task": task_name, "phase": "clarify"})
-                        result = await _run_clarify_auto(project_root, ws, task_name)
+                        result = await _run_clarify_auto(
+                            project_root, ws, task_name, stop_event,
+                        )
                         if not result["success"]:
                             yield _sse("error", {
                                 "task": task_name, "phase": "clarify",
@@ -165,7 +170,7 @@ async def start_autopilot(
                             return
 
                         yield _sse("phase:start", {"task": task_name, "phase": "plan"})
-                        result = await _run_plan(project_root, ws, task_name)
+                        result = await _run_plan(project_root, ws, task_name, stop_event)
                         if not result["success"]:
                             yield _sse("error", {
                                 "task": task_name, "phase": "plan",
@@ -177,31 +182,21 @@ async def start_autopilot(
                             "stages": result.get("stages", 0),
                         })
 
-                        # Refresh stages count after plan
-                        fresh_state = am.get_project_state()
-                        for ts in fresh_state.tasks:
-                            if ts.name == task_name:
-                                total_stages = ts.total_stages
-                                current_stage = ts.current_stage
-                                break
-
                     # ── IMPLEMENT (all stages) ───────────
-                    if stop_event.is_set():
-                        yield _sse("stopped", {"reason": "user", "task": task_name})
-                        return
-
-                    # Refresh current state
-                    fresh_state = am.get_project_state()
-                    for ts in fresh_state.tasks:
-                        if ts.name == task_name:
-                            current_stage = ts.current_stage
-                            total_stages = ts.total_stages
-                            break
-
-                    while current_stage < total_stages:
+                    while True:
                         if stop_event.is_set():
                             yield _sse("stopped", {"reason": "user", "task": task_name})
                             return
+
+                        # Refresh from disk on every iteration
+                        fresh_ts = _find_task(am, task_name)
+                        if fresh_ts is None:
+                            break
+                        current_stage = fresh_ts.current_stage
+                        total_stages = fresh_ts.total_stages
+
+                        if current_stage >= total_stages:
+                            break
 
                         next_stage = current_stage + 1
                         yield _sse("phase:start", {
@@ -210,7 +205,7 @@ async def start_autopilot(
                         })
 
                         result = await _run_implement_and_apply(
-                            project_root, ws, task_name, next_stage,
+                            project_root, ws, task_name, next_stage, stop_event,
                         )
                         if not result["success"]:
                             yield _sse("error", {
@@ -225,7 +220,6 @@ async def start_autopilot(
                             "stage": next_stage, "total_stages": total_stages,
                             "files_count": result.get("files_count", 0),
                         })
-                        current_stage = next_stage
 
                     # ── TESTS ────────────────────────────
                     if stop_event.is_set():
@@ -233,20 +227,31 @@ async def start_autopilot(
                         return
 
                     # Refresh phases after implement
-                    fresh_state = am.get_project_state()
-                    for ts in fresh_state.tasks:
-                        if ts.name == task_name:
-                            phases = {p.value: s.value for p, s in ts.phases.items()}
-                            break
+                    fresh_ts = _find_task(am, task_name)
+                    if fresh_ts:
+                        phases = {p.value: s.value for p, s in fresh_ts.phases.items()}
 
                     if phases.get("tests") != "complete":
                         yield _sse("phase:start", {"task": task_name, "phase": "tests"})
-                        result = await _run_tests_and_confirm(project_root, task_name)
+                        result = await _run_tests(project_root, ws, task_name)
+                        passed = result.get("passed", False)
+
+                        if passed:
+                            await _confirm_tests(project_root, am, task_name)
+
                         yield _sse("phase:done", {
                             "task": task_name, "phase": "tests",
-                            "passed": result.get("passed", False),
+                            "passed": passed,
+                            "confirmed": passed,
                             "summary": result.get("message", ""),
                         })
+
+                        if not passed:
+                            yield _sse("error", {
+                                "task": task_name, "phase": "tests",
+                                "message": "Tests failed. Autopilot stopped.",
+                            })
+                            return
 
                     completed_count += 1
                     yield _sse("task:done", {
@@ -257,22 +262,11 @@ async def start_autopilot(
                     })
 
                     # Auto-commit if configured
-                    try:
-                        from skaro_core.config import load_config as _load_cfg
-                        from skaro_core.git_ops import auto_commit_task
+                    await _try_auto_commit(project_root, task_name)
 
-                        _cfg = _load_cfg(project_root)
-                        if _cfg.git.auto_commit:
-                            committed = await asyncio.to_thread(
-                                auto_commit_task,
-                                project_root,
-                                task_name,
-                                push=_cfg.git.auto_push,
-                            )
-                            if committed:
-                                yield _sse("git:committed", {"task": task_name})
-                    except Exception as git_exc:
-                        logger.warning("Autopilot auto-commit failed for %s: %s", task_name, git_exc)
+                except CancelledByClientError:
+                    yield _sse("stopped", {"reason": "cancelled", "task": task_name})
+                    return
 
                 except Exception as exc:
                     logger.exception("Autopilot error on task %s", task_name)
@@ -289,8 +283,7 @@ async def start_autopilot(
                 "elapsed": elapsed,
             })
         finally:
-            _running = False
-            _stop_event = None
+            _session.running = False
 
     return StreamingResponse(
         generate(),
@@ -305,9 +298,8 @@ async def start_autopilot(
 @router.post("/stop")
 async def stop_autopilot():
     """Signal the running autopilot to stop after the current step."""
-    global _stop_event
-    if _stop_event is not None:
-        _stop_event.set()
+    if _session.running:
+        _session.stop_event.set()
         return {"success": True, "message": "Stop signal sent."}
     return {"success": False, "message": "Autopilot is not running."}
 
@@ -315,20 +307,43 @@ async def stop_autopilot():
 @router.get("/state")
 async def get_autopilot_state():
     """Return whether autopilot is currently running."""
-    return {"running": _running}
+    return {"running": _session.running}
 
 
 # ═══════════════════════════════════════════════════
-# Phase runners (reuse existing phase classes)
+# Helpers
+# ═══════════════════════════════════════════════════
+
+def _find_task(am: ArtifactManager, task_name: str):
+    """Find a TaskState by name, or None."""
+    for ts in am.get_project_state().tasks:
+        if ts.name == task_name:
+            return ts
+    return None
+
+
+def _make_cancel_bridge(stop_event: asyncio.Event, phase) -> None:
+    """Wire the autopilot stop_event into the phase's _cancel_event.
+
+    When the user presses Stop, the LLM stream is cancelled immediately
+    instead of waiting for the current phase to finish.
+    """
+    phase._cancel_event = stop_event
+
+
+# ═══════════════════════════════════════════════════
+# Phase runners
 # ═══════════════════════════════════════════════════
 
 async def _run_clarify_auto(
-    project_root: Path, ws: ConnectionManager, task_name: str,
+    project_root: Path, ws: ConnectionManager,
+    task_name: str, stop_event: asyncio.Event,
 ) -> dict[str, Any]:
     """Run clarify + auto-answer in one go."""
     from skaro_core.phases.clarify import ClarifyPhase, parse_clarifications
 
     phase = ClarifyPhase(project_root=project_root)
+    _make_cancel_bridge(stop_event, phase)
 
     # Step 1: generate questions
     async with llm_phase(ws, "clarify", phase):
@@ -345,8 +360,8 @@ async def _run_clarify_auto(
     if not parsed or not any(not q["answer"].strip() for q in parsed):
         return {"success": True, "message": "All questions already answered."}
 
-    # Ask LLM to pick best answers
-    auto_answers = await _auto_answer_clarifications(phase, task_name, parsed)
+    # Ask LLM to pick best answers (with streaming to dashboard)
+    auto_answers = await _auto_answer_clarifications(phase, ws, task_name, parsed)
 
     # Step 3: submit answers
     async with llm_phase(ws, "clarify", phase):
@@ -359,9 +374,12 @@ async def _run_clarify_auto(
 
 
 async def _auto_answer_clarifications(
-    phase, task_name: str, parsed_questions: list[dict],
+    phase, ws: ConnectionManager,
+    task_name: str, parsed_questions: list[dict],
 ) -> dict[int, str]:
     """Use LLM to auto-answer clarification questions."""
+    import re
+
     spec = phase.artifacts.find_and_read_task_file(task_name, "spec.md") or ""
     architecture = phase.artifacts.read_architecture()
 
@@ -399,11 +417,13 @@ async def _auto_answer_clarifications(
         extra["Architecture"] = architecture
 
     messages = phase._build_messages(prompt, extra)
-    response = await phase._stream_collect(messages, task=task_name)
+
+    # Stream through llm_phase so dashboard shows progress and tokens are tracked
+    async with llm_phase(ws, "clarify-auto-answer", phase):
+        response = await phase._stream_collect(messages, task=task_name)
 
     # Parse answers
     answers: dict[int, str] = {}
-    import re
     for match in re.finditer(r"A(\d+):\s*(.+?)(?=\nA\d+:|\Z)", response, re.DOTALL):
         num = int(match.group(1))
         ans = match.group(2).strip()
@@ -418,12 +438,15 @@ async def _auto_answer_clarifications(
 
 
 async def _run_plan(
-    project_root: Path, ws: ConnectionManager, task_name: str,
+    project_root: Path, ws: ConnectionManager,
+    task_name: str, stop_event: asyncio.Event,
 ) -> dict[str, Any]:
     """Run plan phase."""
     from skaro_core.phases.plan import PlanPhase
 
     phase = PlanPhase(project_root=project_root)
+    _make_cancel_bridge(stop_event, phase)
+
     async with llm_phase(ws, "plan", phase):
         result = await phase.run(task=task_name)
 
@@ -437,29 +460,41 @@ async def _run_plan(
 
 async def _run_implement_and_apply(
     project_root: Path, ws: ConnectionManager,
-    task_name: str, stage: int,
+    task_name: str, stage: int, stop_event: asyncio.Event,
 ) -> dict[str, Any]:
-    """Run implement for a single stage and auto-apply all files."""
+    """Run implement for a single stage and auto-apply all files.
+
+    Skips truncated files to prevent writing incomplete content to disk.
+    """
     from skaro_core.phases.implement import ImplementPhase
 
     phase = ImplementPhase(project_root=project_root)
+    _make_cancel_bridge(stop_event, phase)
+
     async with llm_phase(ws, "implement", phase):
         result = await phase.run(task=task_name, stage=stage)
 
     if not result.success:
         return {"success": False, "message": result.message}
 
-    # Auto-apply all generated files
+    # Auto-apply generated files (skip truncated)
     files_map = result.data.get("files", {})
     applied = 0
+    skipped_truncated: list[str] = []
+
     for fpath, fdata in files_map.items():
+        # Skip truncated files (detected by _find_truncated_file_blocks in implement)
+        if fdata.get("truncated"):
+            skipped_truncated.append(fpath)
+            continue
+
         content = fdata.get("new", "")
         if not content:
             continue
         try:
             target = BasePhase._validate_project_path(Path(project_root), fpath)
             target.parent.mkdir(parents=True, exist_ok=True)
-            target.write_text(content, encoding="utf-8")
+            await asyncio.to_thread(target.write_text, content, "utf-8")
             applied += 1
 
             # Auto-stage in git
@@ -471,29 +506,80 @@ async def _run_implement_and_apply(
         except (ValueError, OSError) as exc:
             logger.warning("Failed to apply %s: %s", fpath, exc)
 
+    if skipped_truncated:
+        logger.warning(
+            "Autopilot skipped %d truncated file(s) in stage %d: %s",
+            len(skipped_truncated), stage, ", ".join(skipped_truncated),
+        )
+
     await ws.broadcast({
         "event": "phase:completed", "task": task_name,
         "phase": "implement", "stage": stage,
     })
-    return {"success": True, "message": f"Applied {applied} files", "files_count": applied}
+
+    msg = f"Applied {applied} files"
+    if skipped_truncated:
+        msg += f" (skipped {len(skipped_truncated)} truncated)"
+
+    return {"success": True, "message": msg, "files_count": applied}
 
 
-async def _run_tests_and_confirm(
-    project_root: Path, task_name: str,
+async def _run_tests(
+    project_root: Path, ws: ConnectionManager, task_name: str,
 ) -> dict[str, Any]:
-    """Run tests and auto-confirm."""
+    """Run tests with streaming output to dashboard."""
     from skaro_core.phases.tests import TestsPhase
 
     phase = TestsPhase(project_root=project_root)
-    result = await phase.run(task=task_name)
+
+    # Wire up streaming so test output appears in real-time (same as manual flow)
+    await ws.broadcast({"event": "llm:start", "phase": "tests"})
+
+    async def _on_chunk(text: str) -> None:
+        await ws.broadcast({"event": "llm:chunk", "text": text})
+
+    phase.on_output_chunk = _on_chunk
+
+    try:
+        result = await phase.run(task=task_name)
+    finally:
+        await ws.broadcast({"event": "llm:complete", "phase": "tests"})
 
     passed = result.data.get("passed", False) if result.success else False
-
-    # Auto-confirm regardless (autopilot mode)
-    phase.confirm(task_name)
 
     return {
         "success": result.success,
         "message": result.message,
         "passed": passed,
     }
+
+
+async def _confirm_tests(
+    project_root: Path, am: ArtifactManager, task_name: str,
+) -> None:
+    """Confirm tests only when they passed."""
+    from skaro_core.phases.tests import TestsPhase
+
+    phase = TestsPhase(project_root=project_root)
+    phase.confirm(task_name)
+
+    # Auto-commit if configured
+    await _try_auto_commit(project_root, task_name)
+
+
+async def _try_auto_commit(project_root: Path, task_name: str) -> None:
+    """Auto-commit if configured. Non-critical — errors are logged only."""
+    try:
+        from skaro_core.config import load_config as _load_cfg
+        from skaro_core.git_ops import auto_commit_task
+
+        cfg = _load_cfg(project_root)
+        if cfg.git.auto_commit:
+            await asyncio.to_thread(
+                auto_commit_task,
+                project_root,
+                task_name,
+                push=cfg.git.auto_push,
+            )
+    except Exception as exc:
+        logger.warning("Auto-commit failed for %s: %s", task_name, exc)
