@@ -94,9 +94,14 @@ class CommandRunnerMixin:
             if config and hasattr(config, "execution_env"):
                 actual_command = config.execution_env.build_command_wrapper(command)
 
-            # On Windows, force console to UTF-8 via chcp 65001
+            # On Windows, execute through PowerShell instead of cmd.exe
             if platform.system() == "Windows":
-                actual_command = f"chcp 65001 >nul 2>&1 && {actual_command}"
+                # Escape embedded double quotes for PowerShell -Command
+                ps_cmd = actual_command.replace('"', '\\"')
+                actual_command = (
+                    'powershell -NoProfile -NonInteractive -Command '
+                    f'"[Console]::OutputEncoding = [Text.Encoding]::UTF8; {ps_cmd}"'
+                )
 
             proc = await asyncio.create_subprocess_shell(
                 actual_command,
