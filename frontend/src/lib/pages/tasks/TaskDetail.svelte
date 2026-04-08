@@ -110,7 +110,9 @@
 		if (detail.files['tasks.md']) tabs.push({ id: 'tasks.md', label: $t('tab.tasks') });
 		Object.keys(detail.stages || {}).map(Number).sort((a, b) => a - b)
 			.forEach((s) => tabs.push({ id: `stage-${s}`, label: $t('tab.stage_notes', { n: s }) }));
-		if (testsResults || phases.tests === 'in_progress' || phases.tests === 'complete') {
+		if (testsResults || phases.tests === 'in_progress' || phases.tests === 'complete'
+			|| (phases.implement === 'complete')
+			|| (totalStages > 0 && currentStage >= totalStages && phases.plan === 'complete')) {
 			tabs.push({ id: 'tests', label: $t('tab.tests') });
 		}
 		return tabs;
@@ -389,7 +391,7 @@
 
 	<TaskActions
 		{phases} {currentStage} {totalStages} {actionLoading} {hasUnanswered}
-		onClarify={runClarify} onPlan={runPlan} onImplement={runImplement}
+		onClarify={runClarify} onPlan={runPlan} onImplement={runImplement} onTests={runTests}
 	/>
 
 	{#if actionResult && !actionLoading}

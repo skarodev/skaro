@@ -1,6 +1,6 @@
 <script>
 	import { t } from '$lib/i18n/index.js';
-	import { Search, ClipboardList, Hammer, Loader2 } from 'lucide-svelte';
+	import { Search, ClipboardList, Hammer, FlaskConical, Loader2 } from 'lucide-svelte';
 
 	let {
 		phases = {},
@@ -11,7 +11,14 @@
 		onClarify = () => {},
 		onPlan = () => {},
 		onImplement = () => {},
+		onTests = () => {},
 	} = $props();
+
+	let implementDone = $derived(
+		phases.plan === 'complete'
+		&& totalStages > 0
+		&& currentStage >= totalStages
+	);
 </script>
 
 <div class="actions-block">
@@ -40,6 +47,15 @@
 			<button class="btn btn-primary" disabled={!!actionLoading} onclick={onImplement}>
 				{#if actionLoading === 'implement'}<Loader2 size={14} class="spin" />{:else}<Hammer size={14} />{/if}
 				{$t('action.implement_stage', { n: nextStage })}
+			</button>
+		</div>
+
+	{:else if implementDone && phases.tests !== 'complete'}
+		<p class="phase-hint"><strong>{$t('phase_hint.prefix')}</strong>{$t('phase_hint.tests')}</p>
+		<div class="btn-group">
+			<button class="btn btn-primary" disabled={!!actionLoading} onclick={onTests}>
+				{#if actionLoading === 'tests'}<Loader2 size={14} class="spin" />{:else}<FlaskConical size={14} />{/if}
+				{$t('action.run_tests')}
 			</button>
 		</div>
 	{/if}
