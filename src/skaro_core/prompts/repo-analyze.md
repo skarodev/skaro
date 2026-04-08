@@ -99,26 +99,18 @@ Follow this structure exactly:
 
 ## Known Trade-offs
 <Trade-offs visible from the code or commented in it>
-```
 
-Replace every placeholder with what you observe.
-
----
-
-## Invariants
-
-List the architectural rules that MUST hold true during any future development on this project.
+## Architectural Invariants
+<List 5–15 architectural rules that MUST hold true during any future development.
 These are hard constraints inferred from the codebase — patterns that are consistent and intentional.
-
-Format as a Markdown bullet list. Each invariant should be a single clear rule.
-
-Example:
+Format as a bullet list. Examples:
 - All API endpoints must return JSON with `{success, data, error}` envelope
 - Database access only through repository classes, never raw SQL in handlers
 - All public functions must have type annotations
-- Frontend state management exclusively via Svelte stores, no prop drilling beyond 2 levels
+If a pattern is used consistently, it's an invariant.>
+```
 
-Write 5–15 invariants based on what you observe. If a pattern is used consistently, it's an invariant.
+Replace every placeholder with what you observe.
 
 ---
 

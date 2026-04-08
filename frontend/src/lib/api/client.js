@@ -136,9 +136,6 @@ export const api = {
 	acceptArchitecture: (/** @type {string} */ proposed_architecture, signal) =>
 		post('/api/architecture/accept', { proposed_architecture }, signal),
 	approveArchitecture: (signal) => post('/api/architecture/approve', {}, signal),
-	getInvariants: (signal) => get('/api/architecture/invariants', signal),
-	updateInvariants: (/** @type {string} */ content, signal) =>
-		put('/api/architecture/invariants', { content }, signal),
 	getAdrs: (signal) => get('/api/architecture/adrs', signal),
 	createAdr: (/** @type {string} */ title, signal) => post('/api/architecture/adrs', { title }, signal),
 	updateAdrStatus: (/** @type {number} */ number, /** @type {string} */ status, signal) =>

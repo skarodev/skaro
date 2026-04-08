@@ -250,10 +250,6 @@ class ProjectChatPhase(ConversationalFixBase):
         if arch.strip():
             cacheable["Architecture"] = arch
 
-        invariants = self.artifacts.read_invariants()
-        if invariants.strip():
-            cacheable["Architectural Invariants"] = invariants
-
         adr_index = self.artifacts.read_adr_index()
         if adr_index:
             extra["Existing ADRs"] = adr_index
@@ -272,10 +268,6 @@ class ProjectChatPhase(ConversationalFixBase):
         arch = self.artifacts.read_architecture()
         if arch.strip():
             cacheable["Architecture"] = arch
-
-        invariants = self.artifacts.read_invariants()
-        if invariants.strip():
-            cacheable["Architectural Invariants"] = invariants
 
         # Load specific ADR content.
         if context_id:
@@ -320,10 +312,6 @@ class ProjectChatPhase(ConversationalFixBase):
         arch = self.artifacts.read_architecture()
         if arch.strip():
             cacheable["Architecture"] = arch
-
-        invariants = self.artifacts.read_invariants()
-        if invariants.strip():
-            cacheable["Architectural Invariants"] = invariants
 
         devplan = self.artifacts.read_devplan()
         if devplan.strip():

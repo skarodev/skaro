@@ -38,7 +38,7 @@ class PlanPhase(BasePhase):
             "2. For each stage: goal, inputs, outputs, artifacts, risks, DoD.\n"
             "3. Specify dependencies between stages.\n"
             "4. Mark stages that can run in parallel.\n"
-            "5. Verify the plan doesn't violate invariants.\n"
+            "5. Verify the plan doesn't violate architectural constraints.\n"
             "6. Verify the plan complies with constitution.\n\n"
             "Do NOT add stages not in the specification. Do NOT over-engineer.\n\n"
             "IMPORTANT: At the end of plan.md, add a section '## Verify' with specific\n"

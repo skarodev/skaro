@@ -1,6 +1,6 @@
 """Project Fix phase: conversational bug fixing at the project level.
 
-Provides LLM with project-wide context (constitution, invariants, specs,
+Provides LLM with project-wide context (constitution, architecture, specs,
 AI_NOTES, source files) filtered by user-selected scope (milestones/tasks).
 Maintains conversation log in .skaro/docs/project-fix-conversation.json
 and appends to .skaro/docs/project-fix-log.md.

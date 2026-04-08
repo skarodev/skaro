@@ -350,7 +350,7 @@ class BasePhase(ABC):
         )
 
     def _build_system_message(self) -> str:
-        """Build system message with language, constitution, skills, and invariants."""
+        """Build system message with language, constitution, skills, and ADRs."""
         parts = []
 
         # Language instruction — always first, unconditional
@@ -371,10 +371,6 @@ class BasePhase(ABC):
         skills_text = self._build_skills_section()
         if skills_text:
             parts.append(f"# SKILLS\n\n{skills_text}")
-
-        invariants = self.artifacts.read_invariants()
-        if invariants:
-            parts.append(f"# ARCHITECTURAL INVARIANTS\n\n{invariants}")
 
         adr_index = self.artifacts.read_adr_index()
         if adr_index:

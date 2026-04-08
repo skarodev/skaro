@@ -3,7 +3,7 @@ You are updating an existing development plan for a software project.
 You have access to:
 - The current devplan.md (milestones, tasks, statuses)
 - The actual state of all tasks (which phases are complete, stages progress)
-- The project architecture and invariants
+- The project architecture
 - User guidance on what to change
 
 User guidance: {user_guidance}

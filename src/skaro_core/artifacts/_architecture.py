@@ -1,4 +1,4 @@
-"""Architecture mixin: architecture, review, invariants, ADRs."""
+"""Architecture mixin: architecture, review, ADRs."""
 
 from __future__ import annotations
 
@@ -8,7 +8,7 @@ from pathlib import Path
 
 
 class ArchitectureMixin:
-    """Manages .skaro/architecture/ — architecture doc, review, invariants, ADRs."""
+    """Manages .skaro/architecture/ — architecture doc, review, ADRs."""
 
     @property
     def architecture_path(self) -> Path:
@@ -61,21 +61,41 @@ class ArchitectureMixin:
             return self.architecture_review_path.read_text(encoding="utf-8")
         return ""
 
-    # ── Invariants ──────────────────────────────
+    # ── Invariants (embedded in architecture) ───
+
+    _INVARIANTS_HEADING_RE = re.compile(
+        r"^##\s+Architectural\s+Invariants\s*$", re.IGNORECASE | re.MULTILINE,
+    )
 
     @property
-    def invariants_path(self) -> Path:
+    def _legacy_invariants_path(self) -> Path:
         return self.skaro / "architecture" / "invariants.md"
 
-    def read_invariants(self) -> str:
-        if self.invariants_path.exists():
-            return self.invariants_path.read_text(encoding="utf-8")
-        return ""
+    def migrate_invariants(self) -> bool:
+        """One-time migration: merge legacy ``invariants.md`` into architecture.
 
-    def write_invariants(self, content: str) -> Path:
-        self.invariants_path.parent.mkdir(parents=True, exist_ok=True)
-        self.invariants_path.write_text(content, encoding="utf-8")
-        return self.invariants_path
+        Returns ``True`` if migration was performed.
+        """
+        legacy = self._legacy_invariants_path
+        if not legacy.exists():
+            return False
+
+        inv_content = legacy.read_text(encoding="utf-8").strip()
+        if not inv_content:
+            legacy.unlink(missing_ok=True)
+            return False
+
+        arch = self.read_architecture()
+        if self._INVARIANTS_HEADING_RE.search(arch):
+            # Architecture already has the section — just remove legacy file
+            legacy.unlink(missing_ok=True)
+            return True
+
+        # Append invariants section to architecture
+        section = f"\n\n## Architectural Invariants\n\n{inv_content}\n"
+        self.write_architecture(arch.rstrip() + section)
+        legacy.unlink(missing_ok=True)
+        return True
 
     # ── ADRs ────────────────────────────────────
 

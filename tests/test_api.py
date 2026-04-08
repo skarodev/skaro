@@ -134,16 +134,6 @@ class TestArchitectureAPI:
         assert resp.status_code == 200
         assert resp.json()["success"] is True
 
-    def test_get_invariants(self, client):
-        resp = client.get("/api/architecture/invariants")
-        assert resp.status_code == 200
-        assert "content" in resp.json()
-
-    def test_save_invariants(self, client):
-        resp = client.put("/api/architecture/invariants", json={"content": "No SQL injection"})
-        assert resp.status_code == 200
-        assert resp.json()["success"] is True
-
     def test_get_adrs_empty(self, client):
         resp = client.get("/api/architecture/adrs")
         assert resp.status_code == 200

@@ -40,7 +40,7 @@ class ArtifactManager(
       _base          — init, templates, gitignore, content helpers
       _state         — state.yaml, hashes, approval flags
       _constitution  — constitution CRUD + validation
-      _architecture  — architecture, review, invariants, ADRs
+      _architecture  — architecture, review, ADRs
       _devplan       — dev plan CRUD
       _milestones    — milestone CRUD
       _tasks         — task CRUD, files, stages, slug resolvers, state

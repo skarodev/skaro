@@ -12,9 +12,6 @@ This phase is invoked during ``skaro init`` when the user chooses option B
 The completed-work.md document ensures that subsequent phases (especially
 DevPlan) are aware of what is already implemented and do not plan redundant
 work.
-
-Invariants are NOT generated during import. They are created when the user
-runs Architecture Review (same as in the normal pipeline).
 """
 
 from __future__ import annotations
@@ -109,7 +106,7 @@ class ImportAnalyzePhase(BasePhase):
         am.constitution_path.write_text(constitution, encoding="utf-8")
         created: list[str] = [str(am.constitution_path)]
 
-        # ── 3. LLM Call 2: Architecture + Invariants ────────────────────
+        # ── 3. LLM Call 2: Architecture ─────────────────────────────────
         # Pause to respect rate limits (input tokens per minute).
         # Call 1 consumed most of the budget; give the provider time to reset.
         await asyncio.sleep(5)

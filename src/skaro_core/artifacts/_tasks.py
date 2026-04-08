@@ -180,10 +180,9 @@ class TasksMixin:
             Status.COMPLETE if self.has_constitution else Status.NOT_STARTED
         )
 
-        if self.invariants_path.exists():
-            phases[Phase.ARCHITECTURE] = Status.COMPLETE
-        else:
-            phases[Phase.ARCHITECTURE] = Status.NOT_STARTED
+        phases[Phase.ARCHITECTURE] = (
+            Status.COMPLETE if self.has_architecture else Status.NOT_STARTED
+        )
 
         if (tdir / "clarifications.md").exists():
             # Clarify is complete only when ALL questions have answers

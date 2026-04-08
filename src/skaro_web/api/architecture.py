@@ -1,4 +1,4 @@
-"""Architecture endpoints (review, ADRs, invariants)."""
+"""Architecture endpoints (review, ADRs)."""
 
 from __future__ import annotations
 
@@ -21,38 +21,9 @@ from skaro_web.api.schemas import (
 
 router = APIRouter(prefix="/api/architecture", tags=["architecture"])
 
-# Regex to find ## Architectural Invariants section in proposed architecture.
-_INVARIANTS_HEADING_RE = _re.compile(
-    r"^##\s+Architectural\s+Invariants\s*$", _re.IGNORECASE | _re.MULTILINE
-)
-
-# Matches any ## heading (used to find the end of the invariants section).
-_NEXT_H2_RE = _re.compile(r"^##\s+", _re.MULTILINE)
-
-
-def _extract_invariants(text: str) -> str:
-    """Extract the Architectural Invariants section from architecture text.
-
-    Returns the section body (without the heading), or empty string if absent.
-    """
-    match = _INVARIANTS_HEADING_RE.search(text)
-    if not match:
-        return ""
-
-    body_start = match.end()
-    # Find the next ## heading after invariants (= end of section).
-    next_heading = _NEXT_H2_RE.search(text, body_start)
-    if next_heading:
-        body = text[body_start : next_heading.start()]
-    else:
-        body = text[body_start:]
-
-    return body.strip()
-
 
 @router.get("")
 async def get_architecture(am: ArtifactManager = Depends(get_am)):
-    invariants = am.read_invariants()
     architecture = am.read_architecture()
     last_review = am.read_architecture_review()
     adrs = []
@@ -66,8 +37,6 @@ async def get_architecture(am: ArtifactManager = Depends(get_am)):
         "has_architecture": am.has_architecture,
         "architecture_reviewed": am.is_architecture_reviewed,
         "last_review": last_review,
-        "invariants": invariants,
-        "has_invariants": bool(invariants.strip()),
         "adrs": adrs,
         "adr_count": len(adrs),
     }
@@ -121,7 +90,7 @@ async def get_arch_chat_conversation(
     phase = ArchitecturePhase(project_root=project_root)
     conversation = phase.load_chat_conversation()
 
-    # Estimate context: system message (constitution, invariants, ADR index) + prompt template
+    # Estimate context: system message (constitution, ADR index) + prompt template
     system_msg = phase._build_system_message()
     prompt_tpl = phase._load_prompt_template("architecture-chat")
     ctx_chars = len(system_msg) + len(prompt_tpl)
@@ -211,16 +180,9 @@ async def accept_architecture(
     payload: ArchAcceptBody,
     am: ArtifactManager = Depends(get_am),
 ):
-    proposed = payload.proposed_architecture
-
-    # Extract ## Architectural Invariants section if present.
-    invariants_text = _extract_invariants(proposed)
-    if invariants_text:
-        am.write_invariants(invariants_text)
-
-    am.write_architecture(proposed)
+    am.write_architecture(payload.proposed_architecture)
     await broadcast(request, {"event": "artifact:updated", "artifact": "architecture"})
-    return {"success": True, "invariants_extracted": bool(invariants_text)}
+    return {"success": True}
 
 
 @router.post("/approve")
@@ -245,24 +207,6 @@ async def save_architecture(
     am.write_architecture(payload.content)
     await broadcast(request, {"event": "artifact:updated", "artifact": "architecture"})
     return {"success": True}
-
-
-# ── Invariants ──────────────────────────────────
-
-@router.get("/invariants")
-async def get_invariants(am: ArtifactManager = Depends(get_am)):
-    return {"content": am.read_invariants()}
-
-
-@router.put("/invariants")
-async def update_invariants(
-    request: Request,
-    payload: ContentBody,
-    am: ArtifactManager = Depends(get_am),
-):
-    path = am.write_invariants(payload.content)
-    await broadcast(request, {"event": "artifact:updated", "artifact": "invariants"})
-    return {"success": True, "path": str(path)}
 
 
 # ── ADRs ────────────────────────────────────────

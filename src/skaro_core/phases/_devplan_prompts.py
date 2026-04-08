@@ -58,7 +58,7 @@ def build_devplan_markdown(milestones: list[dict[str, Any]]) -> str:
 
 
 DEFAULT_PROMPT = (
-    "Based on the project constitution, architecture, and invariants, "
+    "Based on the project constitution and architecture, "
     "create a development plan.\n\n"
     "Organize the work into MILESTONES. Each milestone groups related tasks "
     "that together achieve a coherent project goal.\n\n"

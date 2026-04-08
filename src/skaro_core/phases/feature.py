@@ -51,9 +51,6 @@ class FeaturePhase(ConversationalFixBase):
         architecture = self.artifacts.read_architecture()
         if architecture.strip():
             cacheable_context["Architecture"] = architecture
-        invariants = self.artifacts.read_invariants()
-        if invariants.strip():
-            cacheable_context["Architectural Invariants"] = invariants
 
         adr_index = self.artifacts.read_adr_index()
         if adr_index:

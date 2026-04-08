@@ -30,7 +30,6 @@ class DevPlanPhase(BasePhase):
         """Generate a development plan: milestones with tasks and pre-filled specs."""
         constitution = self.artifacts.read_constitution()
         architecture = self.artifacts.read_architecture()
-        invariants = self.artifacts.read_invariants()
 
         if not constitution.strip() or len(constitution) < 100:
             return PhaseResult(success=False, message="Constitution is not filled in.")
@@ -56,8 +55,6 @@ class DevPlanPhase(BasePhase):
         extra_context: dict[str, str] = {"Architecture": architecture}
         cacheable_context: dict[str, str] = {}
 
-        if invariants.strip():
-            extra_context["Invariants"] = invariants
         self._add_adr_context(extra_context)
 
         # ── Add codebase context so LLM knows what already exists ─────────
@@ -106,7 +103,6 @@ class DevPlanPhase(BasePhase):
             return PhaseResult(success=False, message="No devplan found. Generate one first.")
 
         architecture = self.artifacts.read_architecture()
-        invariants = self.artifacts.read_invariants()
 
         prompt = self._load_prompt_template("devplan-update") or DEFAULT_UPDATE_PROMPT
         prompt = prompt.replace("{user_guidance}", user_guidance or "(no specific guidance)")
@@ -116,8 +112,6 @@ class DevPlanPhase(BasePhase):
             "Current Development Plan": current_devplan,
             "Current Tasks State": self._gather_tasks_state(),
         }
-        if invariants.strip():
-            extra_context["Invariants"] = invariants
         self._add_adr_context(extra_context)
 
         messages = self._build_messages(prompt, extra_context)

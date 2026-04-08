@@ -86,7 +86,7 @@ export default {
 
 	// Architecture
 	'arch.title': 'Architecture',
-	'arch.subtitle': 'System architecture, invariants, and Architecture Decision Records.',
+	'arch.subtitle': 'System architecture and Architecture Decision Records.',
 	'arch.empty': 'Architecture has not been created yet. This is the next step after the constitution.',
 	'arch.step1': 'Open {file} in your IDE',
 	'arch.step2': 'Describe your architecture: components, data storage, communication, infrastructure',
@@ -108,7 +108,6 @@ export default {
 	'arch.go_adr': 'Next: Generate ADRs →',
 	'arch.apply_review': 'Apply recommendations',
 	'arch.create_adrs_from_review': 'Create recommended ADRs',
-	'arch.invariants': 'Architectural Invariants',
 	'arch.adrs': 'Architecture Decision Records',
 	'arch.document': 'Architecture Document',
 	'arch.generate_hint': 'Describe your project in the chat panel on the right — AI will generate the architecture document. Or fill it in manually using the editor.',

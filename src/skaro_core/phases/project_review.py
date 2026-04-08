@@ -3,7 +3,7 @@
 Implements Phase 5 (Review / cross-validation) from methodology.md at the
 project level.  Runs:
 1. Structural checks -- all tasks complete, devplan milestones closed,
-   invariants present, constitution validated, all task-level tests confirmed.
+   constitution validated, all task-level tests confirmed.
 2. Global verify commands from config.yaml.
 
 Results are saved to .skaro/docs/review-results.json.
@@ -104,18 +104,6 @@ class ProjectReviewPhase(CommandRunnerMixin, BasePhase):
             "label": "Constitution validated",
             "passed": self.artifacts.is_constitution_validated,
             "detail": "Validated" if self.artifacts.is_constitution_validated else "Not validated",
-        })
-
-        invariants = self.artifacts.read_invariants()
-        has_invariants = bool(invariants and invariants.strip())
-        checks.append({
-            "id": "invariants_present",
-            "label": "Architectural invariants defined",
-            "passed": has_invariants,
-            "detail": (
-                f"{len(invariants.strip().splitlines())} lines"
-                if has_invariants else "Empty or missing"
-            ),
         })
 
         checks.append({

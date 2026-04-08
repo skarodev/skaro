@@ -113,7 +113,6 @@ def _build_status(am: ArtifactManager, project_root: Path) -> dict[str, Any]:
         "project_description": config.project_description,
         "has_constitution": state.has_constitution,
         "constitution_validated": am.is_constitution_validated,
-        "has_invariants": bool(am.read_invariants().strip()),
         "has_architecture": am.has_architecture,
         "architecture_reviewed": am.is_architecture_reviewed,
         "has_devplan": am.has_devplan,

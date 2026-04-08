@@ -1,10 +1,9 @@
 """Parser for the LLM response produced by the repo-analyze prompt.
 
-The legacy single-call flow expects seven top-level sections:
+The legacy single-call flow expects six top-level sections:
 
     ## Constitution
     ## Architecture
-    ## Invariants
     ## Completed Work
     ## Suggested Dev Plan
     ## ADR Candidates
@@ -27,7 +26,6 @@ from skaro_core.phases._devplan_parser import parse_milestones
 _SECTION_NAMES = (
     "Constitution",
     "Architecture",
-    "Invariants",
     "Completed Work",
     "Suggested Dev Plan",
     "ADR Candidates",
@@ -41,7 +39,6 @@ class ImportAnalysisResult:
 
     constitution: str = ""
     architecture: str = ""
-    invariants: str = ""
     completed_work: str = ""
     suggested_devplan_raw: str = ""
     adr_candidates: str = ""
@@ -74,7 +71,6 @@ def parse_import_response(content: str) -> ImportAnalysisResult:
     result = ImportAnalysisResult(
         constitution=_unwrap_fenced(sections.get("Constitution", "").strip()),
         architecture=_unwrap_fenced(sections.get("Architecture", "").strip()),
-        invariants=_unwrap_fenced(sections.get("Invariants", "").strip()),
         completed_work=_unwrap_fenced(sections.get("Completed Work", "").strip()),
         suggested_devplan_raw=sections.get("Suggested Dev Plan", "").strip(),
         adr_candidates=_unwrap_fenced(sections.get("ADR Candidates", "").strip()),

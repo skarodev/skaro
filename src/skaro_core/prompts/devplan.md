@@ -1,4 +1,4 @@
-Based on the project constitution, architecture, and architectural invariants, create a development plan.
+Based on the project constitution and architecture, create a development plan.
 
 Organize the work into MILESTONES — logical stages of the project. Each milestone groups related tasks that together achieve a coherent goal (e.g., "Foundation", "MVP", "Integrations").
 
