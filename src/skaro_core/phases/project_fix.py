@@ -72,11 +72,24 @@ class ProjectFixPhase(ConversationalFixBase):
 
         extra_context = await asyncio.to_thread(self._gather_dynamic_context, scope_tasks)
 
-        # Tier 1 files: user-selected scope (full code)
+        # Tier 1 files: user-selected scope or auto-scope (all project sources)
         if scope_paths:
             scope_code = await asyncio.to_thread(self._read_scope_files, scope_paths)
             if scope_code:
                 extra_context["Selected source files (full code)"] = scope_code
+        else:
+            # Auto-scope: send all project source files for comprehensive review
+            all_sources = await asyncio.to_thread(
+                self._collect_project_sources,
+                max_files=500,
+                max_file_size=50_000,
+            )
+            if all_sources:
+                parts = [
+                    f"--- FILE: {fpath} ---\n{content}\n--- END FILE ---"
+                    for fpath, content in all_sources.items()
+                ]
+                extra_context["Project source files (full code)"] = "\n\n".join(parts)
 
         response, proposed, file_diffs, updated_conv = await self._run_fix(
             user_message, conversation, extra_context,
@@ -160,6 +173,14 @@ class ProjectFixPhase(ConversationalFixBase):
         if arch.strip():
             ctx["Architecture"] = arch
         return ctx
+
+    def estimate_auto_scope_chars(self) -> int:
+        """Estimate total chars of auto-scope source files (for token display)."""
+        all_sources = self._collect_project_sources(
+            max_files=500,
+            max_file_size=50_000,
+        )
+        return sum(len(c) for c in all_sources.values())
 
     # ── Path helpers ──
 

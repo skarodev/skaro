@@ -128,12 +128,17 @@ async def get_project_fix_conversation(
     task_names = [ts.name for ts in state.tasks]
     ctx = await asyncio.to_thread(phase._gather_context, task_names)
     ctx_chars = sum(len(v) for v in ctx.values())
+    # Auto-scope tokens reported separately so frontend can avoid double-counting
+    # when user selects manual scope (which replaces auto-scope)
+    auto_scope_chars = await asyncio.to_thread(phase.estimate_auto_scope_chars)
     conv_chars = sum(len(t.get("content", "")) for t in conversation)
     est_tokens = (ctx_chars + conv_chars) // 4
+    auto_scope_tokens = auto_scope_chars // 4
 
     return {
         "conversation": conversation,
         "context_tokens": est_tokens,
+        "auto_scope_tokens": auto_scope_tokens,
     }
 
 

@@ -55,6 +55,7 @@
 	let conversationLoading = $state(false);
 	let conversation = $state([]);
 	let contextTokens = $state(0);
+	let autoScopeTokens = $state(0);
 	let initialLoaded = $state(false);
 	let appliedFiles = $state({});
 	let diffModal = $state(null);
@@ -207,6 +208,7 @@
 			const data = await loadConversationFn();
 			if (data.conversation?.length > 0) conversation = data.conversation;
 			contextTokens = data.context_tokens || 0;
+			autoScopeTokens = data.auto_scope_tokens || 0;
 		} catch {
 			// Empty conversation is fine
 		}
@@ -233,7 +235,9 @@
 		return Math.round(bytes / 4);
 	});
 
-	let totalTokens = $derived(contextTokens + conversationTokens + messageTokens + scopeTokens);
+	// When user selects manual scope, it replaces auto-scope; otherwise auto-scope is used
+	let effectiveScopeTokens = $derived(scopePaths.length > 0 ? scopeTokens : autoScopeTokens);
+	let totalTokens = $derived(contextTokens + conversationTokens + messageTokens + effectiveScopeTokens);
 	let tokenDisplay = $derived.by(() => {
 		const k = totalTokens / 1000;
 		return k >= 1 ? `~${k.toFixed(0)}k ${$t('fix.tokens')}` : `~${totalTokens} ${$t('fix.tokens')}`;
