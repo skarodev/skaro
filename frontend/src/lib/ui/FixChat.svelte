@@ -433,9 +433,10 @@
 		{placeholder}
 		showAttach={scopeEnabled}
 		scopeCount={scopePaths.length}
-		attachedFileCount={attachedFiles.length}
+		{attachedFiles}
 		onSend={sendMessage}
 		onCancel={cancelRequest}
+		onRemoveFile={(idx) => { attachedFiles = attachedFiles.filter((_, i) => i !== idx); }}
 		onAttachFromDisk={handleAttachFromDisk}
 		onAttachFromRepo={handleAttachFromRepo}
 	/>
