@@ -1,4 +1,6 @@
-"""Skaro CLI — lightweight command-line interface for Spec-Guided Development.
+"""Skaro CLI — lightweight command-line interface.
+
+The open-source spec-driven workspace for software development with AI.
 
 All phase execution (clarify, plan, implement, review, etc.) is handled
 through the web dashboard (``skaro ui``).  The CLI provides only:
@@ -32,12 +34,16 @@ console = Console()
 # ── Banner ──────────────────────────────────────
 
 LOGO = r"""
- ███████╗██╗  ██╗ █████╗ ██████╗  ██████╗
- ██╔════╝██║ ██╔╝██╔══██╗██╔══██╗██╔═══██╗
- ███████╗█████╔╝ ███████║██████╔╝██║   ██║
- ╚════██║██╔═██╗ ██╔══██║██╔══██╗██║   ██║
- ███████║██║  ██╗██║  ██║██║  ██║╚██████╔╝
- ╚══════╝╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝"""
+  /$$$$$$  /$$   /$$  /$$$$$$  /$$$$$$$   /$$$$$$
+ /$$__  $$| $$  /$$/ /$$__  $$| $$__  $$ /$$__  $$
+| $$  \__/| $$ /$$/ | $$  \ $$| $$  \ $$| $$  \ $$
+|  $$$$$$ | $$$$$/  | $$$$$$$$| $$$$$$$/| $$  | $$
+ \____  $$| $$  $$  | $$__  $$| $$__  $$| $$  | $$
+ /$$  \ $$| $$\  $$ | $$  | $$| $$  \ $$| $$  | $$
+|  $$$$$$/| $$ \  $$| $$  | $$| $$  | $$|  $$$$$$/
+ \______/ |__/  \__/|__/  |__/|__/  |__/ \______/"""
+
+_TAGLINE = "The open-source spec-driven workspace for software development with AI"
 
 
 def _print_banner() -> None:
@@ -48,9 +54,7 @@ def _print_banner() -> None:
         version = "dev"
 
     logo_text = Text(LOGO, style="bold cyan")
-    tagline = Text(
-        "  AI-powered SDLC orchestration platform", style="dim white"
-    )
+    tagline = Text(f"  {_TAGLINE}", style="dim white")
     ver = Text(f"  v{version}\n", style="dim")
 
     banner = Text()
@@ -72,6 +76,8 @@ def _print_banner() -> None:
         "[bold]Useful commands:[/bold]\n"
         "\n"
         "  [cyan]skaro status[/cyan]                     Project overview\n"
+        "  [cyan]skaro update[/cyan]                     Check for updates\n"
+        "  [cyan]skaro skills list[/cyan]                Manage LLM skills\n"
         "  [cyan]skaro constitution validate[/cyan]      Check constitution\n"
         "  [cyan]skaro --help[/cyan]                     All commands"
     )
@@ -116,9 +122,7 @@ def _print_init_banner() -> None:
         version = "dev"
 
     logo_text = Text(LOGO, style="bold cyan")
-    tagline = Text(
-        "  AI-powered SDLC orchestration platform", style="dim white"
-    )
+    tagline = Text(f"  {_TAGLINE}", style="dim white")
     ver = Text(f"  v{version}", style="dim")
     repo = Text(
         "  https://github.com/skarodev/skaro", style="dim cyan"
@@ -331,7 +335,7 @@ def _ensure_initialized() -> ArtifactManager:
 @click.version_option(package_name="skaro")
 @click.pass_context
 def cli(ctx: click.Context, lang: str | None) -> None:
-    """Skaro — Spec-Guided Development toolkit."""
+    """Skaro — The open-source spec-driven workspace for software development with AI."""
     config = load_config()
     set_locale(lang or config.lang)
 
