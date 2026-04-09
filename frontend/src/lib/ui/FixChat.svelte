@@ -173,6 +173,7 @@
 					role: 'assistant', content: result.message,
 					files: result.files || {},
 					taskProposals: result.task_proposals || [],
+					issueProposals: result.issue_proposals || [],
 					turnIndex: conversation.length,
 				}];
 				onSendSuccess();
@@ -287,6 +288,7 @@
 					role: 'assistant', content: result.message,
 					files: result.files || {},
 					taskProposals: result.task_proposals || [],
+					issueProposals: result.issue_proposals || [],
 					turnIndex: conversation.length,
 				}];
 				onSendSuccess();

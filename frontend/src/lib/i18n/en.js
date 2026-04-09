@@ -224,6 +224,14 @@ export default {
 	'task_proposal.preview_spec': 'Preview specification',
 	'task_proposal.batch_created': '{n} task(s) created',
 
+	// Review issue cards
+	'review_issue.must_fix': 'Must Fix',
+	'review_issue.should_improve': 'Should Improve',
+	'review_issue.nice_to_have': 'Nice to Have',
+	'review_issue.create_task': 'Create task',
+	'review_issue.create_task_tip': 'Create a task in review-fixes milestone',
+	'review_issue.task_created': 'Task created',
+
 	// Phase actions
 	'action.clarify': 'Clarify',
 	'action.re_clarify': 'Re-clarify',
@@ -464,6 +472,7 @@ export default {
 	'review.tests_done': 'Project review completed',
 	'review.not_run_yet': 'Project review has not been run yet.',
 	'review.fix_response': 'Project fix response received',
+	'review.issues_tasks_created': '{n} review task(s) created',
 	'review.scope_title': 'Context scope',
 	'review.scope_all': 'All tasks (default)',
 	'review.scope_selected': '{n} task(s) selected',

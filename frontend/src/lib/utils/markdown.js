@@ -281,6 +281,20 @@ export function stripTaskProposals(text) {
 	return result.join('\n');
 }
 
+/**
+ * Strip `<skaro-issue>` … `</skaro-issue>` blocks from text.
+ *
+ * These blocks are rendered by the ReviewIssueCard component
+ * and must not appear in the markdown output.
+ *
+ * @param {string} text
+ * @returns {string}
+ */
+export function stripIssueBlocks(text) {
+	if (!text) return '';
+	return text.replace(/<skaro-issue>\s*\n.*?\n\s*<\/skaro-issue>\s*\n?/gs, '');
+}
+
 // ─── Internal helpers ────────────────────────────────────────────────
 
 /**

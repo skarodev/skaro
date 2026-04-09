@@ -236,6 +236,10 @@ class ConversationalFixBase(BasePhase):
                 task_proposals = self._parse_task_proposals(content)
                 if task_proposals:
                     turn_copy["taskProposals"] = task_proposals
+                # Review issue proposals
+                issue_proposals = self._parse_issue_blocks(content)
+                if issue_proposals:
+                    turn_copy["issueProposals"] = issue_proposals
                 turn_copy["turnIndex"] = i
             enriched.append(turn_copy)
         return enriched
@@ -324,6 +328,64 @@ class ConversationalFixBase(BasePhase):
                 i += 1
         return "".join(result)
 
+    @staticmethod
+    def _parse_issue_blocks(text: str) -> list[dict]:
+        """Parse ``<skaro-issue>`` blocks from LLM output.
+
+        Each block contains simple key: value lines (title, severity, file,
+        description).  Returns a list of issue dicts.
+        """
+        import re
+
+        issues: list[dict] = []
+        for match in re.finditer(
+            r"<skaro-issue>\s*\n(.*?)\n\s*</skaro-issue>",
+            text,
+            re.DOTALL,
+        ):
+            body = match.group(1).strip()
+            issue: dict[str, str] = {}
+            current_key: str | None = None
+            current_lines: list[str] = []
+
+            for line in body.splitlines():
+                kv = line.split(":", 1)
+                if len(kv) == 2 and kv[0].strip().lower() in (
+                    "title", "severity", "file", "description",
+                ):
+                    # Flush previous key
+                    if current_key is not None:
+                        issue[current_key] = "\n".join(current_lines).strip()
+                    current_key = kv[0].strip().lower()
+                    current_lines = [kv[1].strip()]
+                elif current_key is not None:
+                    current_lines.append(line)
+
+            # Flush last key
+            if current_key is not None:
+                issue[current_key] = "\n".join(current_lines).strip()
+
+            if issue.get("title"):
+                issues.append({
+                    "title": issue.get("title", ""),
+                    "severity": issue.get("severity", "should_improve"),
+                    "file": issue.get("file", ""),
+                    "description": issue.get("description", ""),
+                })
+        return issues
+
+    @staticmethod
+    def _strip_issue_blocks(text: str) -> str:
+        """Remove ``<skaro-issue>`` blocks from visible text."""
+        import re
+
+        return re.sub(
+            r"<skaro-issue>\s*\n.*?\n\s*</skaro-issue>\s*\n?",
+            "",
+            text,
+            flags=re.DOTALL,
+        )
+
     def _replay_conversation(
         self,
         messages: list[LLMMessage],
@@ -353,6 +415,7 @@ class ConversationalFixBase(BasePhase):
             if role == "assistant":
                 content = self._strip_all_file_blocks(content)
                 content = self._strip_task_proposals(content)
+                content = self._strip_issue_blocks(content)
             if not content.strip():
                 continue
             turns.append(LLMMessage(role=role, content=content))

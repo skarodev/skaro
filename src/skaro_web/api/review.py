@@ -85,6 +85,7 @@ async def run_project_fix(
         "message": result.message,
         "files": result.data.get("files", {}),
         "conversation": result.data.get("conversation", []),
+        "issue_proposals": result.data.get("issue_proposals", []),
     }
 
 

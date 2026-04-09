@@ -1,27 +1,20 @@
 <script>
 	import { t } from '$lib/i18n/index.js';
-	import { Send, RotateCcw, Loader2 } from 'lucide-svelte';
+	import { RotateCcw, Loader2 } from 'lucide-svelte';
 	import CheckList from '$lib/ui/CheckList.svelte';
 	import CommandList from '$lib/ui/CommandList.svelte';
 	import TestsSummary from '$lib/ui/TestsSummary.svelte';
-	import { buildErrorSummary } from '$lib/ui/testUtils.js';
 	import Tooltip from '$lib/ui/Tooltip.svelte';
 
 	let {
 		results = null,
 		loading = false,
 		onRunTests = () => {},
-		onSendToFix = () => {},
 		gateDisabled = false,
 		gateReason = '',
 	} = $props();
 
-	let hasErrors = $derived(results && !results.passed);
 	let hasResults = $derived(results !== null);
-
-	function handleSendToFix() {
-		onSendToFix(buildErrorSummary(results?.checklist, results?.global_commands));
-	}
 </script>
 
 <div class="tests-panel">
@@ -45,11 +38,6 @@
 		/>
 
 		<div class="tests-actions">
-			{#if hasErrors}
-				<button class="btn btn-primary" onclick={handleSendToFix}>
-					<Send size={14} /> {$t('review.send_to_fix')}
-				</button>
-			{/if}
 			<Tooltip text={gateReason} placement="bottom">
 			<button class="btn" disabled={loading || gateDisabled} onclick={onRunTests}>
 				{#if loading}<Loader2 size={14} class="spin" />{:else}<RotateCcw size={14} />{/if}

@@ -5,9 +5,7 @@
 	import { status } from '$lib/stores/statusStore.js';
 	import { addLog, addError } from '$lib/stores/logStore.js';
 	import { invalidate } from '$lib/api/cache.js';
-	import { ShieldCheck } from 'lucide-svelte';
 	import ProjectTestsPanel from './review/ProjectTestsPanel.svelte';
-	import { openChatPanel } from '$lib/stores/chatPanelStore.js';
 
 	let architectureReady = $derived(!!$status?.architecture_reviewed);
 
@@ -41,15 +39,6 @@
 		}
 		testsLoading = false;
 	}
-
-	function sendErrorsToFix(errorSummary) {
-		openChatPanel();
-		setTimeout(() => {
-			window.dispatchEvent(new CustomEvent('skaro:prefill-project-fix', {
-				detail: { message: errorSummary },
-			}));
-		}, 200);
-	}
 </script>
 
 <div class="main-header">
@@ -61,7 +50,6 @@
 	results={testsResults}
 	loading={testsLoading}
 	onRunTests={runTests}
-	onSendToFix={sendErrorsToFix}
 	gateDisabled={!architectureReady}
 	gateReason={!architectureReady ? $t('gate.need_architecture') : ''}
 />

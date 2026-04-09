@@ -1,8 +1,9 @@
 <script>
 	import { t } from '$lib/i18n/index.js';
-	import { renderMarkdown, stripFilePathBlocks, stripFileMarkers, stripTaskProposals } from '$lib/utils/markdown.js';
+	import { renderMarkdown, stripFilePathBlocks, stripFileMarkers, stripTaskProposals, stripIssueBlocks } from '$lib/utils/markdown.js';
 	import { FileCode, Check, Bot, ChevronDown, ChevronUp } from 'lucide-svelte';
 	import TaskProposal from '$lib/pages/tasks/TaskProposal.svelte';
+	import ReviewIssueCard from '$lib/ui/ReviewIssueCard.svelte';
 
 	let {
 		turn = {},
@@ -12,6 +13,33 @@
 		onOpenDiff = (turnIdx, fpath, fdata) => {},
 		onCreateTasks = null,
 	} = $props();
+
+	/** Track which issue indices have been created as tasks within this turn. */
+	let createdIssueIndices = $state(new Set());
+
+	async function handleCreateIssueTask(issueIdx) {
+		if (!onCreateTasks) return;
+		const issue = turn.issueProposals[issueIdx];
+		if (!issue) return;
+		const spec = [
+			`# ${issue.title}`,
+			'',
+			`**Severity:** ${issue.severity}`,
+			issue.file ? `**File:** ${issue.file}` : '',
+			'',
+			'## Description',
+			'',
+			issue.description,
+		].filter(Boolean).join('\n');
+		const result = await onCreateTasks([{
+			name: issue.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''),
+			milestone: 'review-fixes',
+			spec,
+		}]);
+		if (result !== false) {
+			createdIssueIndices = new Set([...createdIssueIndices, issueIdx]);
+		}
+	}
 
 	/**
 	 * Content to render as markdown.
@@ -27,7 +55,7 @@
 	 */
 	let displayContent = $derived(
 		turn.role === 'assistant'
-			? stripTaskProposals(stripFileMarkers(stripFilePathBlocks(turn.content || ''))).trim()
+			? stripIssueBlocks(stripTaskProposals(stripFileMarkers(stripFilePathBlocks(turn.content || '')))).trim()
 			: (turn.content || '')
 	);
 
@@ -83,6 +111,18 @@
 				proposals={turn.taskProposals}
 				onConfirm={(tasks) => onCreateTasks(turnIdx, tasks)}
 			/>
+		{/if}
+
+		{#if onCreateTasks && turn.issueProposals?.length > 0}
+			<div class="issue-list">
+				{#each turn.issueProposals as issue, i}
+					<ReviewIssueCard
+						{issue}
+						created={createdIssueIndices.has(i)}
+						onCreateTask={() => handleCreateIssueTask(i)}
+					/>
+				{/each}
+			</div>
 		{/if}
 	{:else}
 		<div class="turn-label">{$t('fix.you')}</div>
@@ -374,5 +414,9 @@
 
 	:global(.applied-icon) {
 		color: var(--ok);
+	}
+
+	.issue-list {
+		margin-top: 1rem;
 	}
 </style>

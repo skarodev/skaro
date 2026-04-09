@@ -224,6 +224,14 @@ export default {
 	'task_proposal.preview_spec': 'Просмотр спецификации',
 	'task_proposal.batch_created': 'Создано задач: {n}',
 
+	// Review issue cards
+	'review_issue.must_fix': 'Обязательно',
+	'review_issue.should_improve': 'Улучшить',
+	'review_issue.nice_to_have': 'Желательно',
+	'review_issue.create_task': 'Создать задачу',
+	'review_issue.create_task_tip': 'Создать задачу в milestone review-fixes',
+	'review_issue.task_created': 'Задача создана',
+
 	// Phase actions
 	'action.clarify': 'Уточнить',
 	'action.re_clarify': 'Переуточнить',
@@ -464,6 +472,7 @@ export default {
 	'review.tests_done': 'Ревью проекта завершено',
 	'review.not_run_yet': 'Ревью проекта ещё не запускалось.',
 	'review.fix_response': 'Получен ответ по исправлениям проекта',
+	'review.issues_tasks_created': 'Создано задач из ревью: {n}',
 	'review.scope_title': 'Область контекста',
 	'review.scope_all': 'Все задачи (по умолчанию)',
 	'review.scope_selected': 'Выбрано задач: {n}',

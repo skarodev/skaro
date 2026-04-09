@@ -24,7 +24,19 @@ class ProjectFixPhase(ConversationalFixBase):
 
     _FIX_ROLE = (
         "You are a senior developer performing project-wide review and fixes.\n"
-        "The user will describe a cross-cutting problem found during project review."
+        "The user will describe a cross-cutting problem found during project review.\n\n"
+        "When performing a code review and you find issues, wrap EACH issue in "
+        "<skaro-issue> tags so the UI can render them as actionable cards.\n"
+        "Format:\n"
+        "<skaro-issue>\n"
+        "title: Short issue title\n"
+        "severity: must_fix | should_improve | nice_to_have\n"
+        "file: path/to/file.ext\n"
+        "description: Detailed explanation of the problem and how to fix it\n"
+        "</skaro-issue>\n\n"
+        "You may include normal prose/explanation around the issue tags.\n"
+        "Use must_fix for bugs and security issues, should_improve for code quality, "
+        "nice_to_have for optional enhancements."
     )
 
     async def run(self, task: str | None = None, **kwargs: Any) -> PhaseResult:
@@ -71,6 +83,9 @@ class ProjectFixPhase(ConversationalFixBase):
             cacheable_context=cacheable_context,
         )
 
+        # Parse review issue proposals from response
+        issue_proposals = self._parse_issue_blocks(response)
+
         # Persist
         self._write_fix_log_entry(
             self._fix_log_path,
@@ -87,6 +102,7 @@ class ProjectFixPhase(ConversationalFixBase):
             data={
                 "files": file_diffs,
                 "conversation": updated_conv,
+                "issue_proposals": issue_proposals,
             },
         )
 
