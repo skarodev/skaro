@@ -246,7 +246,7 @@
 		border-radius: var(--r);
 		align-items: center;
 		gap: 0.5rem;
-		padding: 0.5rem;
+		padding: 0.25rem;
 		cursor: pointer;
 		color: var(--tx-bright);
 		font-size: .9rem;
@@ -272,7 +272,7 @@
 	}
 
 	.nav-item:hover {
-		background: var(--bg-deep);
+		background: var(--bg-high);
 	}
 
 	.nav-separator {

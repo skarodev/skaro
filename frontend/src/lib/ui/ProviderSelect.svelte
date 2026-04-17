@@ -73,10 +73,10 @@
 		align-items: center;
 		gap: 0.5rem;
 		width: 100%;
-		padding: .7rem;
+		padding: .5rem;
 		background-color: var(--bg-deep);
 		border: 0.0625rem solid var(--bg);
-		border-radius: var(--r2);
+		border-radius: var(--r);
 		color: var(--tx);
 		font-size: 1rem;
 		font-family: var(--font-ui);
@@ -102,8 +102,8 @@
 	}
 
 	.icon {
-		width: 1.25rem;
-		height: 1.25rem;
+		width: 1.2rem;
+		height: 1.2rem;
 		flex-shrink: 0;
 		border-radius: 50%;
 	}
@@ -116,7 +116,7 @@
 		z-index: 100;
 		background: var(--bg-deep);
 		border: 0.0625rem solid var(--bd);
-		border-radius: var(--r2);
+		border-radius: var(--r);
 		padding: 0.25rem;
 		box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, .35);
 	}
@@ -126,9 +126,9 @@
 		align-items: center;
 		gap: 0.5rem;
 		width: 100%;
-		padding: 0.5rem 0.625rem;
+		padding: 0.3rem 0.5rem;
 		border: none;
-		border-radius: var(--r2);
+		border-radius: var(--r);
 		background: none;
 		color: var(--tx);
 		font-size: 1rem;

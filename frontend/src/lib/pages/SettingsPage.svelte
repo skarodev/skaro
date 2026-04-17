@@ -358,7 +358,7 @@
 		display: flex;
 		align-items: center;
 		width: 100%;
-		padding: .75rem;
+		padding: .25rem .5rem;
 		border: none;
 		border-radius: var(--r);
 		background: none;
@@ -374,7 +374,7 @@
 	}
 
 	.tab-item:hover {
-		background: var(--bg-deep);
+		background: var(--bg-high);
 	}
 
 	.tab-item.active {
@@ -404,20 +404,18 @@
 
 	.form-field label {
 		display: block;
-		font-size: 0.6875rem;
+		font-size: 0.45rem .5rem;
 		color: var(--tx-dim);
-		text-transform: uppercase;
-		letter-spacing: 0.03rem;
 		margin-bottom: 0.25rem;
 		font-weight: 600;
 	}
 
 	.form-field input {
 		width: 100%;
-		padding: .7rem;
+		padding: .5rem;
 		background-color: var(--bg-deep);
 		border: 0.0625rem solid var(--bg);
-		border-radius: var(--r2);
+		border-radius: var(--r);
 		color: var(--tx);
 		font-size: 1rem;
 		font-family: var(--font-ui);
@@ -438,7 +436,7 @@
 		align-items: center;
 		gap: 0.5rem;
 		cursor: pointer;
-		font-size: 0.875rem;
+		font-size: 0.9rem;
 		font-weight: 400;
 		text-transform: none;
 		letter-spacing: 0;
@@ -447,8 +445,8 @@
 	}
 
 	.checkbox-label input[type="checkbox"] {
-		width: 1.125rem;
-		height: 1.125rem;
+		width: .9rem;
+		height: .9rem;
 		padding: 0;
 		accent-color: var(--ac);
 		cursor: pointer;

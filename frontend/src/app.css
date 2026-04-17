@@ -50,8 +50,8 @@
 	--bd: #363636;
 	--bd2: #515151;
 	/* Text (bright → dim) */
-	--tx-bright: #eeeeee;
-	--tx: #dddddd;
+	--tx-bright: #bcbcbc;
+	--tx: #bbbbbb;
 	--tx-dim: #999999;
 	/* Accent */
 	--ac: #d05e52;
@@ -196,7 +196,7 @@ table td {
 	display: inline-flex;
 	align-items: center;
 	gap: 0.4rem;
-	padding: 0.4rem 0.65rem;
+	padding: 0.25rem 0.4rem;
 	border-radius: var(--r);
 	border: 1px solid var(--bd);
     background: transparent;
@@ -251,7 +251,7 @@ table td {
 }
 
 .btn-sm {
-	padding: 0.345rem 0.5rem;
+	padding: 0.15rem 0.2rem;
 	font-size: 0.8rem;
 }
 

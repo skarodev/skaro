@@ -210,18 +210,16 @@
 		display: block;
 		font-size: 0.6875rem;
 		color: var(--tx-dim);
-		text-transform: uppercase;
-		letter-spacing: 0.03rem;
 		margin-bottom: 0.25rem;
 		font-weight: 600;
 	}
 
 	.form-field input {
 		width: 100%;
-		padding: .7rem;
+		padding: .5rem;
 		background-color: var(--bg-deep);
 		border: 0.0625rem solid var(--bg);
-		border-radius: var(--r2);
+		border-radius: var(--r);
 		color: var(--tx);
 		font-size: 1rem;
 		font-family: var(--font-ui);

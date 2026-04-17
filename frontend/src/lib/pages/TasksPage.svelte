@@ -374,7 +374,7 @@
 		justify-content: space-between;
 		gap: 0.5rem;
 		width: 100%;
-		padding: .5rem;
+		padding: .25rem .5rem;
 		border: none;
 		border-radius: var(--r);
 		background: none;
@@ -387,7 +387,7 @@
 	}
 
 	.tab-item:hover {
-		background: var(--bg-deep);
+		background: var(--bg-high);
 	}
 
 	.tab-item.active {

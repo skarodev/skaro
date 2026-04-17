@@ -59,6 +59,9 @@
 	let initialLoaded = $state(false);
 	let appliedFiles = $state({});
 	let diffModal = $state(null);
+	let fixBarEl = $state(null);
+	let fixBarHeight = $state(176);
+	let fixBarResizeObserver = null;
 
 	// Scope state
 	let scopePaths = $state([]);
@@ -126,9 +129,20 @@
 		scrollToEnd('smooth');
 	});
 
+	function getScrollContainer() {
+		const container = fixBarEl?.parentElement;
+		if (container instanceof HTMLElement) return container;
+		return document.querySelector('.right-panel-body') || document.querySelector('.main');
+	}
+
+	function isNearBottom(container, threshold = 32) {
+		const remaining = container.scrollHeight - container.scrollTop - container.clientHeight;
+		return remaining <= threshold;
+	}
+
 	function scrollToEnd(behavior = 'instant') {
 		requestAnimationFrame(() => {
-			const container = document.querySelector('.right-panel-body') || document.querySelector('.main');
+			const container = getScrollContainer();
 			if (container) container.scrollTo({ top: container.scrollHeight, behavior });
 		});
 	}
@@ -137,6 +151,36 @@
 		requestAnimationFrame(() => {
 			requestAnimationFrame(() => scrollToEnd());
 		});
+	});
+
+	onMount(() => {
+		if (!fixBarEl || typeof ResizeObserver === 'undefined') return;
+
+		const updateFixBarHeight = () => {
+			if (!fixBarEl) return;
+			const nextHeight = Math.ceil(fixBarEl.getBoundingClientRect().height);
+			if (!nextHeight || nextHeight === fixBarHeight) return;
+
+			const container = getScrollContainer();
+			const keepBottomPinned = container ? isNearBottom(container, Math.max(32, Math.abs(nextHeight - fixBarHeight) + 16)) : false;
+
+			fixBarHeight = nextHeight;
+
+			if (keepBottomPinned) {
+				requestAnimationFrame(() => scrollToEnd('instant'));
+			}
+		};
+
+		updateFixBarHeight();
+		fixBarResizeObserver = new ResizeObserver(() => {
+			updateFixBarHeight();
+		});
+		fixBarResizeObserver.observe(fixBarEl);
+
+		return () => {
+			fixBarResizeObserver?.disconnect();
+			fixBarResizeObserver = null;
+		};
 	});
 
 	// Prefill from external events (e.g. TestsPanel "Send to LLM")
@@ -200,6 +244,8 @@
 	onDestroy(() => {
 		if (prefillEvent) window.removeEventListener(prefillEvent, handlePrefill);
 		if (fixFromIssuesEvent) window.removeEventListener(fixFromIssuesEvent, handleFixFromIssues);
+		fixBarResizeObserver?.disconnect();
+		fixBarResizeObserver = null;
 	});
 
 	async function loadConversation() {
@@ -425,7 +471,9 @@
 	/>
 {/if}
 
-<div class="fix-bar">
+<div class="fix-reserve" style={`height: ${fixBarHeight + 12}px;`}></div>
+
+<div class="fix-bar" bind:this={fixBarEl}>
 	<ComposeBox
 		bind:message
 		{loading}
@@ -454,6 +502,10 @@
 
 <style>
 	.fix-conversation { padding-bottom: 1rem; }
+
+	.fix-reserve {
+		flex-shrink: 0;
+	}
 
 	.fix-bar {
 		position: absolute; bottom: 0;

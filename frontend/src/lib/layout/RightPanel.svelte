@@ -328,7 +328,6 @@
 		flex: 1;
 		overflow-y: auto;
 		padding: 0 2rem;
-        padding-bottom: 11rem;
 		min-height: 0;
 	}
 </style>

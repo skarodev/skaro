@@ -46,7 +46,7 @@
 		display: inline-flex;
 		align-items: center;
 		gap: 0.375rem;
-		padding: 0.35rem 0.75rem;
+		padding: 0.25rem 0.5rem;
 		border: none;
 		border-radius: var(--r);
 		background: transparent;

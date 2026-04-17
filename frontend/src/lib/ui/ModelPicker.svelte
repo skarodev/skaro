@@ -247,7 +247,7 @@
 		gap: 0;
 		background-color: var(--bg-deep);
 		border: 0.0625rem solid var(--bg);
-		border-radius: var(--r2);
+		border-radius: var(--r);
 		transition: border-color .15s;
 	}
 
@@ -265,7 +265,7 @@
 		gap: 0.5rem;
 		flex: 1;
 		min-width: 0;
-		padding: .7rem;
+		padding: .5rem;
 		background: none;
 		border: none;
 		color: var(--tx);
@@ -334,7 +334,7 @@
 		z-index: 200;
 		background: var(--bg-deep);
 		border: 0.0625rem solid var(--bd);
-		border-radius: var(--r2);
+		border-radius: var(--r);
 		box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, .35);
 		overflow: hidden;
 	}
