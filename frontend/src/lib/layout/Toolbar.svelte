@@ -3,7 +3,7 @@
 	import { page } from '$app/stores';
 	import { status } from '$lib/stores/statusStore.js';
 	import { chatPanelOpen, toggleChatPanel } from '$lib/stores/chatPanelStore.js';
-	import { MessageSquare, PanelRightClose, PanelRightOpen } from 'lucide-svelte';
+	import { MessageSquare, MessageSquareOff } from 'lucide-svelte';
 	import Tooltip from '$lib/ui/Tooltip.svelte';
 
 	/** Map of route segment → i18n key. Covers every sidebar entry. */
@@ -92,11 +92,10 @@
 				class:active={$chatPanelOpen}
 				onclick={toggleChatPanel}
 			>
-			<span class="chat-label">{$t('chat_panel.label')}</span>
 			{#if $chatPanelOpen}
-				<PanelRightClose size={16} strokeWidth={1.5} />
+				<MessageSquareOff size={16} strokeWidth={2} />
 			{:else}
-				<PanelRightOpen size={16} strokeWidth={1.5} />
+				<MessageSquare size={16} strokeWidth={2} />
 			{/if}
 		</button>
 		</Tooltip>
