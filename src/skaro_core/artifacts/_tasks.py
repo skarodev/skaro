@@ -14,10 +14,28 @@ from skaro_core.artifacts._models import (
 )
 
 
+TASK_REF_SEPARATOR = "::"
+
+
 class TasksMixin:
     """Manages tasks within milestones: CRUD, files, stages, state."""
 
     # ── Task CRUD ───────────────────────────────
+
+    def make_task_ref(self, milestone: str, task: str) -> str:
+        """Build a stable UI/API task reference unique across milestones."""
+        return f"{milestone}{TASK_REF_SEPARATOR}{task}"
+
+    def parse_task_ref(self, task_ref: str) -> tuple[str, str] | None:
+        """Parse ``milestone::task`` into components, or return ``None``."""
+        if TASK_REF_SEPARATOR not in task_ref:
+            return None
+        milestone, task = task_ref.split(TASK_REF_SEPARATOR, 1)
+        milestone = milestone.strip()
+        task = task.strip()
+        if not milestone or not task:
+            return None
+        return milestone, task
 
     def task_dir(self, milestone: str, task: str) -> Path:
         return self.milestone_dir(milestone) / task
@@ -232,6 +250,7 @@ class TasksMixin:
             phases=phases,
             current_stage=len(completed_stages),
             total_stages=total_stages,
+            ref=self.make_task_ref(milestone, task),
         )
 
     def get_project_state(self) -> ProjectState:
@@ -247,7 +266,17 @@ class TasksMixin:
     # ── Slug resolvers ──────────────────────────
 
     def resolve_task(self, task_slug: str) -> tuple[str, str]:
-        """Find (milestone, task) by slug. Raises FileNotFoundError."""
+        """Find (milestone, task) by ``milestone::task`` ref or legacy slug.
+
+        Legacy bare slugs remain supported for backward compatibility.
+        """
+        ref = self.parse_task_ref(task_slug)
+        if ref is not None:
+            milestone, task = ref
+            if self.task_exists(milestone, task):
+                return milestone, task
+            raise FileNotFoundError(f"Task '{task_slug}' not found in any milestone.")
+
         for ms in self.list_milestones():
             if self.task_exists(ms, task_slug):
                 return ms, task_slug

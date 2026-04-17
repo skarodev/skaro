@@ -36,6 +36,7 @@ class TaskState:
     phases: dict[Phase, Status]
     current_stage: int
     total_stages: int
+    ref: str = ""
 
     @property
     def current_phase(self) -> Phase:

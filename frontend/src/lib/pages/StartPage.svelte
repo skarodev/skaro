@@ -88,7 +88,7 @@
 					</a>
 				{/if}
 				{#if activeTask}
-					<a class="btn btn-sm kb-continue" href="/tasks/{encodeURIComponent(activeTask.name)}">
+					<a class="btn btn-sm kb-continue" href="/tasks/{encodeURIComponent(activeTask.ref || activeTask.name)}">
 						{$t('start.action_current_task')} <ArrowRight size={13} />
 					</a>
 				{/if}

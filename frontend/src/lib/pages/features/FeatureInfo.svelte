@@ -25,7 +25,7 @@
 		<h3 class="section-label">{$t('feature.linked_tasks')} ({tasks.length})</h3>
 		<div class="task-list">
 			{#each tasks as task}
-				<a class="card task-item" href="/tasks/{encodeURIComponent(task.name)}">
+				<a class="card task-item" href="/tasks/{encodeURIComponent(task.ref || task.name)}">
 					<div class="task-head">
 						<h4>
 							{#if task.progress_percent === 100}

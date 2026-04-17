@@ -177,6 +177,23 @@ class TestTaskLookup:
         assert state.name == "auth"
         assert state.milestone == "01-foundation"
 
+    def test_resolve_task_by_ref_with_duplicate_slugs(self, am):
+        am.create_milestone("01-foundation")
+        am.create_milestone("02-mvp")
+        am.create_task("01-foundation", "auth")
+        am.create_task("02-mvp", "auth")
+
+        assert am.resolve_task("01-foundation::auth") == ("01-foundation", "auth")
+        assert am.resolve_task("02-mvp::auth") == ("02-mvp", "auth")
+
+    def test_task_state_exposes_unique_ref(self, am):
+        am.create_milestone("01-foundation")
+        am.create_task("01-foundation", "auth")
+
+        state = am.get_task_state("01-foundation", "auth")
+
+        assert state.ref == "01-foundation::auth"
+
 
 class TestStages:
     def test_no_completed_stages_initially(self, am):

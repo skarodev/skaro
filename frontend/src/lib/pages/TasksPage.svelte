@@ -83,7 +83,7 @@
 	let firstActiveName = $derived.by(() => {
 		const tasks = filteredTasks;
 		for (const task of tasks) {
-			if (!isTaskDone(task)) return task.name;
+			if (!isTaskDone(task)) return task.ref || task.name;
 		}
 		return '';
 	});
@@ -261,7 +261,7 @@
 				{/each}
 			</nav>
 			<div class="milestone-tabs-content roadmap" role="list">
-				{#each filteredTasks as task, i (task.name)}
+				{#each filteredTasks as task, i (task.ref || task.name)}
 					{@const isDragging = dragIndex === i}
 					{@const isOver = overIndex === i && dragIndex !== i}
 					{@const sameMilestone = dragMilestone === '' || task.milestone === dragMilestone}
@@ -285,10 +285,10 @@
 						<div class="drag-card-wrap">
 							<TaskListItem
 								{task}
-								href="/tasks/{encodeURIComponent(task.name)}"
+								href="/tasks/{encodeURIComponent(task.ref || task.name)}"
 								isFirst={i === 0}
 								isLast={i === filteredTasks.length - 1}
-								isActive={task.name === firstActiveName}
+								isActive={(task.ref || task.name) === firstActiveName}
 							/>
 						</div>
 					</div>

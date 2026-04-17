@@ -53,7 +53,7 @@ class AutopilotOrchestrator:
                 "total": self._total_task_count,
                 "pending": len(pending),
                 "tasks": [
-                    {"name": t["name"], "milestone": t["milestone"]}
+                    {"name": t["name"], "ref": t["ref"], "milestone": t["milestone"]}
                     for t in pending
                 ],
             })
@@ -62,12 +62,13 @@ class AutopilotOrchestrator:
 
             for idx, task in enumerate(pending):
                 if self._stop.is_set():
-                    yield sse("stopped", {"reason": "user", "task": task["name"]})
+                    yield sse("stopped", {"reason": "user", "task": task["ref"], "name": task["name"]})
                     return
 
-                task_name = task["name"]
+                task_name = task["ref"]
                 yield sse("task:start", {
                     "task": task_name,
+                    "name": task["name"],
                     "index": idx,
                     "total": len(pending),
                     "milestone": task["milestone"],
@@ -82,6 +83,7 @@ class AutopilotOrchestrator:
                 completed += 1
                 yield sse("task:done", {
                     "task": task_name,
+                    "name": task["name"],
                     "index": idx,
                     "completed": completed,
                     "total": len(pending),
@@ -108,6 +110,7 @@ class AutopilotOrchestrator:
         for ts in state.tasks:
             all_tasks.append({
                 "name": ts.name,
+                "ref": ts.ref or ts.name,
                 "milestone": ts.milestone,
                 "current_phase": ts.current_phase.value,
                 "current_stage": ts.current_stage,

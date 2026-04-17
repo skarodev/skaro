@@ -106,6 +106,10 @@ async function patch(path, body = {}, signal) {
 // ── Model override helper ─────────────────────
 
 /** Parse "provider/model" override string into body fields. */
+function taskSegment(name) {
+	return encodeURIComponent(name);
+}
+
 function _overrideFields(override) {
 	if (!override) return {};
 	const idx = override.indexOf('/');
@@ -166,55 +170,55 @@ export const api = {
 
 	// Tasks
 	getTasks: (signal) => get('/api/tasks', signal),
-	getTask: (/** @type {string} */ name, signal) => get(`/api/tasks/${name}`, signal),
+	getTask: (/** @type {string} */ name, signal) => get(`/api/tasks/${taskSegment(name)}`, signal),
 	createTask: (/** @type {string} */ name, /** @type {string} */ milestone, signal) =>
 		post('/api/tasks', { name, milestone }, signal),
 	batchCreateTasks: (/** @type {Array<{name: string, milestone: string, spec: string}>} */ tasks, signal) =>
 		post('/api/tasks/batch', { tasks }, signal),
-	deleteTask: (/** @type {string} */ name, signal) => del(`/api/tasks/${name}`, signal),
+	deleteTask: (/** @type {string} */ name, signal) => del(`/api/tasks/${taskSegment(name)}`, signal),
 	reorderTasks: (/** @type {string} */ milestone, /** @type {string[]} */ tasks, signal) =>
 		put('/api/tasks/reorder', { milestone, tasks }, signal),
 	saveTaskFile: (/** @type {string} */ name, /** @type {string} */ filename, /** @type {string} */ content, signal) =>
-		put(`/api/tasks/${name}/file`, { filename, content }, signal),
+		put(`/api/tasks/${taskSegment(name)}/file`, { filename, content }, signal),
 	saveStageNotes: (/** @type {string} */ name, /** @type {number} */ stage, /** @type {string} */ content, signal) =>
-		put(`/api/tasks/${name}/stage/${stage}/notes`, { content }, signal),
+		put(`/api/tasks/${taskSegment(name)}/stage/${stage}/notes`, { content }, signal),
 
 	// Phases
-	runClarify: (/** @type {string} */ name, signal) => post(`/api/tasks/${name}/clarify`, {}, signal),
+	runClarify: (/** @type {string} */ name, signal) => post(`/api/tasks/${taskSegment(name)}/clarify`, {}, signal),
 	answerClarify: (/** @type {string} */ name, /** @type {any} */ payload, signal) =>
-		post(`/api/tasks/${name}/clarify/answer`, payload, signal),
+		post(`/api/tasks/${taskSegment(name)}/clarify/answer`, payload, signal),
 	saveClarifyDraft: (/** @type {string} */ name, /** @type {any[]} */ questions, signal) =>
-		put(`/api/tasks/${name}/clarify/draft`, { questions }, signal),
-	runPlan: (/** @type {string} */ name, signal) => post(`/api/tasks/${name}/plan`, {}, signal),
+		put(`/api/tasks/${taskSegment(name)}/clarify/draft`, { questions }, signal),
+	runPlan: (/** @type {string} */ name, signal) => post(`/api/tasks/${taskSegment(name)}/plan`, {}, signal),
 	runImplement: (/** @type {string} */ name, /** @type {any} */ payload, signal) =>
-		post(`/api/tasks/${name}/implement`, payload, signal),
+		post(`/api/tasks/${taskSegment(name)}/implement`, payload, signal),
 	applyImplementFile: (/** @type {string} */ name, /** @type {string} */ filepath, /** @type {string} */ content, signal) =>
-		post(`/api/tasks/${name}/apply-file`, { filepath, content }, signal),
+		post(`/api/tasks/${taskSegment(name)}/apply-file`, { filepath, content }, signal),
 	completeStage: (/** @type {string} */ name, /** @type {number} */ stage, signal) =>
-		post(`/api/tasks/${name}/stage/${stage}/complete`, {}, signal),
+		post(`/api/tasks/${taskSegment(name)}/stage/${stage}/complete`, {}, signal),
 
 	// Tests (structural checks + verify commands)
 	runTests: (/** @type {string} */ name, signal) =>
-		post(`/api/tasks/${name}/tests`, {}, signal),
+		post(`/api/tasks/${taskSegment(name)}/tests`, {}, signal),
 	confirmTests: (/** @type {string} */ name, signal) =>
-		post(`/api/tasks/${name}/tests/confirm`, {}, signal),
+		post(`/api/tasks/${taskSegment(name)}/tests/confirm`, {}, signal),
 	getVerifyCommands: (/** @type {string} */ name, signal) =>
-		get(`/api/tasks/${name}/tests/commands`, signal),
+		get(`/api/tasks/${taskSegment(name)}/tests/commands`, signal),
 	saveVerifyCommands: (/** @type {string} */ name, /** @type {any[]} */ commands, signal) =>
-		put(`/api/tasks/${name}/tests/commands`, { commands }, signal),
+		put(`/api/tasks/${taskSegment(name)}/tests/commands`, { commands }, signal),
 	getTestIssues: (/** @type {string} */ name, signal) =>
-		get(`/api/tasks/${name}/tests/issues`, signal),
+		get(`/api/tasks/${taskSegment(name)}/tests/issues`, signal),
 
 	// Fix (conversational bug fixing)
 	sendFix: (/** @type {string} */ name, /** @type {string} */ message, /** @type {any[]} */ conversation, /** @type {string[]} */ scope_paths, signal, /** @type {string} */ override) =>
-		post(`/api/tasks/${name}/fix`, { message, conversation, scope_paths: scope_paths || [], ..._overrideFields(override) }, signal),
+		post(`/api/tasks/${taskSegment(name)}/fix`, { message, conversation, scope_paths: scope_paths || [], ..._overrideFields(override) }, signal),
 	fixFromIssues: (/** @type {string} */ name, /** @type {string[]} */ issue_ids, /** @type {any[]} */ conversation, /** @type {string[]} */ scope_paths, signal, /** @type {string} */ override) =>
-		post(`/api/tasks/${name}/fix/from-issues`, { issue_ids, conversation, scope_paths: scope_paths || [], ..._overrideFields(override) }, signal),
+		post(`/api/tasks/${taskSegment(name)}/fix/from-issues`, { issue_ids, conversation, scope_paths: scope_paths || [], ..._overrideFields(override) }, signal),
 	applyFixFile: (/** @type {string} */ name, /** @type {string} */ filepath, /** @type {string} */ content, signal) =>
-		post(`/api/tasks/${name}/fix/apply`, { filepath, content }, signal),
-	getFixLog: (/** @type {string} */ name, signal) => get(`/api/tasks/${name}/fix/log`, signal),
-	loadFixConversation: (/** @type {string} */ name, signal) => get(`/api/tasks/${name}/fix/conversation`, signal),
-	clearFixConversation: (/** @type {string} */ name, signal) => del(`/api/tasks/${name}/fix/conversation`, signal),
+		post(`/api/tasks/${taskSegment(name)}/fix/apply`, { filepath, content }, signal),
+	getFixLog: (/** @type {string} */ name, signal) => get(`/api/tasks/${taskSegment(name)}/fix/log`, signal),
+	loadFixConversation: (/** @type {string} */ name, signal) => get(`/api/tasks/${taskSegment(name)}/fix/conversation`, signal),
+	clearFixConversation: (/** @type {string} */ name, signal) => del(`/api/tasks/${taskSegment(name)}/fix/conversation`, signal),
 
 	// Project Review
 	runReviewTests: (signal) => post('/api/review/tests', {}, signal),

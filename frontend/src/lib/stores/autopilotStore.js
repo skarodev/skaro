@@ -226,7 +226,7 @@ function _handleSSE(event, rawData) {
 			autopilotQueue.set(data.tasks || []);
 			autopilotCounts.set({ total: data.total, pending: data.pending, completed: 0 });
 			for (const t of data.tasks || []) {
-				setTaskStatus(t.name, 'pending');
+				setTaskStatus(t.ref || t.name, 'pending');
 			}
 			addLog('system', '', '', `${data.pending} tasks in queue`);
 			break;
@@ -236,18 +236,18 @@ function _handleSSE(event, rawData) {
 			autopilotCurrentPhase.set('');
 			autopilotStageInfo.set({ stage: 0, total_stages: 0 });
 			setTaskStatus(data.task, 'running');
-			addLog('task', data.task, '', `Starting task (${data.index + 1}/${data.total})`);
+			addLog('task', data.name || data.task, '', `Starting task (${data.index + 1}/${data.total})`);
 			break;
 
 		case 'task:done':
 			setTaskStatus(data.task, 'done');
 			autopilotCounts.update((c) => ({ ...c, completed: data.completed }));
-			addLog('task', data.task, '', 'Task completed');
+			addLog('task', data.name || data.task, '', 'Task completed');
 			break;
 
 		case 'task:skip':
 			setTaskStatus(data.task, 'skipped');
-			addLog('task', data.task, '', `Skipped: ${data.reason}`);
+			addLog('task', data.name || data.task, '', `Skipped: ${data.reason}`);
 			break;
 
 		case 'phase:start':
@@ -260,7 +260,7 @@ function _handleSSE(event, rawData) {
 			}
 			addLog(
 				'phase',
-				data.task,
+				data.name || data.task,
 				data.phase,
 				data.phase === 'implement'
 					? `Implement stage ${data.stage}/${data.total_stages}`
@@ -271,7 +271,7 @@ function _handleSSE(event, rawData) {
 		case 'phase:done':
 			addLog(
 				'phase',
-				data.task,
+				data.name || data.task,
 				data.phase,
 				data.phase === 'implement'
 					? `Stage ${data.stage}/${data.total_stages} done (${data.files_count} files)`
@@ -294,7 +294,7 @@ function _handleSSE(event, rawData) {
 				message: data.message || 'Unknown error',
 			});
 			setTaskStatus(data.task, 'error');
-			addLog('error', data.task || '', data.phase || '', data.message);
+			addLog('error', data.name || data.task || '', data.phase || '', data.message);
 			_cleanup();
 			break;
 

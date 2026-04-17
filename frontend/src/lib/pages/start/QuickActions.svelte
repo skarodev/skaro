@@ -25,7 +25,7 @@
 			list.push({
 				id: 'current_task',
 				icon: Zap,
-				href: '/tasks/' + encodeURIComponent(currentTask.name),
+				href: '/tasks/' + encodeURIComponent(currentTask.ref || currentTask.name),
 				accent: true,
 			});
 		}

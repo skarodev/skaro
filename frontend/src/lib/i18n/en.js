@@ -680,9 +680,9 @@ export default {
 	'git.commit_hint': 'Ctrl+Enter to commit quickly.',
 
 	// ── About ──
-    'about.tagline': 'AI-powered SDLC orchestration platform',
+    'about.tagline': 'The open-source spec-driven workspace for software development with AI',
     'about.description_title': 'About',
-    'about.description': 'Skaro is an AI-driven development lifecycle tool that guides teams through architecture, planning, implementation, and review — using LLMs at every stage.',
+    'about.description': 'Skaro is positioned as a tool where the developer remains the architect and the AI acts as the executor: the platform supports architecture reviews, ADRs, DevPlans, step-by-step task execution, Git integration, model usage analytics, and stack-specific instruction sets for different technologies.',
     'about.version': 'Version',
     'about.license': 'License',
     'about.author': 'Author',

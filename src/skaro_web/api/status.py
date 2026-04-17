@@ -85,6 +85,7 @@ def _build_status(am: ArtifactManager, project_root: Path) -> dict[str, Any]:
     tasks = [
         {
             "name": ts.name,
+            "ref": ts.ref,
             "milestone": ts.milestone,
             "current_phase": ts.current_phase.value,
             "current_stage": ts.current_stage,

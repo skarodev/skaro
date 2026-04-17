@@ -79,12 +79,12 @@
 				<span class="kb-col-count">{items.length}</span>
 			</div>
 			<div class="kb-col-body">
-				{#each items as task (task.name)}
+				{#each items as task (task.ref || task.name)}
 					{@const done = col.key === 'done'}
 					<a
 						class="kb-card"
 						class:kb-card-done={done}
-						href="/tasks/{encodeURIComponent(task.name)}"
+						href="/tasks/{encodeURIComponent(task.ref || task.name)}"
 					>
 						<div class="kb-card-body">
 							<span class="kb-card-name">{task.name}</span>

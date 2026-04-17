@@ -66,9 +66,9 @@ def is_task_done(task: dict) -> bool:
 
 
 def find_task(am: ArtifactManager, task_name: str):
-    """Find a TaskState by name, or ``None``."""
+    """Find a TaskState by stable ref or legacy name, or ``None``."""
     for ts in am.get_project_state().tasks:
-        if ts.name == task_name:
+        if getattr(ts, "ref", "") == task_name or ts.name == task_name:
             return ts
     return None
 

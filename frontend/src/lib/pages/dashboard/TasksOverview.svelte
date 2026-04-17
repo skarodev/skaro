@@ -41,7 +41,7 @@
 	{#if tasks?.length}
 		<div class="feat-grid">
 			{#each tasks as f}
-				<a class="feat-item" href="/tasks/{encodeURIComponent(f.name)}">
+				<a class="feat-item" href="/tasks/{encodeURIComponent(f.ref || f.name)}">
 					<div class="feat-top">
 						<span class="feat-name">{f.name}</span>
 						<span class="feat-phase">{f.milestone}</span>

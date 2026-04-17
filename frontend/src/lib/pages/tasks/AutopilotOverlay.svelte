@@ -123,7 +123,14 @@
 		return 'dot-pending';
 	}
 
-	function logTypeClass(type) {
+	let currentTaskLabel = $derived.by(() => {
+	const currentRef = $autopilotCurrentTask;
+	if (!currentRef) return '';
+	const current = ($autopilotQueue || []).find((task) => (task.ref || task.name) === currentRef);
+	return current?.name || currentRef;
+});
+
+function logTypeClass(type) {
 		if (type === 'error') return 'log-error';
 		if (type === 'system') return 'log-system';
 		if (type === 'task') return 'log-task';
@@ -211,9 +218,9 @@
 			<aside class="mc-sidebar">
 				<div class="mc-sidebar-title">{$t('autopilot.queue')}</div>
 				<div class="mc-task-list">
-					{#each $autopilotQueue as task, taskIdx (task.name)}
-						{@const taskSt = $autopilotTaskStatus[task.name] || 'pending'}
-						{@const isCurrent = $autopilotCurrentTask === task.name && $autopilotRunning}
+					{#each $autopilotQueue as task, taskIdx (task.ref || task.name)}
+						{@const taskSt = $autopilotTaskStatus[task.ref || task.name] || 'pending'}
+						{@const isCurrent = $autopilotCurrentTask === (task.ref || task.name) && $autopilotRunning}
 						<div
 							class="mc-task-item"
 							class:mc-task-current={isCurrent}
@@ -247,7 +254,7 @@
 								<div class="mc-phase-dots">
 									{#each PHASE_ORDER as phase}
 										<Tooltip text={phase} placement="top">
-										<span class="mc-dot {phaseDotClass(task.name, phase)}"></span>
+										<span class="mc-dot {phaseDotClass(task.ref || task.name, phase)}"></span>
 										</Tooltip>
 									{/each}
 								</div>
@@ -278,7 +285,7 @@
 				{#if $autopilotRunning && $autopilotCurrentTask}
 					<div class="mc-focus-card">
 						<div class="mc-focus-header">
-							<h3>{$autopilotCurrentTask}</h3>
+							<h3>{currentTaskLabel}</h3>
 							<span class="mc-focus-phase">
 								{#if PHASE_ICONS[$autopilotCurrentPhase]}
 									{@const PhaseIcon = PHASE_ICONS[$autopilotCurrentPhase]}

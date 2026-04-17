@@ -64,16 +64,17 @@
 	});
 
 	let detail = $derived($taskDetail);
-	let freshTask = $derived($status?.tasks?.find((f) => f.name === taskName) ?? null);
+	let freshTask = $derived($status?.tasks?.find((f) => (f.ref || f.name) === taskName || f.name === taskName) ?? null);
 	let currentStage = $derived(freshTask?.current_stage ?? detail?.state?.current_stage ?? 0);
 	let totalStages = $derived(freshTask?.total_stages ?? detail?.state?.total_stages ?? 0);
 	let phases = $derived(freshTask?.phases ?? detail?.state?.phases ?? {});
 	let currentPhase = $derived(freshTask?.current_phase ?? detail?.state?.current_phase ?? '');
 	let testsConfirmed = $derived(phases.tests === 'complete');
+	let displayTaskName = $derived(detail?.name || freshTask?.name || taskName);
 
 	// Load tests.json from detail if available (survives page reload)
 	$effect(() => {
-		if (detail?.name === taskName && detail?.files?.['tests.json'] && !testsResults) {
+		if ((detail?.ref === taskName || detail?.name === taskName) && detail?.files?.['tests.json'] && !testsResults) {
 			try {
 				testsResults = JSON.parse(detail.files['tests.json']);
 			} catch { /* ignore parse errors */ }
@@ -375,12 +376,12 @@
 </script>
 
 <div class="detail page-with-tabs">
-	<TaskHeader {taskName} {phases} {currentPhase} {currentStage} {totalStages} onBack={goBack} onDelete={() => deleteConfirmOpen = true} />
+	<TaskHeader taskName={displayTaskName} {phases} {currentPhase} {currentStage} {totalStages} onBack={goBack} onDelete={() => deleteConfirmOpen = true} />
 
 	{#if deleteConfirmOpen}
 		<ConfirmModal
 			title={$t('task.delete_title')}
-			message={$t('task.delete_confirm', { name: taskName })}
+			message={$t('task.delete_confirm', { name: displayTaskName })}
 			confirmLabel={$t('task.delete_btn')}
 			cancelLabel={$t('task.delete_cancel')}
 			loading={deleteLoading}
@@ -452,7 +453,7 @@
 		{/snippet}
 		{#snippet testsSlot()}
 			<TestsPanel
-				{taskName}
+				{displayTaskName}
 				results={testsResults}
 				loading={actionLoading === 'tests'}
 				confirmed={testsConfirmed}

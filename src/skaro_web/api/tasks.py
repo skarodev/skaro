@@ -31,6 +31,11 @@ router = APIRouter(prefix="/api/tasks", tags=["tasks"])
 
 # ── Helpers ────────────────────────────────────
 
+def _task_matches(ts, task_name: str) -> bool:
+    """Match either a stable task ref or a legacy bare slug."""
+    return getattr(ts, "ref", "") == task_name or ts.name == task_name
+
+
 async def _auto_commit_if_done(
     am: ArtifactManager,
     project_root: Path,
@@ -47,12 +52,14 @@ async def _auto_commit_if_done(
         return False
 
     state = am.get_project_state()
+    commit_name = task_name
     for ts in state.tasks:
-        if ts.name == task_name:
+        if _task_matches(ts, task_name):
             from skaro_core.artifacts._models import Status
             all_done = all(s == Status.COMPLETE for s in ts.phases.values())
             if not all_done:
                 return False
+            commit_name = ts.name
             break
     else:
         return False
@@ -60,7 +67,7 @@ async def _auto_commit_if_done(
     from skaro_core.git_ops import auto_commit_task
 
     result = await asyncio.to_thread(
-        auto_commit_task, project_root, task_name, push=cfg.git.auto_push,
+        auto_commit_task, project_root, commit_name, push=cfg.git.auto_push,
     )
     if result:
         logger.info("Auto-committed task completion: %s", task_name)
@@ -74,7 +81,7 @@ async def get_tasks(am: ArtifactManager = Depends(get_am)):
     state = am.get_project_state()
     return {
         "tasks": [
-            {"name": ts.name, "milestone": ts.milestone}
+            {"name": ts.name, "ref": ts.ref, "milestone": ts.milestone}
             for ts in state.tasks
         ],
         "milestones": am.list_milestones(),
@@ -182,7 +189,7 @@ async def get_task_detail(name: str, am: ArtifactManager = Depends(get_am)):
     state = am.get_project_state()
     ts = None
     for t in state.tasks:
-        if t.name == name:
+        if _task_matches(t, name):
             ts = t
             break
     if ts is None:
@@ -208,6 +215,7 @@ async def get_task_detail(name: str, am: ArtifactManager = Depends(get_am)):
 
     return {
         "name": ts.name,
+        "ref": ts.ref,
         "milestone": ts.milestone,
         "files": files,
         "stages": stages,
